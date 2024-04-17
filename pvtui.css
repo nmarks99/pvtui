@@ -1,0 +1,13 @@
+Box {
+    layout: horizontal;
+    min-width: 50;
+    background: $boost;
+    margin: 1;
+    padding: 1;
+}
+
+TextMonitor {
+    height: 3;
+    content-align: center middle;
+    text-opacity: 60%;
+}
