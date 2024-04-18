@@ -1,15 +1,15 @@
-#!/usr/bin/env python3
-
-from textual.app import App
 from textual import on
 from textual.reactive import reactive
-from textual.widgets import Static, Footer, Header, Label, Button
-from textual.containers import ScrollableContainer, Horizontal, Vertical
+from textual.widgets import Static, Button
 from epics import PV
 from rich.emoji import Emoji
 
 class PVTextMonitor(Static):
     
+    '''
+    Displays a the value of a PV as text
+    '''
+
     pv_value =  reactive("?")
 
     def __init__(self, pv_name, **kwargs):
@@ -55,7 +55,6 @@ class PVLed(Static):
         else:
             self.pv = PV(self.pv_name, connection_timeout=1.0)
         self.pv.add_callback(self.pv_callback)
-        #  self.pv_value = self.other_label
 
     def pv_callback(self,**kwargs):
         '''Called whenever a change occurs with the PV through channel access'''
@@ -74,6 +73,10 @@ class PVLed(Static):
 
     
 class PVButton(Button):
+
+    '''
+    Button that writes a value to a PV when pressed
+    '''
     
     def __init__(self, pv_name, label=None, press_val=1, **kwargs):
         super().__init__()
@@ -91,38 +94,3 @@ class PVButton(Button):
         
     def compose(self):
         yield Button(label=self.button_label, variant="primary", id="trigger")
-
-
-class pvtuiApp(App):
-
-    #  (key, action_name, description),
-    BINDINGS = [
-        ("d", "toggle_dark_mode", "Toggle dark mode"),
-    ]
-    
-    CSS_PATH = "pvtui.css"
-
-    def compose(self):
-        yield Header(show_clock=True)
-        #  yield Footer()
-        with ScrollableContainer(id="textmons"):
-            with Vertical(id="vert"):
-                with Horizontal():
-                    yield Label("Robot Mode: ")
-                    yield PVTextMonitor("urExample:Dashboard:RobotMode")
-                with Horizontal():
-                    yield Label("Uptime: ")
-                    yield PVTextMonitor("urExample:Receive:ControllerTimestamp")
-                with Horizontal():
-                    yield Label("Connection: ")
-                    yield PVLed("urExample:Dashboard:Connected")
-                with Horizontal():
-                    yield PVButton("urExample:Dashboard:Disconnect",label="Disconnect")
-                    yield PVButton("urExample:Dashboard:Connect",label="Connect")
-
-    # This is an ACTION method becasue it starts with action_
-    def action_toggle_dark_mode(self):
-        self.dark = not self.dark
-
-if __name__ == "__main__":
-    pvtuiApp().run()
