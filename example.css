@@ -1,23 +1,25 @@
 #app-grid {
     layout: grid;
     grid-size: 2; 
-    background: $panel;
+    grid-columns: 1fr;
+    grid-rows: 1fr;
+    /* background: $panel; */
 }
 
 .hrow {
     height: auto;
     margin: 1;
-    background: $panel;
 }
 
 #top-left {
+    width: 100%;
+    height: 100%;
     row-span: 2;
     border: dodgerblue;
 }
 
 #top-right {
     row-span: 1;
-    background: $panel;
     border: dodgerblue;
 }
 
