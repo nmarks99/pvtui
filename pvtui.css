@@ -1,13 +1,19 @@
-Box {
-    layout: horizontal;
-    min-width: 50;
+
+PVTextMonitor {
+    height: auto;
+    width: auto;
+    /* max-width: 25; */
+    /* min-width: 4; */
+    text-opacity: 60%;
     background: $boost;
-    margin: 1;
-    padding: 1;
 }
 
-TextMonitor {
-    height: 3;
-    content-align: center middle;
-    text-opacity: 60%;
+Horizontal {
+    padding: 0;
+    margin: 1;
+}
+
+Button {
+    padding: 0;
+    margin: 0;
 }
