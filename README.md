@@ -1,3 +1,7 @@
 # PV TUI
-Terminal User Interface library for EPICS built with [Textual](https://github.com/Textualize/textual)
-and [PyEpics](https://github.com/pyepics/pyepics)
+Terminal User Interfaces for EPICS
+
+## Dependencies:
+- [Textual](https://github.com/Textualize/textual)
+- [Rich](https://github.com/Textualize/rich)
+- [PyEpics](https://github.com/pyepics/pyepics)
