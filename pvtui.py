@@ -87,10 +87,10 @@ class PVButton(Button):
             self.pv = PV(self.pv_name, connection_timeout=kwargs["connection_timeout"])
         else:
             self.pv = PV(self.pv_name)
-        
-    @on(Button.Pressed, "#trigger")
+        self.label = self.button_label
+        self.variant="primary"
+
+    #TODO: Check that this works without the id?
+    @on(Button.Pressed)
     def write_pv(self):
         self.pv.put(self.press_val)
-        
-    def compose(self):
-        yield Button(label=self.button_label, variant="primary", id="trigger")

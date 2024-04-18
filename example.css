@@ -1,19 +1,32 @@
-
-PVTextMonitor {
-    height: auto;
-    width: auto;
-    /* max-width: 25; */
-    /* min-width: 4; */
-    text-opacity: 60%;
-    background: $boost;
+#app-grid {
+    layout: grid;
+    grid-size: 2; 
+    background: $panel;
 }
 
-Horizontal {
-    padding: 0;
+.hrow {
+    height: auto;
     margin: 1;
+    background: $panel;
+}
+
+#top-left {
+    row-span: 2;
+    border: dodgerblue;
+}
+
+#top-right {
+    row-span: 1;
+    background: $panel;
+    border: dodgerblue;
+}
+
+#bottom-right {
+    row-span: 1;
+    border: dodgerblue;
 }
 
 Button {
-    padding: 0;
-    margin: 0;
+    margin: 1;
 }
+
