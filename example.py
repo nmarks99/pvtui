@@ -17,7 +17,7 @@ class ExampleApp(App):
         self.macros = macros
 
     def compose(self):
-        yield Header()
+        yield Header(show_clock=True)
         with Container(id="app-grid"):
             
             # left panel
@@ -57,9 +57,9 @@ class ExampleApp(App):
                 with Horizontal(classes="hrow"):
                     yield Input(placeholder="Enter URP program to load...")
                 with Horizontal(classes="hrow"):
-                    yield PVButton("$(P)Dashboard:Play", self.macros, label="Play")
-                    yield PVButton("$(P)Dashboard:Pause", self.macros, label="Pause")
-                    yield PVButton("$(P)Dashboard:Stop", self.macros, label="Stop")
+                    yield PVButton("$(P)Dashboard:Play", self.macros, label="Play", variant="success")
+                    yield PVButton("$(P)Dashboard:Pause", self.macros, label="Pause",  variant="warning")
+                    yield PVButton("$(P)Dashboard:Stop", self.macros, label="Stop", variant="error")
 
 if __name__ == "__main__":
     
@@ -78,7 +78,9 @@ if __name__ == "__main__":
 
     macros_dict = {"P" : "urExample:"}
     
-    ExampleApp(macros=macros_dict).run()
+    app = ExampleApp(macros=macros_dict)
+    app.title = "UR Dashboard"
+    app.run()
 
 
 

@@ -4,6 +4,7 @@ from textual.widgets import Static, Button
 from epics import PV
 from rich.emoji import Emoji
 
+
 class PVTextMonitor(Static):
     
     '''
@@ -12,8 +13,8 @@ class PVTextMonitor(Static):
 
     pv_value =  reactive("?")
 
-    def __init__(self, pv_name, macros, **kwargs):
-        super().__init__()
+    def __init__(self, pv_name, macros, connection_timeout=1.0, **kwargs):
+        super().__init__(**kwargs)
 
         # Replace macros in PV name
         for k,v in macros.items():
@@ -21,21 +22,18 @@ class PVTextMonitor(Static):
         self.pv_name = pv_name
 
         # PV connection
-        if "connection_timeout" in kwargs:
-            self.pv = PV(self.pv_name, connection_timeout=kwargs["connection_timeout"])
-        else:
-            self.pv = PV(self.pv_name, connection_timeout=1.0)
+        self.pv = PV(self.pv_name, connection_timeout=connection_timeout)
         self.pv.add_callback(self.pv_callback)
 
     def pv_callback(self,**kwargs):
         '''Called whenever a change occurs with the PV through channel access'''
         if "value" in kwargs:
-            val = kwargs["value"]
-            self.pv_value = val
+            self.pv_value = kwargs["value"]
 
     def watch_pv_value(self):
         '''Called whenever self.pv_value changes'''
         self.update(str(self.pv_value))
+
 
 class PVLed(Static):
 
@@ -47,11 +45,12 @@ class PVLed(Static):
     pv_value = reactive("?")
 
     def __init__(self, pv_name, macros,
+                 connection_timeout=1.0,
                  high_label=Emoji("green_circle"),
                  low_label=Emoji("red_circle"),
                  other_label=Emoji("white_circle"),
                  **kwargs):
-        super().__init__()
+        super().__init__(**kwargs)
 
         self.high_label=high_label
         self.low_label=low_label
@@ -62,18 +61,16 @@ class PVLed(Static):
             pv_name = pv_name.replace(f"$({k})", v)
         self.pv_name = pv_name
         
-        # PV Connection
-        if "connection_timeout" in kwargs:
-            self.pv = PV(self.pv_name, connection_timeout=kwargs["connection_timeout"])
-        else:
-            self.pv = PV(self.pv_name, connection_timeout=1.0)
+        # PV connection
+        self.pv = PV(self.pv_name, connection_timeout=connection_timeout)
         self.pv.add_callback(self.pv_callback)
 
     def pv_callback(self,**kwargs):
         '''Called whenever a change occurs with the PV through channel access'''
         if "value" in kwargs:
-            val = kwargs["value"]
-            self.pv_value = val
+            #  val = kwargs["value"]
+            #  self.pv_value = val
+            self.pv_value = kwargs["value"]
 
     def watch_pv_value(self):
         '''Called whenever self.pv_value changes'''
@@ -91,11 +88,10 @@ class PVButton(Button):
     Button that writes a value to a PV when pressed
     '''
     
-    def __init__(self, pv_name, macros, label=None, press_val=1, **kwargs):
-        super().__init__()
+    def __init__(self, pv_name, macros, connection_timeout=1.0, press_val=1, **kwargs):
+        super().__init__(**kwargs)
         
         self.press_val = press_val
-        self.button_label = label if label is not None else self.pv_name
         
         # Replace macros in PV name
         for k,v in macros.items():
@@ -103,12 +99,8 @@ class PVButton(Button):
         self.pv_name = pv_name
         
         # PV connection
-        if "connection_timeout" in kwargs:
-            self.pv = PV(self.pv_name, connection_timeout=kwargs["connection_timeout"])
-        else:
-            self.pv = PV(self.pv_name)
-        self.label = self.button_label
-        self.variant="primary"
+        self.pv = PV(self.pv_name, connection_timeout=connection_timeout)
+
 
     #TODO: Check that this works without the id?
     @on(Button.Pressed)
