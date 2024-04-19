@@ -5,6 +5,7 @@ from textual.widgets import Footer, Header, Label, Static, Input
 from textual.containers import ScrollableContainer, Horizontal, Vertical, Container, VerticalScroll
 from pvtui import PVLed, PVButton, PVTextMonitor
 import argparse
+from rich.emoji import Emoji
 
 
 class ExampleApp(App):
@@ -20,7 +21,8 @@ class ExampleApp(App):
         with Container(id="app-grid"):
             
             # left panel
-            with Vertical(id="top-left"):
+            with Vertical(id="top-left") as vert:
+                vert.border_title="Control"
                 with Horizontal(classes="hrow"):
                     yield PVButton("$(P)Dashboard:Connect", self.macros, label="Connect")
                     yield PVButton("$(P)Dashboard:Disconnect", self.macros, label="Disconnnect")
@@ -29,7 +31,8 @@ class ExampleApp(App):
                         yield Label("Some more text here ")
 
             # top right
-            with Vertical(id="top-right"):
+            with Vertical(id="top-right") as vert:
+                vert.border_title = "Status"
                 with Horizontal(classes="hrow"):
                     yield Label("Uptime: ")
                     yield PVTextMonitor("$(P)Receive:ControllerTimestamp", self.macros)
@@ -45,13 +48,18 @@ class ExampleApp(App):
                     yield PVTextMonitor("$(P)Dashboard:SafetyStatus", self.macros)
 
             # Bottom right
-            with Vertical(id="bottom-right"):
+            with Vertical(id="bottom-right") as vert:
+                vert.border_title = "Program"
                 with Horizontal(classes="hrow"):
                     yield PVTextMonitor("$(P)Dashboard:LoadedProgram", self.macros)
                 with Horizontal(classes="hrow"):
                     yield PVTextMonitor("$(P)Dashboard:ProgramState", self.macros)
                 with Horizontal(classes="hrow"):
                     yield Input(placeholder="Enter URP program to load...")
+                with Horizontal(classes="hrow"):
+                    yield PVButton("$(P)Dashboard:Play", self.macros, label="Play")
+                    yield PVButton("$(P)Dashboard:Pause", self.macros, label="Pause")
+                    yield PVButton("$(P)Dashboard:Stop", self.macros, label="Stop")
 
 if __name__ == "__main__":
     
