@@ -14,6 +14,7 @@
 .hrow > PVTextMonitor {
     background: $boost;
     width: auto;
+    height: auto;
 }
 
 #top-left {
@@ -33,7 +34,11 @@
     border: dodgerblue;
 }
 
-Button {
+PVButton {
     margin: 1;
+    min-width: 16;
+    min-height: 1;
+    padding: 0;
+    text-align: center;
+    border: wide $accent;
 }
-

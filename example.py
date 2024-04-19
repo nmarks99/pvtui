@@ -44,7 +44,6 @@ class ExampleApp(App):
                 with Horizontal(classes="hrow"):
                     yield PVTextMonitor("$(P)Dashboard:SafetyStatus", self.macros)
 
-    
             # Bottom right
             with Vertical(id="bottom-right"):
                 with Horizontal(classes="hrow"):
@@ -68,6 +67,8 @@ if __name__ == "__main__":
         for m in args.macro.split(","):
             kv = m.replace(" ", "").split("=")
             macros_dict.update({kv[0]:kv[1]})
+
+    macros_dict = {"P" : "urExample:"}
     
     ExampleApp(macros=macros_dict).run()
 
