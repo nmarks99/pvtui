@@ -12,9 +12,15 @@ class PVTextMonitor(Static):
 
     pv_value =  reactive("?")
 
-    def __init__(self, pv_name, **kwargs):
+    def __init__(self, pv_name, macros, **kwargs):
         super().__init__()
+
+        # Replace macros in PV name
+        for k,v in macros.items():
+            pv_name = pv_name.replace(f"$({k})", v)
         self.pv_name = pv_name
+
+        # PV connection
         if "connection_timeout" in kwargs:
             self.pv = PV(self.pv_name, connection_timeout=kwargs["connection_timeout"])
         else:
@@ -40,16 +46,23 @@ class PVLed(Static):
     
     pv_value = reactive("?")
 
-    def __init__(self, pv_name,
+    def __init__(self, pv_name, macros,
                  high_label=Emoji("green_circle"),
                  low_label=Emoji("red_circle"),
                  other_label=Emoji("white_circle"),
                  **kwargs):
         super().__init__()
+
         self.high_label=high_label
         self.low_label=low_label
         self.other_label = other_label
+    
+        # Replace macros in PV name
+        for k,v in macros.items():
+            pv_name = pv_name.replace(f"$({k})", v)
         self.pv_name = pv_name
+        
+        # PV Connection
         if "connection_timeout" in kwargs:
             self.pv = PV(self.pv_name, connection_timeout=kwargs["connection_timeout"])
         else:
@@ -78,11 +91,18 @@ class PVButton(Button):
     Button that writes a value to a PV when pressed
     '''
     
-    def __init__(self, pv_name, label=None, press_val=1, **kwargs):
+    def __init__(self, pv_name, macros, label=None, press_val=1, **kwargs):
         super().__init__()
-        self.pv_name = pv_name
+        
         self.press_val = press_val
         self.button_label = label if label is not None else self.pv_name
+        
+        # Replace macros in PV name
+        for k,v in macros.items():
+            pv_name = pv_name.replace(f"$({k})", v)
+        self.pv_name = pv_name
+        
+        # PV connection
         if "connection_timeout" in kwargs:
             self.pv = PV(self.pv_name, connection_timeout=kwargs["connection_timeout"])
         else:

@@ -4,11 +4,16 @@ from textual.app import App
 from textual.widgets import Footer, Header, Label, Static, Input
 from textual.containers import ScrollableContainer, Horizontal, Vertical, Container, VerticalScroll
 from pvtui import PVLed, PVButton, PVTextMonitor
+import argparse
 
 
 class ExampleApp(App):
 
     CSS_PATH = "example.css"
+
+    def __init__(self, macros=None):
+        super().__init__()
+        self.macros = macros
 
     def compose(self):
         yield Header()
@@ -17,8 +22,8 @@ class ExampleApp(App):
             # left panel
             with Vertical(id="top-left"):
                 with Horizontal(classes="hrow"):
-                    yield PVButton("urExample:Dashboard:Connect", label="Connect")
-                    yield PVButton("urExample:Dashboard:Disconnect", label="Disconnect")
+                    yield PVButton("$(P)Dashboard:Connect", self.macros, label="Connect")
+                    yield PVButton("$(P)Dashboard:Disconnect", self.macros, label="Disconnnect")
                 for _ in range(10):
                     with Horizontal(classes="hrow"):
                         yield Label("Some more text here ")
@@ -27,27 +32,44 @@ class ExampleApp(App):
             with Vertical(id="top-right"):
                 with Horizontal(classes="hrow"):
                     yield Label("Uptime: ")
-                    yield PVTextMonitor("urExample:Receive:ControllerTimestamp")
+                    yield PVTextMonitor("$(P)Receive:ControllerTimestamp", self.macros)
                 with Horizontal(classes="hrow"):
                     yield Label("Connected: ")
-                    yield PVLed("urExample:Dashboard:Connected")
+                    yield PVLed("$(P)Dashboard:Connected", self.macros)
                 with Horizontal(classes="hrow"):
                     yield Label("Remote Control: ")
-                    yield PVLed("urExample:Dashboard:IsInRemoteControl")
+                    yield PVLed("$(P)Dashboard:IsInRemoteControl", self.macros)
                 with Horizontal(classes="hrow"):
-                    yield PVTextMonitor("urExample:Dashboard:RobotMode")
+                    yield PVTextMonitor("$(P)Dashboard:RobotMode", self.macros)
                 with Horizontal(classes="hrow"):
-                    yield PVTextMonitor("urExample:Dashboard:SafetyStatus")
+                    yield PVTextMonitor("$(P)Dashboard:SafetyStatus", self.macros)
 
     
             # Bottom right
             with Vertical(id="bottom-right"):
                 with Horizontal(classes="hrow"):
-                    yield PVTextMonitor("urExample:Dashboard:LoadedProgram")
+                    yield PVTextMonitor("$(P)Dashboard:LoadedProgram", self.macros)
                 with Horizontal(classes="hrow"):
-                    yield PVTextMonitor("urExample:Dashboard:ProgramState")
+                    yield PVTextMonitor("$(P)Dashboard:ProgramState", self.macros)
                 with Horizontal(classes="hrow"):
                     yield Input(placeholder="Enter URP program to load...")
 
 if __name__ == "__main__":
-    ExampleApp().run()
+    
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-macro')
+    args = parser.parse_args()
+    
+    # macros are given in the same form as
+    # caQtDM and MEDM, e.g.
+    # -macro P=xxx:,R=a_macro:,M=another:
+    macros_dict = dict()
+    if args.macro is not None:
+        for m in args.macro.split(","):
+            kv = m.replace(" ", "").split("=")
+            macros_dict.update({kv[0]:kv[1]})
+    
+    ExampleApp(macros=macros_dict).run()
+
+
+

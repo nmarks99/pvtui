@@ -11,6 +11,11 @@
     margin: 1;
 }
 
+.hrow > PVTextMonitor {
+    background: $boost;
+    width: auto;
+}
+
 #top-left {
     width: 100%;
     height: 100%;
