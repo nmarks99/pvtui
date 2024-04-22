@@ -168,6 +168,7 @@ class PVButton(Button):
         
         self.press_val = press_val
         self.pv_connected = False
+        self.add_class("pv_down")
         
         # Replace macros in PV name
         for k,v in macros.items():
