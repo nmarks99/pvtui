@@ -71,3 +71,11 @@
     margin-right: 2;
     text-align: center;
 }
+
+PVTextMonitor {
+    border: none;
+}
+
+.pv_down {
+    border: dashed red;
+}
