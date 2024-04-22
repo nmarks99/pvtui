@@ -4,6 +4,18 @@ from textual.widgets import Static, Button, Input
 from epics import PV
 from rich.emoji import Emoji
 
+def get_pv_type(pv: PV) -> type:
+    '''Gets the python type of a PV'''
+    type_str = pv.type.replace("time_","")
+    if type_str in ("string", "char"):
+        return str
+    elif type_str in ("double", "float"):
+        return float
+    elif type_str in ("int", "long", "short"):
+        return int
+    else:
+        # TODO: error logging for unhandled type?
+        return None
 
 class PVTextMonitor(Static):
     
@@ -16,19 +28,32 @@ class PVTextMonitor(Static):
     def __init__(self, pv_name, macros, connection_timeout=1.0, **kwargs):
         super().__init__(**kwargs)
 
+        self.pv_type = None
+        self.pv_connected = False
+
         # Replace macros in PV name
         for k,v in macros.items():
             pv_name = pv_name.replace(f"$({k})", v)
         self.pv_name = pv_name
 
         # PV connection
-        self.pv = PV(self.pv_name, connection_timeout=connection_timeout)
-        self.pv.add_callback(self.pv_callback)
+        self.pv = PV(
+            self.pv_name,
+            connection_timeout=connection_timeout,
+            callback=self.pv_callback,
+            connection_callback=self.pv_conn_callback
+        )
 
     def pv_callback(self,**pv_kwargs):
         '''Called whenever a change occurs with the PV through channel access'''
         if "value" in pv_kwargs:
             self.pv_value = pv_kwargs["value"]
+
+    def pv_conn_callback(self, **pv_kwargs):
+        if "conn" in pv_kwargs:
+            self.pv_connected = pv_kwargs["conn"]
+        if self.pv_connected:
+            self.pv_type = get_pv_type(self.pv)
 
     def watch_pv_value(self):
         '''Called whenever self.pv_value changes'''

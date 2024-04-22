@@ -24,19 +24,36 @@ class ExampleApp(App):
             with Vertical(id="top-left") as vert:
                 vert.border_title="Control"
                 with Horizontal(classes="hrow"):
-                    yield PVButton("$(P)Dashboard:Connect", self.macros, label="Connect")
-                    yield PVButton("$(P)Dashboard:Disconnect", self.macros, label="Disconnnect")
-                for _ in range(10):
-                    yield Static("Some more text here ")
+                    yield PVButton("$(P)Dashboard:PowerOn", self.macros,
+                        label="On", variant="primary", classes="btn")
+                    yield PVButton("$(P)Dashboard:PowerOff", self.macros,
+                        label="Off", variant="primary", classes="btn")
+                with Horizontal(classes="hrow"):
+                    yield PVButton("$(P)Dashboard:Connect", self.macros,
+                        label="Connect", variant="primary", classes="btn")
+                    yield PVButton("$(P)Dashboard:Disconnect", self.macros,
+                        label="Disconnect", variant="primary", classes="btn")
+                with Horizontal(classes="hrow"):
+                    yield PVButton("$(P)Dashboard:ClosePopup", self.macros,
+                        label="Close Popup", variant="primary", classes="btn")
+                    yield PVButton("$(P)Dashboard:CloseSafetyPopup", self.macros,
+                        label="Close Safety Popup", variant="primary", classes="btn")
+                with Horizontal(classes="hrow"):
+                    yield PVButton("$(P)Dashboard:BrakeRelease", self.macros,
+                        label="Release Brakes", variant="primary", classes="btn")
+                    yield PVButton("$(P)Dashboard:UnlockProtectiveStop", self.macros,
+                        label="Unlock Protect. Stop", variant="primary", classes="btn")
+                with Horizontal(classes="hrow"):
+                    yield PVButton("$(P)Dashboard:Shutdown", self.macros,
+                        label="Shutdown", variant="primary", classes="btn")
+                    yield PVButton("$(P)Dashboard:RestartSafety", self.macros,
+                        label="Restart Safety", variant="primary", classes="btn")
 
             # top right
             with Vertical(id="top-right") as vert:
                 vert.border_title = "Status"
                 with Horizontal(classes="hrow"):
-                    yield Label("Uptime: ")
-                    yield PVTextMonitor("$(P)Receive:ControllerTimestamp", self.macros)
-                with Horizontal(classes="hrow"):
-                    yield Label("Connected: ")
+                    yield Label("Connected:      ")
                     yield PVLed("$(P)Dashboard:Connected", self.macros)
                 with Horizontal(classes="hrow"):
                     yield Label("Remote Control: ")
@@ -45,7 +62,7 @@ class ExampleApp(App):
                     yield PVTextMonitor("$(P)Dashboard:RobotMode", self.macros)
                 with Horizontal(classes="hrow"):
                     yield PVTextMonitor("$(P)Dashboard:SafetyStatus", self.macros)
-
+    
             # Bottom right
             with Vertical(id="bottom-right") as vert:
                 vert.border_title = "Program"
@@ -55,10 +72,11 @@ class ExampleApp(App):
                     yield PVTextMonitor("$(P)Dashboard:ProgramState", self.macros)
                 with Horizontal(classes="hrow"):
                     yield PVInput("$(P)Dashboard:LoadURP", self.macros, placeholder="Enter URP program to load...")
-                with Horizontal(classes="hrow"):
+                with Horizontal(classes="hrow pps"):
                     yield PVButton("$(P)Dashboard:Play", self.macros, label="Play", variant="success")
                     yield PVButton("$(P)Dashboard:Pause", self.macros, label="Pause",  variant="warning")
                     yield PVButton("$(P)Dashboard:Stop", self.macros, label="Stop", variant="error")
+
 
 if __name__ == "__main__":
     
@@ -74,9 +92,6 @@ if __name__ == "__main__":
         for m in args.macro.split(","):
             kv = m.replace(" ", "").split("=")
             macros_dict.update({kv[0]:kv[1]})
-    
-    # TODO: Remove this when done debugging
-    macros_dict = {"P" : "urExample:"}
     
     app = ExampleApp(macros=macros_dict)
     app.title = "UR Dashboard"
