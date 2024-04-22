@@ -1,6 +1,6 @@
 from textual import on
 from textual.reactive import reactive
-from textual.widgets import Static, Button
+from textual.widgets import Static, Button, Input
 from epics import PV
 from rich.emoji import Emoji
 
@@ -11,7 +11,7 @@ class PVTextMonitor(Static):
     Displays a the value of a PV as text
     '''
 
-    pv_value =  reactive("?")
+    pv_value = reactive("?")
 
     def __init__(self, pv_name, macros, connection_timeout=1.0, **kwargs):
         super().__init__(**kwargs)
@@ -25,10 +25,10 @@ class PVTextMonitor(Static):
         self.pv = PV(self.pv_name, connection_timeout=connection_timeout)
         self.pv.add_callback(self.pv_callback)
 
-    def pv_callback(self,**kwargs):
+    def pv_callback(self,**pv_kwargs):
         '''Called whenever a change occurs with the PV through channel access'''
-        if "value" in kwargs:
-            self.pv_value = kwargs["value"]
+        if "value" in pv_kwargs:
+            self.pv_value = pv_kwargs["value"]
 
     def watch_pv_value(self):
         '''Called whenever self.pv_value changes'''
@@ -68,8 +68,6 @@ class PVLed(Static):
     def pv_callback(self,**kwargs):
         '''Called whenever a change occurs with the PV through channel access'''
         if "value" in kwargs:
-            #  val = kwargs["value"]
-            #  self.pv_value = val
             self.pv_value = kwargs["value"]
 
     def watch_pv_value(self):
@@ -81,7 +79,26 @@ class PVLed(Static):
         else:
             self.update(str(self.other_label))
 
-    
+
+class PVInput(Input):
+
+    def __init__(self, pv_name, macros, connection_timeout=1.0, **kwargs):
+        super().__init__(**kwargs)
+        
+        # Replace macros in PV name
+        for k,v in macros.items():
+            pv_name = pv_name.replace(f"$({k})", v)
+        self.pv_name = pv_name
+        
+        # PV connection
+        self.pv = PV(self.pv_name, connection_timeout=connection_timeout)
+
+    @on(Input.Submitted)
+    def write_pv(self, event: Input.Submitted):
+        #  print(event.value)
+        self.pv.put(event.value)
+
+
 class PVButton(Button):
 
     '''

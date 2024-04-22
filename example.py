@@ -3,9 +3,9 @@
 from textual.app import App
 from textual.widgets import Footer, Header, Label, Static, Input
 from textual.containers import ScrollableContainer, Horizontal, Vertical, Container, VerticalScroll
-from pvtui import PVLed, PVButton, PVTextMonitor
+from pvtui import PVLed, PVButton, PVTextMonitor, PVInput
 import argparse
-from rich.emoji import Emoji
+#  from rich.emoji import Emoji
 
 
 class ExampleApp(App):
@@ -27,8 +27,7 @@ class ExampleApp(App):
                     yield PVButton("$(P)Dashboard:Connect", self.macros, label="Connect")
                     yield PVButton("$(P)Dashboard:Disconnect", self.macros, label="Disconnnect")
                 for _ in range(10):
-                    with Horizontal(classes="hrow"):
-                        yield Label("Some more text here ")
+                    yield Static("Some more text here ")
 
             # top right
             with Vertical(id="top-right") as vert:
@@ -55,7 +54,7 @@ class ExampleApp(App):
                 with Horizontal(classes="hrow"):
                     yield PVTextMonitor("$(P)Dashboard:ProgramState", self.macros)
                 with Horizontal(classes="hrow"):
-                    yield Input(placeholder="Enter URP program to load...")
+                    yield PVInput("$(P)Dashboard:LoadURP", self.macros, placeholder="Enter URP program to load...")
                 with Horizontal(classes="hrow"):
                     yield PVButton("$(P)Dashboard:Play", self.macros, label="Play", variant="success")
                     yield PVButton("$(P)Dashboard:Pause", self.macros, label="Pause",  variant="warning")
@@ -75,7 +74,8 @@ if __name__ == "__main__":
         for m in args.macro.split(","):
             kv = m.replace(" ", "").split("=")
             macros_dict.update({kv[0]:kv[1]})
-
+    
+    # TODO: Remove this when done debugging
     macros_dict = {"P" : "urExample:"}
     
     app = ExampleApp(macros=macros_dict)
