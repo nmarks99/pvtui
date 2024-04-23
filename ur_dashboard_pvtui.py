@@ -10,7 +10,7 @@ import argparse
 
 class ExampleApp(App):
 
-    CSS_PATH = "example.css"
+    CSS_PATH = "ur_dashboard_pvtui.css"
 
     def __init__(self, macros=None):
         super().__init__()
