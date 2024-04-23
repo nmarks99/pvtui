@@ -17,6 +17,39 @@ def get_pv_type(pv: PV) -> type:
         # TODO: error logging for unhandled type?
         return None
 
+def has_method(o, name):
+    return callable(getattr(o, name, None))
+
+def _epics_handler(obj):
+    '''
+    Handles connection to a PV given a PV Widget object
+    such as PVTextMonitor, etc.
+
+    The object optionally implements PV callback
+    and connection callbacks which must be named "pv_callback"
+    and "pv_conn_callback" respectively. 
+
+    This function returns the PV object and the string PV name
+    with macro substitutions
+    '''
+
+    # Replace macros in PV name
+    pv_name = obj.pv_name
+    for k,v in obj.macros.items():
+        pv_name = pv_name.replace(f"$({k})", v)
+    
+    pv_callback = obj.pv_callback if has_method(obj, "pv_callback") else None
+    pv_conn_callback = obj.pv_conn_callback if has_method(obj, "pv_conn_callback") else None
+
+    pv = PV(
+        pv_name,
+        connection_timeout=obj.connection_timeout,
+        callback=pv_callback,
+        connection_callback=pv_conn_callback
+    )
+    
+    return pv, pv_name
+
 class PVTextMonitor(Static):
     
     '''
@@ -30,20 +63,13 @@ class PVTextMonitor(Static):
 
         self.pv_type = None
         self.pv_connected = False
-
-        # Replace macros in PV name
-        for k,v in macros.items():
-            pv_name = pv_name.replace(f"$({k})", v)
         self.pv_name = pv_name
+        self.macros = macros
+        self.connection_timeout = connection_timeout
 
         # PV connection
         self.add_class("pv_down")
-        self.pv = PV(
-            self.pv_name,
-            connection_timeout=connection_timeout,
-            callback=self.pv_callback,
-            connection_callback=self.pv_conn_callback
-        )
+        self.pv, self.pv_name = _epics_handler(self)
 
     def pv_callback(self,**pv_kwargs):
         '''Called whenever a change occurs with the PV through channel access'''
@@ -87,25 +113,17 @@ class PVLed(Static):
                  **kwargs):
         super().__init__(**kwargs)
 
+        self.pv_name = pv_name
+        self.macros = macros
+        self.connection_timeout = connection_timeout
         self.high_label=high_label
         self.low_label=low_label
         self.other_label = other_label
         self.pv_connected = False
-
     
-        # Replace macros in PV name
-        for k,v in macros.items():
-            pv_name = pv_name.replace(f"$({k})", v)
-        self.pv_name = pv_name
-        
         # PV connection
         self.add_class("pv_down")
-        self.pv = PV(
-            self.pv_name,
-            connection_timeout=connection_timeout,
-            callback=self.pv_callback,
-            connection_callback=self.pv_conn_callback
-        )
+        self.pv, self.pv_name = _epics_handler(self)
 
     def pv_callback(self,**kwargs):
         '''Called whenever a change occurs with the PV through channel access'''
@@ -136,19 +154,13 @@ class PVInput(Input):
     def __init__(self, pv_name, macros, connection_timeout=1.0, **kwargs):
         super().__init__(**kwargs)
         
+        self.pv_name = pv_name
+        self.macros = macros
+        self.connection_timeout = connection_timeout
         self.pv_connected = False
 
-        # Replace macros in PV name
-        for k,v in macros.items():
-            pv_name = pv_name.replace(f"$({k})", v)
-        self.pv_name = pv_name
-
         # PV connection
-        self.pv = PV(
-            self.pv_name,
-            connection_timeout=connection_timeout,
-            connection_callback=self.pv_conn_callback
-        )
+        self.pv, self.pv_name = _epics_handler(self)
 
     def pv_conn_callback(self, **pv_kwargs):
         if "conn" in pv_kwargs:
@@ -172,21 +184,15 @@ class PVButton(Button):
     def __init__(self, pv_name, macros, connection_timeout=1.0, press_val=1, **kwargs):
         super().__init__(**kwargs)
         
+        self.pv_name = pv_name
+        self.macros = macros
+        self.connection_timeout = connection_timeout
         self.press_val = press_val
         self.pv_connected = False
-        self.add_class("pv_down")
-        
-        # Replace macros in PV name
-        for k,v in macros.items():
-            pv_name = pv_name.replace(f"$({k})", v)
-        self.pv_name = pv_name
         
         # PV connection
-        self.pv = PV(
-            self.pv_name,
-            connection_timeout=connection_timeout,
-            connection_callback=self.pv_conn_callback
-        )
+        self.add_class("pv_down")
+        self.pv, self.pv_name = _epics_handler(self)
 
     def pv_conn_callback(self, **pv_kwargs):
         if "conn" in pv_kwargs:
