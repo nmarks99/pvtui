@@ -1,4 +1,4 @@
-from textual import on
+from textual import on, events
 from textual.reactive import reactive
 from textual.widgets import Static, Button, Input
 from epics import PV
@@ -62,6 +62,12 @@ class PVTextMonitor(Static):
     def watch_pv_value(self):
         '''Called whenever self.pv_value changes'''
         self.update(str(self.pv_value))
+
+    @on(events.Click)
+    def on_click(self, event: events.Click):
+        # right mouse click
+        if event.button == 3:
+            print(self.pv_name)
 
 
 class PVLed(Static):
