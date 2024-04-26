@@ -18,8 +18,9 @@ def get_pv_type(pv: PV) -> type:
         # TODO: error logging for unhandled type?
         return None
 
-def has_method(o, name):
-    return callable(getattr(o, name, None))
+def has_method(obj, method):
+    '''returns True if object implements method, else False'''
+    return callable(getattr(obj, method, None))
 
 def _epics_handler(obj):
     '''
@@ -50,8 +51,6 @@ def _epics_handler(obj):
     )
     
     return pv, pv_name
-
-#  class PVSwitch(Switch):
 
 
 class PVTextMonitor(Static):
