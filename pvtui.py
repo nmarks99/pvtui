@@ -1,6 +1,7 @@
 from textual import on, events
+from textual.message import Message
 from textual.reactive import reactive
-from textual.widgets import Static, Button, Input
+from textual.widgets import Static, Button, Input, Switch
 from epics import PV
 from rich.emoji import Emoji
 
@@ -50,6 +51,9 @@ def _epics_handler(obj):
     
     return pv, pv_name
 
+#  class PVSwitch(Switch):
+
+
 class PVTextMonitor(Static):
     
     '''
@@ -58,7 +62,8 @@ class PVTextMonitor(Static):
 
     pv_value = reactive("?")
 
-    def __init__(self, pv_name, macros, connection_timeout=1.0, **kwargs):
+    def __init__(self, pv_name, macros, label="",
+                 connection_timeout=1.0, **kwargs):
         super().__init__(**kwargs)
 
         self.pv_type = None
@@ -66,6 +71,7 @@ class PVTextMonitor(Static):
         self.pv_name = pv_name
         self.macros = macros
         self.connection_timeout = connection_timeout
+        self.label = label
 
         # PV connection
         self.add_class("pv_down")
@@ -87,7 +93,7 @@ class PVTextMonitor(Static):
 
     def watch_pv_value(self):
         '''Called whenever self.pv_value changes'''
-        self.update(str(self.pv_value))
+        self.update(f"{self.label}{str(self.pv_value)}")
 
     @on(events.Click)
     def on_click(self, event: events.Click):
@@ -105,7 +111,7 @@ class PVLed(Static):
     
     pv_value = reactive(None)
 
-    def __init__(self, pv_name, macros,
+    def __init__(self, pv_name, macros, label="",
                  connection_timeout=1.0,
                  high_label=Emoji("green_circle"),
                  low_label=Emoji("red_circle"),
@@ -114,6 +120,7 @@ class PVLed(Static):
         super().__init__(**kwargs)
 
         self.pv_name = pv_name
+        self.label = label
         self.macros = macros
         self.connection_timeout = connection_timeout
         self.high_label=high_label
@@ -142,11 +149,11 @@ class PVLed(Static):
     def watch_pv_value(self):
         '''Called whenever self.pv_value changes'''
         if self.pv_value == 1:
-            self.update(str(self.high_label))
+            self.update(f"{self.label}{str(self.high_label)}")
         elif self.pv_value == 0:
-            self.update(str(self.low_label))
+            self.update(f"{self.label}{str(self.low_label)}")
         else:
-            self.update(str(self.other_label))
+            self.update(f"{self.label}{str(self.other_label)}")
 
 
 class PVInput(Input):
@@ -207,3 +214,26 @@ class PVButton(Button):
     @on(Button.Pressed)
     def write_pv(self):
         self.pv.put(self.press_val)
+
+
+class PVSwitch(Switch):
+
+    def __init__(self, pv_name, macros, connection_timeout=1.0, **kwargs):
+        super().__init__(**kwargs)
+
+        self.pv_name = pv_name
+        self.macros = macros
+        self.connection_timeout = connection_timeout
+        self.pv_connected = False
+
+        # PV connection
+        self.pv, self.pv_name = _epics_handler(self)
+
+    def pv_conn_callback(self, **pv_kwargs):
+        if "conn" in pv_kwargs:
+            self.pv_connected = pv_kwargs["conn"]
+    
+    @on(Switch.Changed)
+    def write_pv(self):
+        print(f"switch value = {self.value}")
+        self.pv.put(self.value)
