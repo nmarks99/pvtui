@@ -11,6 +11,9 @@
 #include "ftxui/dom/elements.hpp"  // for gauge, separator, text, vbox, operator|, Element, border
 #include "ftxui/screen/color.hpp"  // for Color, Color::Blue, Color::Green, Color::Red
 #include "ftxui/component/loop.hpp"
+
+#include <pva/client.h>
+#include <pv/caProvider.h>
  
 using namespace ftxui;
 
@@ -37,6 +40,12 @@ std::string rectangle(int width, int height) {
 
 int main() {
 
+    epics::pvAccess::ca::CAClientFactory::start();
+    pvac::ClientProvider provider("ca");
+    pvac::ClientChannel channel(provider.connect("nam:value"));
+    // const double current_val = channel.get()->getSubFieldT<epics::pvData::PVDouble>("value")->getAs<double>();
+    // std::cout << "PV value = " << channel.get() << std::endl;
+
     // Create the screen. Interactive use the full terminal screen
     auto screen = ScreenInteractive::Fullscreen();
 
@@ -46,8 +55,12 @@ int main() {
     const int VAL_MAX = 100;
     const int BUTTON_INC = 5;
     const int SLIDER_INC = 1;
-    auto plus_button = Button(" + ", [&]{val = val <= VAL_MAX-BUTTON_INC ? val + BUTTON_INC : val;});
-    auto minus_button = Button(" - ", [&]{val = val >= BUTTON_INC ? val - BUTTON_INC : val;});
+    auto plus_button = Button(" > ", [&]{
+	val = val <= VAL_MAX-BUTTON_INC ? val + BUTTON_INC : val;
+    });
+    auto minus_button = Button(" < ", [&]{
+	val = val >= BUTTON_INC ? val - BUTTON_INC : val;
+    });
     auto slider  = Slider(SliderOption<int>({
 	.value = &val,
 	.min = VAL_MIN,
@@ -55,14 +68,18 @@ int main() {
 	.increment = SLIDER_INC,
 	.color_active = Color::Blue,
 	.color_inactive = Color::Blue,
+	.on_change = [&channel, &val](){
+	    //called when slider is changed, not necessarily when val is changed
+	    channel.put().set("value", val).exec();
+	}
     }));
 
     // Main container to define interactivity of components
     auto main_container = Container::Vertical({
 	slider,
 	Container::Horizontal({
-	    plus_button,
-	    minus_button
+	    minus_button,
+	    plus_button
 	}),
     });
 
@@ -92,9 +109,9 @@ int main() {
 	    }),
 	    separatorEmpty(),
 	    hbox({
-		plus_button->Render() | size(WIDTH, EQUAL, 5),
+		minus_button->Render() | size(WIDTH, EQUAL, 5),
 		separatorEmpty(),
-		minus_button->Render() | size(WIDTH, EQUAL, 5)
+		plus_button->Render() | size(WIDTH, EQUAL, 5)
 	    }) | hcenter,
 	    separatorEmpty(),
 	    paragraph(unicode::rectangle(4,2)) | color(Color::DarkRed) | hcenter,
@@ -105,6 +122,8 @@ int main() {
     // Custom main loop
     Loop loop(&screen, main_renderer);
     while (!loop.HasQuitted()) {
+	// val = channel.get()->getSubFieldT<epics::pvData::PVDouble>("value")->getAs<double>();
+	// val = val > VAL_MAX ? VAL_MAX : val < VAL_MIN ? VAL_MIN : val;
 	loop.RunOnce();
 	std::this_thread::sleep_for(std::chrono::milliseconds(10));
     }

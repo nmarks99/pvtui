@@ -5,6 +5,7 @@ project(pvtui
   VERSION 1.0.0
 )
 
+set(CMAKE_C_STANDARD 11)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
@@ -24,16 +25,36 @@ FetchContent_Declare(ftxui
   EXCLUDE_FROM_ALL
 )
 FetchContent_MakeAvailable(ftxui)
+# ------------------------------------------------------------------------------
 
+# --- EPICS Base ---------------------------------------------------------------
+set(EPICS_BASE /APSshare/epics/base-7.0.8)
+link_directories(${EPICS_BASE}/lib/rhel9-x86_64)
+
+set(EPICS_BASE_LIBRARIES
+    ${EPICS_BASE}/lib/rhel9-x86_64/libpvAccessCA.so
+    ${EPICS_BASE}/lib/rhel9-x86_64/libca.so
+    ${EPICS_BASE}/lib/rhel9-x86_64/libpvAccess.so
+    ${EPICS_BASE}/lib/rhel9-x86_64/libpvData.so
+    ${EPICS_BASE}/lib/rhel9-x86_64/libCom.so
+)
+
+set(EPICS_BASE_INCLUDES
+    ${EPICS_BASE}/include
+    ${EPICS_BASE}/include/compiler/gcc
+    ${EPICS_BASE}/include/pv
+    ${EPICS_BASE}/include/pva
+    ${EPICS_BASE}/include/os/Linux
+)
 # ------------------------------------------------------------------------------
 
 add_executable(pvtui src/main.cpp)
-target_include_directories(pvtui PRIVATE src)
+target_include_directories(pvtui PUBLIC src ${EPICS_BASE_INCLUDES})
 
 target_link_libraries(pvtui
+  PUBLIC ${EPICS_BASE_LIBRARIES}
   PRIVATE ftxui::screen
   PRIVATE ftxui::dom
   PRIVATE ftxui::component
 )
-
 # ------------------------------------------------------------------------------
