@@ -37,8 +37,9 @@ def _epics_handler(obj):
 
     # Replace macros in PV name
     pv_name = obj.pv_name
-    for k,v in obj.macros.items():
-        pv_name = pv_name.replace(f"$({k})", v)
+    if obj.macros is not None:
+        for k,v in obj.macros.items():
+            pv_name = pv_name.replace(f"$({k})", v)
     
     pv_callback = obj.pv_callback if has_method(obj, "pv_callback") else None
     pv_conn_callback = obj.pv_conn_callback if has_method(obj, "pv_conn_callback") else None
@@ -61,7 +62,7 @@ class PVTextMonitor(Static):
 
     pv_value = reactive("?")
 
-    def __init__(self, pv_name, macros, label="",
+    def __init__(self, pv_name, macros=None, label="",
                  connection_timeout=1.0, **kwargs):
         super().__init__(**kwargs)
 
@@ -75,11 +76,11 @@ class PVTextMonitor(Static):
         # PV connection
         self.add_class("pv_down")
         self.pv, self.pv_name = _epics_handler(self)
+        self.pv.get_ctrlvars() # needed to get enum strings
 
-    def pv_callback(self,**pv_kwargs):
+    def pv_callback(self, char_value=None, **pv_kwargs):
         '''Called whenever a change occurs with the PV through channel access'''
-        if "value" in pv_kwargs:
-            self.pv_value = pv_kwargs["value"]
+        self.pv_value = char_value
 
     def pv_conn_callback(self, **pv_kwargs):
         if "conn" in pv_kwargs:
