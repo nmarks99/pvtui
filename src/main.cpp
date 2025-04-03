@@ -37,12 +37,19 @@ std::string rectangle(int width, int height) {
 
 }
 
+Component PVButton(const std::string &label, pvac::ClientChannel &pv_channel, int value) {
+    return Button(ButtonOption({
+	.label = label,
+	.on_click = [&pv_channel, value](){
+	    pv_channel.put().set("value", value).exec();
+	}
+    }));
+};
 
 int main() {
 
     epics::pvAccess::ca::CAClientFactory::start();
     pvac::ClientProvider provider("ca");
-    pvac::ClientChannel channel(provider.connect("nam:value"));
     // const double current_val = channel.get()->getSubFieldT<epics::pvData::PVDouble>("value")->getAs<double>();
     // std::cout << "PV value = " << channel.get() << std::endl;
 
@@ -55,23 +62,20 @@ int main() {
     const int VAL_MAX = 100;
     const int BUTTON_INC = 5;
     const int SLIDER_INC = 1;
-    auto plus_button = Button(" > ", [&]{
-	val = val <= VAL_MAX-BUTTON_INC ? val + BUTTON_INC : val;
-    });
-    auto minus_button = Button(" < ", [&]{
-	val = val >= BUTTON_INC ? val - BUTTON_INC : val;
-    });
+    
+    pvac::ClientChannel m1_twf_chan(provider.connect("namSoft:m1.TWF"));
+    pvac::ClientChannel m1_twr_chan(provider.connect("namSoft:m1.TWR"));
+    auto plus_button = PVButton(" > ", m1_twf_chan, 1);
+    auto minus_button = PVButton(" < ", m1_twr_chan, 1);
+
+    pvac::ClientChannel m1_rbv_chan(provider.connect("namSoft:m1.RBV"));
     auto slider  = Slider(SliderOption<int>({
 	.value = &val,
-	.min = VAL_MIN,
-	.max = VAL_MAX,
+	.min = -10,
+	.max = 10,
 	.increment = SLIDER_INC,
 	.color_active = Color::Blue,
 	.color_inactive = Color::Blue,
-	.on_change = [&channel, &val](){
-	    //called when slider is changed, not necessarily when val is changed
-	    channel.put().set("value", val).exec();
-	}
     }));
 
     // Main container to define interactivity of components
@@ -114,7 +118,7 @@ int main() {
 		plus_button->Render() | size(WIDTH, EQUAL, 5)
 	    }) | hcenter,
 	    separatorEmpty(),
-	    paragraph(unicode::rectangle(4,2)) | color(Color::DarkRed) | hcenter,
+	    // paragraph(unicode::rectangle(4,2)) | color(Color::DarkRed) | hcenter,
 	}) | size(WIDTH, EQUAL, 50) | hcenter;
     });
 
@@ -122,8 +126,8 @@ int main() {
     // Custom main loop
     Loop loop(&screen, main_renderer);
     while (!loop.HasQuitted()) {
-	// val = channel.get()->getSubFieldT<epics::pvData::PVDouble>("value")->getAs<double>();
-	// val = val > VAL_MAX ? VAL_MAX : val < VAL_MIN ? VAL_MIN : val;
+	val = m1_rbv_chan.get()->getSubFieldT<epics::pvData::PVDouble>("value")->getAs<double>();
+	screen.PostEvent(Event::Custom);
 	loop.RunOnce();
 	std::this_thread::sleep_for(std::chrono::milliseconds(10));
     }
