@@ -48,7 +48,7 @@ set(EPICS_BASE_INCLUDES
 )
 # ------------------------------------------------------------------------------
 
-add_executable(pvtui src/main.cpp)
+add_executable(pvtui src/main.cpp src/pvtui.cpp)
 target_include_directories(pvtui PUBLIC src ${EPICS_BASE_INCLUDES})
 
 target_link_libraries(pvtui

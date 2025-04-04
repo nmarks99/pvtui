@@ -14,37 +14,10 @@
 
 #include <pva/client.h>
 #include <pv/caProvider.h>
+
+#include "pvtui.hpp"
  
 using namespace ftxui;
-
-namespace unicode {
-
-constexpr std::string_view full_block = "█";
-constexpr std::string_view green_circle = "🟢";
-constexpr std::string_view red_circle = "🔴";
-
-std::string rectangle(int width, int height) {
-    std::string out;
-    out.reserve(width*height*full_block.length()+height);
-    for (int i = 0; i < height; i++){
-	for (int j = 0; j < width; j++){
-	   out.append(full_block);
-	}
-	out.append("\n");
-    }
-    return out;
-}
-
-}
-
-Component PVButton(const std::string &label, pvac::ClientChannel &pv_channel, int value) {
-    return Button(ButtonOption({
-	.label = label,
-	.on_click = [&pv_channel, value](){
-	    pv_channel.put().set("value", value).exec();
-	}
-    }));
-};
 
 int main() {
 
