@@ -24,4 +24,6 @@ constexpr std::string_view red_circle = "🔴";
 std::string rectangle(int width, int height);
 }
 
-ftxui::Component PVButton(const std::string &label, pvac::ClientChannel &pv_channel, int value);
+ftxui::Component PVButton(pvac::ClientChannel &pv_channel, const std::string &label, int value);
+
+// ftxui::Component PVInput(pvac::ClientChannel &pv_channel, const std::string &strval);
