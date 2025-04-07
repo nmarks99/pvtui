@@ -48,10 +48,10 @@ set(EPICS_BASE_INCLUDES
 )
 # ------------------------------------------------------------------------------
 
-add_executable(pvtui src/main.cpp src/pvtui.cpp)
-target_include_directories(pvtui PUBLIC src ${EPICS_BASE_INCLUDES})
+add_executable(pvtui_motor src/motor.cpp src/pvtui.cpp)
+target_include_directories(pvtui_motor PUBLIC src ${EPICS_BASE_INCLUDES})
 
-target_link_libraries(pvtui
+target_link_libraries(pvtui_motor
   PUBLIC ${EPICS_BASE_LIBRARIES}
   PRIVATE ftxui::screen
   PRIVATE ftxui::dom

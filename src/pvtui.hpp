@@ -25,5 +25,4 @@ std::string rectangle(int width, int height);
 }
 
 ftxui::Component PVButton(pvac::ClientChannel &pv_channel, const std::string &label, int value);
-
-// ftxui::Component PVInput(pvac::ClientChannel &pv_channel, const std::string &strval);
+ftxui::Component PVInput(pvac::ClientChannel &pv_channel, std::string &strval);

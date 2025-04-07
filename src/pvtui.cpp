@@ -1,4 +1,5 @@
 #include <pvtui.hpp>
+#include <charconv>
 
 namespace unicode {
 std::string rectangle(int width, int height) {
@@ -25,13 +26,16 @@ ftxui::Component PVButton(pvac::ClientChannel &pv_channel, const std::string &la
 };
 
 
-// ftxui::Component PVInput(pvac::ClientChannel &pv_channel, const std::string &strval) {
-    // return ftxui::Input(ftxui::InputOption({
-	// .on_enter = [&pv_channel, strval](){
-	    // const double doubleval = std::stod(strval);
-	    // pv_channel.put().set("value", doubleval).exec();
-	    // // TODO: get() pv value and set displayed input to it
-	// },
-	// .
-    // }));
-// }
+ftxui::Component PVInput(pvac::ClientChannel &pv_channel, std::string &strval) {
+    return ftxui::Input(ftxui::InputOption({
+	.content = &strval,
+	.multiline = false,
+	.on_enter = [&pv_channel, &strval](){
+	    double val_double;
+	    auto res = std::from_chars(strval.data(), strval.data()+strval.size(), val_double);
+	    if (res.ec == std::errc()) {
+		pv_channel.put().set("value", val_double).exec();
+	    }
+	},
+    }));
+}
