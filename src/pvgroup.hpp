@@ -20,10 +20,12 @@ struct PVGroup {
     PVGroup(pvac::ClientProvider &provider, const std::vector<std::string> &pv_list)
         : channels(construct_chan_map(provider, pv_list)) {}
 
+    bool create_monitor(const std::string &pv_name, int &var);
     bool create_monitor(const std::string &pv_name, double &var);
+    bool create_monitor(const std::string &pv_name, std::string &var);
 
     void update();
 
     std::unordered_map<std::string, pvac::ClientChannel> channels;
-    std::unordered_map<std::string, std::pair<pvac::MonitorSync, double*>> monitors;
+    std::unordered_map<std::string, std::pair<pvac::MonitorSync, MonitorPtr>> monitors;
 };
