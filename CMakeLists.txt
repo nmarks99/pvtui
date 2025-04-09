@@ -48,7 +48,8 @@ set(EPICS_BASE_INCLUDES
 )
 # ------------------------------------------------------------------------------
 
-add_executable(pvtui_motor src/motor.cpp src/pvtui.cpp)
+# ------------------------------------------------------------------------------
+add_executable(pvtui_motor src/motor.cpp src/pvtui.cpp src/pvgroup.cpp)
 target_include_directories(pvtui_motor PUBLIC src ${EPICS_BASE_INCLUDES})
 
 target_link_libraries(pvtui_motor
@@ -59,10 +60,9 @@ target_link_libraries(pvtui_motor
 )
 # ------------------------------------------------------------------------------
 
-
 # ------------------------------------------------------------------------------
-add_executable(test tests/test.cpp)
-target_include_directories(test PUBLIC tests ${EPICS_BASE_INCLUDES})
+add_executable(test tests/test.cpp src/pvgroup.cpp)
+target_include_directories(test PUBLIC tests src ${EPICS_BASE_INCLUDES})
 
 target_link_libraries(test
   PUBLIC ${EPICS_BASE_LIBRARIES}
