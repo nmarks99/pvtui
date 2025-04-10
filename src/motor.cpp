@@ -33,9 +33,12 @@ int main(int argc, char *argv[]) {
     PVGroup pvgroup(provider, {
 	"namSoft:m1.VAL",
 	"namSoft:m1.RBV",
+	"namSoft:m1.DVAL",
+	"namSoft:m1.DRBV",
 	"namSoft:m1.TWV",
 	"namSoft:m1.TWF",
 	"namSoft:m1.TWR",
+	"namSoft:m1.DESC",
     });
 
     std::string debug_string = "DEBUG";
@@ -44,26 +47,47 @@ int main(int argc, char *argv[]) {
     const int BUTTON_INC = 5;
     const int SLIDER_INC = 1;
 
-    auto plus_button = PVButton(pvgroup.channels.at("namSoft:m1.TWF"), " > ", 1);
-    auto minus_button = PVButton(pvgroup.channels.at("namSoft:m1.TWR"), " < ", 1);
 
-    // FIX: make it so Input value can be double, etc, (template it)
-    // we need the value we pass to PVInput to be the same we give to the monitor
+    // tweak buttons, don't need readback
+    auto twf_button = PVButton(pvgroup.channels.at("namSoft:m1.TWF"), " > ", 1);
+    auto twr_button = PVButton(pvgroup.channels.at("namSoft:m1.TWR"), " < ", 1);
+
+    // value input and monitor
     std::string val_string;
-    double mon_val_double = 0.0;
     auto val_input = PVInput(pvgroup.channels.at("namSoft:m1.VAL"), val_string);
-    pvgroup.create_monitor("namSoft:m1.VAL", mon_val_double);
+    pvgroup.create_monitor("namSoft:m1.VAL", val_string);
 
+    // dval input and monitor
+    std::string dval_string;
+    auto dval_input = PVInput(pvgroup.channels.at("namSoft:m1.DVAL"), dval_string);
+    pvgroup.create_monitor("namSoft:m1.DVAL", dval_string);
+
+    // tweak value and monitor
     std::string twv_string;
     auto twv_input = PVInput(pvgroup.channels.at("namSoft:m1.TWV"), twv_string);
+    pvgroup.create_monitor("namSoft:m1.TWV", twv_string);
 
+    // user readback value
     double rbv = 0.0;
-    pvgroup.create_monitor("namSoft:m1.RBV", rbv);
+    pvgroup.create_monitor<double>("namSoft:m1.RBV", rbv);
+    
+    // dial readback value
+    double drbv = 0.0;
+    pvgroup.create_monitor<double>("namSoft:m1.DRBV", drbv);
+
+    // string description readback
+    std::string desc = "";
+    pvgroup.create_monitor<std::string>("namSoft:m1.DESC", desc);
+
 
     // Main container to define interactivity of components
     auto main_container = Container::Vertical({
-        val_input,
-        Container::Horizontal({minus_button, twv_input, plus_button}),
+        Container::Horizontal({
+	    val_input, dval_input,
+	}),
+        Container::Horizontal({
+	    twr_button, twv_input, twf_button
+	}),
     });
 
     // Event handler for main container
@@ -78,15 +102,24 @@ int main(int argc, char *argv[]) {
     // Main renderer to define visual layout of components and elements
     auto main_renderer = Renderer(main_container, [&] {
         return vbox({
-	    separatorEmpty(),
-	    text(std::to_string(rbv)) | color(Color::DodgerBlue1) | hcenter,
-	    separatorEmpty(),
-	    val_input->Render()  | bgcolor(Color::Cyan) | size(WIDTH, EQUAL, 10) | hcenter,
+	    text(desc) | hcenter,
 	    separatorEmpty(),
 	    hbox({
-		minus_button->Render() | size(WIDTH, EQUAL, 5), separatorEmpty(),
+		text(std::to_string(rbv)) | color(Color::DodgerBlue1),
+		separatorEmpty(),
+		text(std::to_string(drbv)) | color(Color::DodgerBlue1),
+	    }) | center | border,
+	    separatorEmpty(),
+	    hbox({
+		val_input->Render()  | bgcolor(Color::Cyan) | size(WIDTH, EQUAL, 10),
+		separatorEmpty(),
+		dval_input->Render()  | bgcolor(Color::Cyan) | size(WIDTH, EQUAL, 10),
+	    }) | center | border,
+	    separatorEmpty(),
+	    hbox({
+		twr_button->Render() | size(WIDTH, EQUAL, 5), separatorEmpty(),
 		twv_input->Render() | bgcolor(Color::Cyan) | size(WIDTH, EQUAL, 6) | center,
-		separatorEmpty(), plus_button->Render() | size(WIDTH, EQUAL, 5)
+		separatorEmpty(), twf_button->Render() | size(WIDTH, EQUAL, 5)
 	    }) | hcenter,
 	    separatorEmpty(),
 	    paragraph(debug_string) | color(Color::Yellow) | hcenter,
@@ -94,11 +127,9 @@ int main(int argc, char *argv[]) {
     });
 
     // Custom main loop
-    double val_double = 0.0;
     Loop loop(&screen, main_renderer);
     while (!loop.HasQuitted()) {
 	pvgroup.update();
-	val_string = std::to_string(mon_val_double);
         screen.PostEvent(Event::Custom);
         loop.RunOnce();
         std::this_thread::sleep_for(std::chrono::milliseconds(10));

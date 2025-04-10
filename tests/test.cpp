@@ -2,8 +2,11 @@
 #include <pv/caProvider.h>
 #include <pva/client.h>
 
+#include <sstream>
+#include <stdexcept>
 #include <thread>
 #include <csignal>
+#include <optional>
 
 #include "pvgroup.hpp"
 
@@ -15,6 +18,7 @@ void signal_handler(int signal) {
         g_signal_caught = 1;
     }
 }
+
 
 int main() {
 
@@ -36,13 +40,14 @@ int main() {
 	"namSoft:m1.TWR",
 	"namSoft:m1.PREC",
 	"namSoft:m1.DESC",
-	"test:int",
+	"namSoft:m1.SPMG",
+	"test:long",
 	"test:string",
 	"test:float",
     });
 
+
     bool okay = false;
-    
     double rbv = 0;
     okay = pvgroup.create_monitor("namSoft:m1.RBV", rbv);
     if (not okay) {
@@ -67,7 +72,7 @@ int main() {
 	std::cout << "desc = " << desc << std::endl;
 	std::cout << "prec = " << prec << std::endl;
 	std::cout << std::endl;
-        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+	std::this_thread::sleep_for(std::chrono::milliseconds(100));
     }
 
 }

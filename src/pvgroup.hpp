@@ -17,13 +17,27 @@ using MonitorPtr = std::variant<int*, double*, std::string*>;
 
 struct PVGroup {
 
+    // Constructor creates ClientChannels for each requested PV
     PVGroup(pvac::ClientProvider &provider, const std::vector<std::string> &pv_list)
         : channels(construct_chan_map(provider, pv_list)) {}
 
-    bool create_monitor(const std::string &pv_name, int &var);
-    bool create_monitor(const std::string &pv_name, double &var);
-    bool create_monitor(const std::string &pv_name, std::string &var);
+    // create a monitor that updates the given variable
+    template <typename T>
+    bool create_monitor(const std::string &pv_name, T &var) {
+        if (channels.count(pv_name)) {
+            if (!monitors.count(pv_name)) {
+                // create monitor if there isn't one
+                monitors[pv_name].first = channels.at(pv_name).monitor();
+            }
+            // if there is, set the variable which is updated
+            monitors[pv_name].second = &var;
+            return true;
+        } else {
+            return false;
+        }
+    }
 
+    // Update the variables associated with each monitor
     void update();
 
     std::unordered_map<std::string, pvac::ClientChannel> channels;

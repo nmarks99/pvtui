@@ -26,13 +26,13 @@ ftxui::Component PVButton(pvac::ClientChannel &pv_channel, const std::string &la
 };
 
 
-ftxui::Component PVInput(pvac::ClientChannel &pv_channel, std::string &strval) {
+ftxui::Component PVInput(pvac::ClientChannel &pv_channel, std::string &disp_str) {
     return ftxui::Input(ftxui::InputOption({
-	.content = &strval,
+	.content = &disp_str,
 	.multiline = false,
-	.on_enter = [&pv_channel, &strval](){
+	.on_enter = [&pv_channel, &disp_str](){
 	    double val_double;
-	    auto res = std::from_chars(strval.data(), strval.data()+strval.size(), val_double);
+	    auto res = std::from_chars(disp_str.data(), disp_str.data()+disp_str.size(), val_double);
 	    if (res.ec == std::errc()) {
 		pv_channel.put().set("value", val_double).exec();
 	    }

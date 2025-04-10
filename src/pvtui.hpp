@@ -3,15 +3,16 @@
 #include <cstdlib>
 #include <ftxui/component/event.hpp>
 #include <ftxui/dom/node.hpp>
-#include <string>  // for operator+, to_string
+#include <string>
+#include <charconv>
  
-#include "ftxui/component/captured_mouse.hpp"  // for ftxui
-#include "ftxui/component/component.hpp"  // for Button, Horizontal, Renderer
-#include "ftxui/component/component_base.hpp"      // for ComponentBase
-#include "ftxui/component/component_options.hpp"   // for ButtonOption
-#include "ftxui/component/screen_interactive.hpp"  // for ScreenInteractive
-#include "ftxui/dom/elements.hpp"  // for gauge, separator, text, vbox, operator|, Element, border
-#include "ftxui/screen/color.hpp"  // for Color, Color::Blue, Color::Green, Color::Red
+// #include "ftxui/component/captured_mouse.hpp"
+// #include "ftxui/dom/elements.hpp"
+// #include "ftxui/screen/color.hpp"
+#include "ftxui/component/component.hpp"
+#include "ftxui/component/component_options.hpp"
+#include "ftxui/component/component_base.hpp"
+#include "ftxui/component/screen_interactive.hpp"
 #include "ftxui/component/loop.hpp"
 
 #include <pva/client.h>
@@ -25,4 +26,6 @@ std::string rectangle(int width, int height);
 }
 
 ftxui::Component PVButton(pvac::ClientChannel &pv_channel, const std::string &label, int value);
-ftxui::Component PVInput(pvac::ClientChannel &pv_channel, std::string &strval);
+
+ftxui::Component PVInput(pvac::ClientChannel &pv_channel, std::string &disp_str);
+
