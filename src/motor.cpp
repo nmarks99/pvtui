@@ -20,7 +20,7 @@
 
 using namespace ftxui;
 
-struct Motor {
+struct MotorFields {
     std::string desc;
     std::string rbv;
     std::string drbv;
@@ -35,6 +35,8 @@ struct Motor {
     std::string dllm;
     std::string egu;
     std::string set;
+    std::string hls;
+    std::string lls;
 };
 
 
@@ -50,7 +52,7 @@ int main(int argc, char *argv[]) {
     std::string motor_pv_str(argv[1]);
 
     // struct of motor PV names for convenience
-    Motor motor{
+    const MotorFields motor {
 	.desc = motor_pv_str + ".DESC",
 	.rbv  = motor_pv_str + ".RBV",
 	.drbv = motor_pv_str + ".DRBV",
@@ -65,8 +67,10 @@ int main(int argc, char *argv[]) {
 	.dllm = motor_pv_str + ".DLLM",
 	.egu  = motor_pv_str + ".EGU",
 	.set  = motor_pv_str + ".SET",
+	.hls  = motor_pv_str + ".HLS",
+	.lls  = motor_pv_str + ".LLS",
     };
-    
+
     // Create the FTXUI screen. Interactive and uses the full terminal screen
     auto screen = ScreenInteractive::Fullscreen();
 
@@ -90,6 +94,8 @@ int main(int argc, char *argv[]) {
 	motor.dllm,
 	motor.egu,
 	motor.set,
+	motor.hls,
+	motor.lls,
     });
 
     // tweak buttons, don't need readback
@@ -147,6 +153,16 @@ int main(int argc, char *argv[]) {
     std::string desc = "";
     pvgroup.create_monitor<std::string>(motor.desc, desc);
 
+    // High limit switch
+    int hls = 0;
+    std::string hls_box = unicode::rectangle(2, 1);
+    pvgroup.create_monitor<int>(motor.hls, hls);
+    
+    // Low limit switch
+    int lls = 0;
+    std::string lls_box = unicode::rectangle(2, 1);
+    pvgroup.create_monitor<int>(motor.lls, lls);
+
     // Set/Use buttons
     int setuse = 0;
     auto set_button = PVButton(pvgroup.channels.at(motor.set), " Set ", 1);
@@ -188,12 +204,12 @@ int main(int argc, char *argv[]) {
         return vbox({
 	    text(desc) | center,
 
-	    separatorEmpty(),
+	    separator(),
 
+	    // 4 column hbox
+	    // none | user | dial | other
 	    hbox({
-		vbox({
-		    text(std::string(egu.length(), ' ')), // filler to match other side
-		}),
+		vbox({}) | size(WIDTH, EQUAL, egu.length()),
 		separatorEmpty(),
 		vbox({
 		    hlm_input->Render()  | bgcolor(Color::Cyan) | size(WIDTH, EQUAL, 10),
@@ -216,14 +232,15 @@ int main(int argc, char *argv[]) {
 		}),
 		separatorEmpty(),
 		vbox({
+		    text(hls ? unicode::rectangle(2,1) : "") | color(Color::Red),
 		    separatorEmpty(), 	
 		    separatorEmpty(), 	
 		    separatorEmpty(), 	
 		    separatorEmpty(), 	
 		    text(egu),
-		    separatorEmpty(), 	
 		    separatorEmpty(),
-		}),
+		    text(lls ? unicode::rectangle(2,1) : "") | color(Color::Red),
+		}) | size(WIDTH, EQUAL, egu.length()),
 	    }) | center,
 	    
 	    separatorEmpty(), 	
@@ -233,22 +250,22 @@ int main(int argc, char *argv[]) {
 		separatorEmpty(),
 		twv_input->Render() | bgcolor(Color::Cyan) | size(WIDTH, EQUAL, 11) | center,
 		separatorEmpty(),
-		twf_button->Render()
-	    }) | flex | center ,
+		twf_button->Render(),
+	    }) | center
 
-	    separatorEmpty(),
-
-	    paragraph(debug_string) | color(Color::Yellow) | hcenter,
+	    // separatorEmpty(),
+	    // paragraph(debug_string) | color(Color::Yellow) | hcenter,
 	}) | center;
     });
 
     // Custom main loop
+    constexpr int POLL_PERIOD_MS = 10;
     Loop loop(&screen, main_renderer);
     while (!loop.HasQuitted()) {
 	pvgroup.update();
         screen.PostEvent(Event::Custom);
         loop.RunOnce();
-        std::this_thread::sleep_for(std::chrono::milliseconds(10));
+        std::this_thread::sleep_for(std::chrono::milliseconds(POLL_PERIOD_MS));
     }
 
     return 0;
