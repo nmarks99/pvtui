@@ -5,11 +5,15 @@ project(pvtui
   VERSION 1.0.0
 )
 
+# Generate compile_commands.json for LSP's
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
+# C/C++ Standards
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
-set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
 
 # --- Fetch FTXUI --------------------------------------------------------------
 include(FetchContent)
@@ -27,16 +31,33 @@ FetchContent_Declare(ftxui
 FetchContent_MakeAvailable(ftxui)
 # ------------------------------------------------------------------------------
 
+
 # --- EPICS Base ---------------------------------------------------------------
-set(EPICS_BASE /APSshare/epics/base-7.0.8)
-link_directories(${EPICS_BASE}/lib/rhel9-x86_64)
+# Get path to EPICS base
+set(EPICS_BASE "" CACHE STRING "Path to EPICS base")
+if (NOT EPICS_BASE)
+  message(FATAL_ERROR "Missing required variable 'EPICS_BASE'")
+endif()
+if(NOT IS_DIRECTORY "${EPICS_BASE}")
+  message(FATAL_ERROR "Specified EPICS_BASE does not exist: ${EPICS_BASE}")
+endif()
+message(STATUS "Found EPICS_BASE: ${EPICS_BASE}")
+
+# Get EPICS host architecture
+set(EPICS_HOST_ARCH "$ENV{EPICS_HOST_ARCH}" CACHE STRING "Host architecture (e.g. linux-x86_64")
+if (NOT EPICS_HOST_ARCH)
+  message(FATAL_ERROR "'EPICS_HOST_ARCH' not defined")
+endif()
+message(STATUS "EPICS_HOST_ARCH: ${EPICS_HOST_ARCH}")
+
+link_directories(${EPICS_BASE}/lib/${EPICS_HOST_ARCH})
 
 set(EPICS_BASE_LIBRARIES
-    ${EPICS_BASE}/lib/rhel9-x86_64/libpvAccessCA.so
-    ${EPICS_BASE}/lib/rhel9-x86_64/libca.so
-    ${EPICS_BASE}/lib/rhel9-x86_64/libpvAccess.so
-    ${EPICS_BASE}/lib/rhel9-x86_64/libpvData.so
-    ${EPICS_BASE}/lib/rhel9-x86_64/libCom.so
+    "${EPICS_BASE}/lib/${EPICS_HOST_ARCH}/libpvAccessCA.so"
+    "${EPICS_BASE}/lib/${EPICS_HOST_ARCH}/libca.so"
+    "${EPICS_BASE}/lib/${EPICS_HOST_ARCH}/libpvAccess.so"
+    "${EPICS_BASE}/lib/${EPICS_HOST_ARCH}/libpvData.so"
+    "${EPICS_BASE}/lib/${EPICS_HOST_ARCH}/libCom.so"
 )
 
 set(EPICS_BASE_INCLUDES
@@ -47,6 +68,7 @@ set(EPICS_BASE_INCLUDES
     ${EPICS_BASE}/include/os/Linux
 )
 # ------------------------------------------------------------------------------
+
 
 # ------------------------------------------------------------------------------
 add_executable(pvtui_motor src/motor.cpp src/pvtui.cpp src/pvgroup.cpp)
@@ -59,6 +81,7 @@ target_link_libraries(pvtui_motor
   PRIVATE ftxui::component
 )
 # ------------------------------------------------------------------------------
+
 
 # ------------------------------------------------------------------------------
 add_executable(test tests/test.cpp src/pvgroup.cpp)
