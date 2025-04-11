@@ -1,0 +1,26 @@
+record(longout, "xxx:long") {
+    field(VAL, "42")
+}
+
+record(ao, "xxx:float") {
+    field(VAL, "3.14")
+}
+
+record(stringout, "xxx:string") {
+    field(VAL, "hello")
+}
+
+record(mbbo, "xxx:mbbo") {
+    field(ZRVL, "0")
+    field(ONVL, "0")
+    field(TWVL, "0")
+    field(ZRST, "zero")
+    field(ONST, "one")
+    field(TWST, "two")
+}
+
+record(bo, "xxx:bin") {
+    field(ZNAM, "zero")
+    field(ONAM, "one")
+    field(VAL, 1)
+}

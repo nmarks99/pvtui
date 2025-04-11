@@ -4,6 +4,8 @@
 #include <unordered_map>
 #include <variant>
 
+constexpr int PVGROUP_PRECISION = 4;
+
 static inline std::unordered_map<std::string, pvac::ClientChannel> construct_chan_map(pvac::ClientProvider &provider,
                                                                    const std::vector<std::string> &pv_list) {
     std::unordered_map<std::string, pvac::ClientChannel> map_out;

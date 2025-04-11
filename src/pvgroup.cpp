@@ -3,7 +3,6 @@
 #include <charconv>
 #include <sstream>
 
-// FIX: won't work on enum types
 void PVGroup::update() {
     for (auto &[pv_name, pair] : monitors) {
         auto &monitor = pair.first;
@@ -20,9 +19,16 @@ void PVGroup::update() {
 
                         // get the value field and dump it into a ostringstream
                         std::ostringstream oss;
-                        auto pfield = monitor.root.get()->getSubField("value");
+                        // TODO: get from PV PREC field
+                        oss << std::fixed << std::setprecision(PVGROUP_PRECISION);
+                        auto pfield = monitor.root.get();
                         if (pfield) {
-                            pfield->dumpValue(oss);
+                            std::string type_str = pfield->getStructure()->getField("value")->getID();
+                            if (type_str == "enum_t") {
+                                oss << pfield->getSubField("value.index");
+                            } else {
+                                pfield->getSubField("value")->dumpValue(oss);
+                            }
                         }
 
                         std::string val_str = oss.str();

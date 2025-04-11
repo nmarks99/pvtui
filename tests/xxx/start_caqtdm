@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+
+MOTOR="/APSshare/epics/synApps_6_3/support/motor-R7-3-1"
+
+export CAQTDM_DISPLAY_PATH="${MOTOR}/motorApp/op/ui/autoconvert"
+
+/APSshare/bin/caQtDM -macro "P=xxx:,M=m1" motorx_more &

@@ -20,8 +20,53 @@
 
 using namespace ftxui;
 
-int main(int argc, char *argv[]) {
+struct Motor {
+    std::string desc;
+    std::string rbv;
+    std::string drbv;
+    std::string val;
+    std::string dval;
+    std::string twr;
+    std::string twv;
+    std::string twf;
+    std::string hlm;
+    std::string llm;
+    std::string dhlm;
+    std::string dllm;
+    std::string egu;
+    std::string set;
+};
 
+
+int main(int argc, char *argv[]) {
+   
+    std::string debug_string = "DEBUG";
+
+    if (argc == 1) {
+	printf("Usage: %s <motor>\n", argv[0]);
+	return 0;
+    }
+
+    std::string motor_pv_str(argv[1]);
+
+    // struct of motor PV names for convenience
+    Motor motor{
+	.desc = motor_pv_str + ".DESC",
+	.rbv  = motor_pv_str + ".RBV",
+	.drbv = motor_pv_str + ".DRBV",
+	.val  = motor_pv_str + ".VAL",
+	.dval = motor_pv_str + ".DVAL",
+	.twr  = motor_pv_str + ".TWR",
+	.twv  = motor_pv_str + ".TWV",
+	.twf  = motor_pv_str + ".TWF",
+	.hlm  = motor_pv_str + ".HLM",
+	.llm  = motor_pv_str + ".LLM",
+	.dhlm = motor_pv_str + ".DHLM",
+	.dllm = motor_pv_str + ".DLLM",
+	.egu  = motor_pv_str + ".EGU",
+	.set  = motor_pv_str + ".SET",
+    };
+    
     // Create the FTXUI screen. Interactive and uses the full terminal screen
     auto screen = ScreenInteractive::Fullscreen();
 
@@ -31,62 +76,101 @@ int main(int argc, char *argv[]) {
 
     // PVGroup to connect to all the PVs we need and manager monitors
     PVGroup pvgroup(provider, {
-	"namSoft:m1.VAL",
-	"namSoft:m1.RBV",
-	"namSoft:m1.DVAL",
-	"namSoft:m1.DRBV",
-	"namSoft:m1.TWV",
-	"namSoft:m1.TWF",
-	"namSoft:m1.TWR",
-	"namSoft:m1.DESC",
+	motor.val,
+	motor.rbv,
+	motor.dval,
+	motor.drbv,
+	motor.twv,
+	motor.twf,
+	motor.twr,
+	motor.desc,
+	motor.hlm,
+	motor.llm,
+	motor.dhlm,
+	motor.dllm,
+	motor.egu,
+	motor.set,
     });
 
-    std::string debug_string = "DEBUG";
-    const int VAL_MIN = 0;
-    const int VAL_MAX = 100;
-    const int BUTTON_INC = 5;
-    const int SLIDER_INC = 1;
-
-
     // tweak buttons, don't need readback
-    auto twf_button = PVButton(pvgroup.channels.at("namSoft:m1.TWF"), " > ", 1);
-    auto twr_button = PVButton(pvgroup.channels.at("namSoft:m1.TWR"), " < ", 1);
+    auto twf_button = PVButton(pvgroup.channels.at(motor.twf), " > ", 1);
+    auto twr_button = PVButton(pvgroup.channels.at(motor.twr), " < ", 1);
 
-    // value input and monitor
+    // user value input and monitor
     std::string val_string;
-    auto val_input = PVInput(pvgroup.channels.at("namSoft:m1.VAL"), val_string);
-    pvgroup.create_monitor("namSoft:m1.VAL", val_string);
+    auto val_input = PVInput(pvgroup.channels.at(motor.val), val_string);
+    pvgroup.create_monitor(motor.val, val_string);
 
-    // dval input and monitor
+    // user high limit input and monitor
+    std::string hlm_string;
+    auto hlm_input = PVInput(pvgroup.channels.at(motor.hlm), hlm_string);
+    pvgroup.create_monitor(motor.hlm, hlm_string);
+
+    // user low limit input and monitor
+    std::string llm_string;
+    auto llm_input = PVInput(pvgroup.channels.at(motor.llm), llm_string);
+    pvgroup.create_monitor(motor.llm, llm_string);
+
+    // dial high limit input and monitor
+    std::string dhlm_string;
+    auto dhlm_input = PVInput(pvgroup.channels.at(motor.dhlm), dhlm_string);
+    pvgroup.create_monitor(motor.dhlm, dhlm_string);
+
+    // dial low limit input and monitor
+    std::string dllm_string;
+    auto dllm_input = PVInput(pvgroup.channels.at(motor.dllm), dllm_string);
+    pvgroup.create_monitor(motor.dllm, dllm_string);
+
+    // dial value input and monitor
     std::string dval_string;
-    auto dval_input = PVInput(pvgroup.channels.at("namSoft:m1.DVAL"), dval_string);
-    pvgroup.create_monitor("namSoft:m1.DVAL", dval_string);
+    auto dval_input = PVInput(pvgroup.channels.at(motor.dval), dval_string);
+    pvgroup.create_monitor(motor.dval, dval_string);
 
     // tweak value and monitor
     std::string twv_string;
-    auto twv_input = PVInput(pvgroup.channels.at("namSoft:m1.TWV"), twv_string);
-    pvgroup.create_monitor("namSoft:m1.TWV", twv_string);
+    auto twv_input = PVInput(pvgroup.channels.at(motor.twv), twv_string);
+    pvgroup.create_monitor(motor.twv, twv_string);
 
     // user readback value
     double rbv = 0.0;
-    pvgroup.create_monitor<double>("namSoft:m1.RBV", rbv);
+    pvgroup.create_monitor<double>(motor.rbv, rbv);
     
     // dial readback value
     double drbv = 0.0;
-    pvgroup.create_monitor<double>("namSoft:m1.DRBV", drbv);
+    pvgroup.create_monitor<double>(motor.drbv, drbv);
+
+    // EGU string readback
+    std::string egu = "";
+    pvgroup.create_monitor(motor.egu, egu);
 
     // string description readback
     std::string desc = "";
-    pvgroup.create_monitor<std::string>("namSoft:m1.DESC", desc);
+    pvgroup.create_monitor<std::string>(motor.desc, desc);
 
+    // Set/Use buttons
+    int setuse = 0;
+    auto set_button = PVButton(pvgroup.channels.at(motor.set), " Set ", 1);
+    auto use_button = PVButton(pvgroup.channels.at(motor.set), " Use ", 0);
 
     // Main container to define interactivity of components
     auto main_container = Container::Vertical({
-        Container::Horizontal({
-	    val_input, dval_input,
+	Container::Horizontal({
+	    Container::Vertical({
+		hlm_input,
+		val_input,
+		llm_input,
+	    }),
+	    Container::Vertical({
+		dhlm_input,
+		dval_input,
+		dllm_input,
+	    }),
 	}),
-        Container::Horizontal({
+	Container::Horizontal({
 	    twr_button, twv_input, twf_button
+	}),
+	Container::Horizontal({
+	    use_button, set_button,
 	}),
     });
 
@@ -102,28 +186,60 @@ int main(int argc, char *argv[]) {
     // Main renderer to define visual layout of components and elements
     auto main_renderer = Renderer(main_container, [&] {
         return vbox({
-	    text(desc) | hcenter,
+	    text(desc) | center,
+
 	    separatorEmpty(),
+
 	    hbox({
-		text(std::to_string(rbv)) | color(Color::DodgerBlue1),
+		vbox({
+		    text(std::string(egu.length(), ' ')), // filler to match other side
+		}),
 		separatorEmpty(),
-		text(std::to_string(drbv)) | color(Color::DodgerBlue1),
-	    }) | center | border,
-	    separatorEmpty(),
-	    hbox({
-		val_input->Render()  | bgcolor(Color::Cyan) | size(WIDTH, EQUAL, 10),
+		vbox({
+		    hlm_input->Render()  | bgcolor(Color::Cyan) | size(WIDTH, EQUAL, 10),
+		    separatorEmpty(), 	
+		    text(std::to_string(rbv)) | color(Color::Blue) | center,
+		    separatorEmpty(), 	
+		    val_input->Render()  | bgcolor(Color::Cyan) | size(WIDTH, EQUAL, 10) | size(HEIGHT, EQUAL, 2),
+		    separatorEmpty(), 	
+		    llm_input->Render()  | bgcolor(Color::Cyan) | size(WIDTH, EQUAL, 10),
+		}),
+		separatorEmpty(), 	
+		vbox({
+		    dhlm_input->Render()  | bgcolor(Color::Cyan) | size(WIDTH, EQUAL, 10),
+		    separatorEmpty(), 	
+		    text(std::to_string(drbv)) | color(Color::Blue) | center,
+		    separatorEmpty(), 	
+		    dval_input->Render()  | bgcolor(Color::Cyan) | size(WIDTH, EQUAL, 10) | size(HEIGHT, EQUAL, 2),
+		    separatorEmpty(), 	
+		    dllm_input->Render()  | bgcolor(Color::Cyan) | size(WIDTH, EQUAL, 10),
+		}),
 		separatorEmpty(),
-		dval_input->Render()  | bgcolor(Color::Cyan) | size(WIDTH, EQUAL, 10),
-	    }) | center | border,
-	    separatorEmpty(),
+		vbox({
+		    separatorEmpty(), 	
+		    separatorEmpty(), 	
+		    separatorEmpty(), 	
+		    separatorEmpty(), 	
+		    text(egu),
+		    separatorEmpty(), 	
+		    separatorEmpty(),
+		}),
+	    }) | center,
+	    
+	    separatorEmpty(), 	
+
 	    hbox({
-		twr_button->Render() | size(WIDTH, EQUAL, 5), separatorEmpty(),
-		twv_input->Render() | bgcolor(Color::Cyan) | size(WIDTH, EQUAL, 6) | center,
-		separatorEmpty(), twf_button->Render() | size(WIDTH, EQUAL, 5)
-	    }) | hcenter,
+		twr_button->Render(),
+		separatorEmpty(),
+		twv_input->Render() | bgcolor(Color::Cyan) | size(WIDTH, EQUAL, 11) | center,
+		separatorEmpty(),
+		twf_button->Render()
+	    }) | flex | center ,
+
 	    separatorEmpty(),
+
 	    paragraph(debug_string) | color(Color::Yellow) | hcenter,
-	}) | size(WIDTH, EQUAL, 20) | hcenter;
+	}) | center;
     });
 
     // Custom main loop
