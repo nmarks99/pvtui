@@ -1,3 +1,4 @@
+#pragma once
 #include <memory>
 #include <pv/caProvider.h>
 #include <pva/client.h>

@@ -1,7 +1,6 @@
 #include <cassert>
 #include <cstdlib>
 #include <string>
-#include <unordered_map>
 
 #include <pv/caProvider.h>
 #include <pva/client.h>
@@ -97,42 +96,42 @@ int main(int argc, char *argv[]) {
     });
 
     // tweak buttons, don't need readback
-    auto twf_button = PVButton(pvgroup.get(motor.twf).channel, " > ", 1);
-    auto twr_button = PVButton(pvgroup.get(motor.twr).channel, " < ", 1);
+    auto twf_button = PVButton(pvgroup.get(motor.twf), " > ", 1);
+    auto twr_button = PVButton(pvgroup.get(motor.twr), " < ", 1);
 
     // user value input and monitor
     std::string val_string;
-    auto val_input = PVInput(pvgroup.get(motor.val).channel, val_string);
+    auto val_input = PVInput(pvgroup.get(motor.val), val_string);
     pvgroup.set_monitor(motor.val, val_string);
 
     // user high limit input and monitor
     std::string hlm_string;
-    auto hlm_input = PVInput(pvgroup.get(motor.hlm).channel, hlm_string);
+    auto hlm_input = PVInput(pvgroup.get(motor.hlm), hlm_string);
     pvgroup.set_monitor(motor.hlm, hlm_string);
 
     // user low limit input and monitor
     std::string llm_string;
-    auto llm_input = PVInput(pvgroup.get(motor.llm).channel, llm_string);
+    auto llm_input = PVInput(pvgroup.get(motor.llm), llm_string);
     pvgroup.set_monitor(motor.llm, llm_string);
 
     // dial high limit input and monitor
     std::string dhlm_string;
-    auto dhlm_input = PVInput(pvgroup.get(motor.dhlm).channel, dhlm_string);
+    auto dhlm_input = PVInput(pvgroup.get(motor.dhlm), dhlm_string);
     pvgroup.set_monitor(motor.dhlm, dhlm_string);
 
     // dial low limit input and monitor
     std::string dllm_string;
-    auto dllm_input = PVInput(pvgroup.get(motor.dllm).channel, dllm_string);
+    auto dllm_input = PVInput(pvgroup.get(motor.dllm), dllm_string);
     pvgroup.set_monitor(motor.dllm, dllm_string);
 
     // dial value input and monitor
     std::string dval_string;
-    auto dval_input = PVInput(pvgroup.get(motor.dval).channel, dval_string);
+    auto dval_input = PVInput(pvgroup.get(motor.dval), dval_string);
     pvgroup.set_monitor(motor.dval, dval_string);
 
     // tweak value and monitor
     std::string twv_string;
-    auto twv_input = PVInput(pvgroup.get(motor.twv).channel, twv_string);
+    auto twv_input = PVInput(pvgroup.get(motor.twv), twv_string);
     pvgroup.set_monitor(motor.twv, twv_string);
 
     // user readback value
@@ -163,8 +162,8 @@ int main(int argc, char *argv[]) {
 
     // Set/Use buttons
     int setuse = 0;
-    auto set_button = PVButton(pvgroup.get(motor.set).channel, " Set ", 1);
-    auto use_button = PVButton(pvgroup.get(motor.set).channel, " Use ", 0);
+    auto set_button = PVButton(pvgroup.get(motor.set), " Set ", 1);
+    auto use_button = PVButton(pvgroup.get(motor.set), " Use ", 0);
 
     // Main container to define interactivity of components
     auto main_container = Container::Vertical({
@@ -200,9 +199,9 @@ int main(int argc, char *argv[]) {
     // Main renderer to define visual layout of components and elements
     auto main_renderer = Renderer(main_container, [&] {
         return vbox({
-	    text(desc) | center,
+	    text(desc) | color(Color::Black) | center,
 
-	    separator(),
+	    separator() | color(Color::Black),
 
 	    // 4 column hbox
 	    // none | user | dial | other
@@ -210,23 +209,23 @@ int main(int argc, char *argv[]) {
 		vbox({}) | size(WIDTH, EQUAL, egu.length()),
 		separatorEmpty(),
 		vbox({
-		    hlm_input->Render()  | bgcolor(Color::Cyan) | size(WIDTH, EQUAL, 10),
+		    hlm_input->Render()  | EPICSColor::EDIT | size(WIDTH, EQUAL, 10),
 		    separatorEmpty(), 	
-		    text(std::to_string(rbv)) | color(Color::Blue) | center,
+		    text(std::to_string(rbv)) | EPICSColor::READBACK | center,
 		    separatorEmpty(), 	
-		    val_input->Render()  | bgcolor(Color::Cyan) | size(WIDTH, EQUAL, 10) | size(HEIGHT, EQUAL, 2),
+		    val_input->Render()  | EPICSColor::EDIT | size(WIDTH, EQUAL, 10) | size(HEIGHT, EQUAL, 2),
 		    separatorEmpty(), 	
-		    llm_input->Render()  | bgcolor(Color::Cyan) | size(WIDTH, EQUAL, 10),
+		    llm_input->Render()  | EPICSColor::EDIT | size(WIDTH, EQUAL, 10),
 		}),
 		separatorEmpty(), 	
 		vbox({
-		    dhlm_input->Render()  | bgcolor(Color::Cyan) | size(WIDTH, EQUAL, 10),
+		    dhlm_input->Render()  | EPICSColor::EDIT | size(WIDTH, EQUAL, 10),
 		    separatorEmpty(), 	
-		    text(std::to_string(drbv)) | color(Color::Blue) | center,
+		    text(std::to_string(drbv)) | EPICSColor::READBACK | center,
 		    separatorEmpty(), 	
-		    dval_input->Render()  | bgcolor(Color::Cyan) | size(WIDTH, EQUAL, 10) | size(HEIGHT, EQUAL, 2),
+		    dval_input->Render()  | EPICSColor::EDIT | size(WIDTH, EQUAL, 10) | size(HEIGHT, EQUAL, 2),
 		    separatorEmpty(), 	
-		    dllm_input->Render()  | bgcolor(Color::Cyan) | size(WIDTH, EQUAL, 10),
+		    dllm_input->Render()  | EPICSColor::EDIT | size(WIDTH, EQUAL, 10),
 		}),
 		separatorEmpty(),
 		vbox({
@@ -235,7 +234,7 @@ int main(int argc, char *argv[]) {
 		    separatorEmpty(), 	
 		    separatorEmpty(), 	
 		    separatorEmpty(), 	
-		    text(egu),
+		    text(egu) | EPICSColor::READBACK,
 		    separatorEmpty(),
 		    text(lls ? unicode::rectangle(2,1) : "") | color(Color::Red),
 		}) | size(WIDTH, EQUAL, egu.length()),
@@ -244,13 +243,13 @@ int main(int argc, char *argv[]) {
 	    separatorEmpty(), 	
 
 	    hbox({
-		twr_button->Render(),
+		twr_button->Render() | color(Color::Black),
 		separatorEmpty(),
-		twv_input->Render() | bgcolor(Color::Cyan) | size(WIDTH, EQUAL, 11) | center,
+		twv_input->Render() | EPICSColor::EDIT | size(WIDTH, EQUAL, 11) | center,
 		separatorEmpty(),
-		twf_button->Render(),
+		twf_button->Render() | color(Color::Black),
 	    }) | center
-	}) | center;
+	}) | center | bgcolor(Color::RGB(196,196,196));
     });
 
     // Custom main loop
