@@ -1,18 +1,56 @@
 #include "pvgroup.hpp"
-
+#include <variant>
 #include <charconv>
-#include <sstream>
+
+void ConnectionMonitor::connectEvent(const pvac::ConnectEvent& event) {
+    if (event.connected) {
+        connected_ = true;
+    } else {
+        connected_ = false;
+    }
+}
+
+bool ConnectionMonitor::connected() const {
+    return connected_;
+}
+
+
+ProcessVariable::ProcessVariable(pvac::ClientProvider &provider, const std::string &pv_name) :
+    channel(provider.connect(pv_name)),
+    monitor(channel.monitor()),
+    connection_monitor(std::make_shared<ConnectionMonitor>()),
+    name(pv_name)
+{
+    channel.addConnectListener(connection_monitor.get());
+}
+
+bool ProcessVariable::connected() const {
+    return connection_monitor->connected();
+}
+
+
+PVGroup::PVGroup(pvac::ClientProvider &provider, const std::vector<std::string> &pv_names) {
+    for (const auto &name : pv_names) {
+        pv_map.emplace(name, ProcessVariable(provider, name));
+    }
+}
+
+ProcessVariable& PVGroup::get(const std::string &pv_name) {
+    return pv_map.at(pv_name);
+}
 
 void PVGroup::update() {
-    for (auto &[pv_name, pair] : monitors) {
-        auto &monitor = pair.first;
-        auto &monitor_ptr = pair.second;
-        if (pair.first.test()) {
-            switch (pair.first.event.event) {
-
+    for (auto &[pv_name, pv] : pv_map) {
+        auto &monitor = pv.monitor;
+        auto &monitor_ptr = pv.monitor_var_ptr;
+        if (std::holds_alternative<std::monostate>(monitor_ptr)) {
+            continue;
+        }
+        if (monitor.test()) {
+            switch (monitor.event.event) {
 
             case pvac::MonitorEvent::Data:
-                while (pair.first.poll()) {
+                while (monitor.poll()) {
 
                     std::visit([&](auto ptr) {
                         using PtrType = std::decay_t<decltype(ptr)>;
@@ -61,14 +99,17 @@ void PVGroup::update() {
 
 
             case pvac::MonitorEvent::Cancel:
+                std::cout << "Monitor Cancel: " << monitor.name() << std::endl;
                 break;
 
 
             case pvac::MonitorEvent::Disconnect:
+                std::cout << "Monitor Disconnect: " << monitor.name() << std::endl;
                 break;
 
 
             case pvac::MonitorEvent::Fail:
+                std::cout << "Monitor Fail: " << monitor.name() << std::endl;
                 break;
 
 

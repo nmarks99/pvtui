@@ -19,7 +19,6 @@ void signal_handler(int signal) {
     }
 }
 
-
 int main() {
 
     // Register the signal handler for SIGINT
@@ -33,46 +32,40 @@ int main() {
     pvac::ClientProvider provider("ca");
 
     PVGroup pvgroup(provider, {
-	"namSoft:m1.VAL",
-	"namSoft:m1.RBV",
-	"namSoft:m1.TWV",
-	"namSoft:m1.TWF",
-	"namSoft:m1.TWR",
-	"namSoft:m1.PREC",
-	"namSoft:m1.DESC",
-	"namSoft:m1.SPMG",
-	"test:long",
-	"test:string",
-	"test:float",
+	"xxx:m1.VAL",
+	"xxx:m1.RBV",
+	"xxx:m1.TWV",
+	"xxx:m1.TWF",
+	"xxx:m1.TWR",
+	"xxx:m1.PREC",
+	"xxx:m1.DESC",
+	"xxx:m1.SPMG",
+	"xxx:long",
+	"xxx:string",
+	"xxx:float",
+	"xxx:mbbo",
     });
 
-
-    bool okay = false;
     double rbv = 0;
-    okay = pvgroup.create_monitor("namSoft:m1.RBV", rbv);
-    if (not okay) {
-	std::cout << "Failed to create monitor rbv" << std::endl;
-    }
+    pvgroup.set_monitor("xxx:m1.RBV", rbv);
 
     int prec = 0;
-    okay = pvgroup.create_monitor("namSoft:m1.PREC", prec);
-    if (not okay) {
-	std::cout << "Failed to create monitor prec" << std::endl;
-    }
+    pvgroup.set_monitor("xxx:m1.PREC", prec);
 
     std::string desc = "";
-    okay = pvgroup.create_monitor("namSoft:m1.DESC", desc);
-    if (not okay) {
-	std::cout << "Failed to create monitor desc" << std::endl;
-    }
+    pvgroup.set_monitor("xxx:m1.DESC", desc);
+
+    int spmg = 0;
+    pvgroup.set_monitor("xxx:m1.SPMG", spmg);
 
     while(g_signal_caught == 0) {
 	pvgroup.update();
 	std::cout << "rbv = " << rbv << std::endl;
 	std::cout << "desc = " << desc << std::endl;
 	std::cout << "prec = " << prec << std::endl;
+	std::cout << "spmg = " << spmg << std::endl;
 	std::cout << std::endl;
-	std::this_thread::sleep_for(std::chrono::milliseconds(100));
+	std::this_thread::sleep_for(std::chrono::milliseconds(1000));
     }
 
 }

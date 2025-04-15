@@ -42,14 +42,12 @@ struct MotorFields {
 
 int main(int argc, char *argv[]) {
    
-    std::string debug_string = "DEBUG";
-
     if (argc == 1) {
 	printf("Usage: %s <motor>\n", argv[0]);
 	return 0;
     }
-
     std::string motor_pv_str(argv[1]);
+    assert(motor_pv_str.length() > 0);
 
     // struct of motor PV names for convenience
     const MotorFields motor {
@@ -99,74 +97,74 @@ int main(int argc, char *argv[]) {
     });
 
     // tweak buttons, don't need readback
-    auto twf_button = PVButton(pvgroup.channels.at(motor.twf), " > ", 1);
-    auto twr_button = PVButton(pvgroup.channels.at(motor.twr), " < ", 1);
+    auto twf_button = PVButton(pvgroup.get(motor.twf).channel, " > ", 1);
+    auto twr_button = PVButton(pvgroup.get(motor.twr).channel, " < ", 1);
 
     // user value input and monitor
     std::string val_string;
-    auto val_input = PVInput(pvgroup.channels.at(motor.val), val_string);
-    pvgroup.create_monitor(motor.val, val_string);
+    auto val_input = PVInput(pvgroup.get(motor.val).channel, val_string);
+    pvgroup.set_monitor(motor.val, val_string);
 
     // user high limit input and monitor
     std::string hlm_string;
-    auto hlm_input = PVInput(pvgroup.channels.at(motor.hlm), hlm_string);
-    pvgroup.create_monitor(motor.hlm, hlm_string);
+    auto hlm_input = PVInput(pvgroup.get(motor.hlm).channel, hlm_string);
+    pvgroup.set_monitor(motor.hlm, hlm_string);
 
     // user low limit input and monitor
     std::string llm_string;
-    auto llm_input = PVInput(pvgroup.channels.at(motor.llm), llm_string);
-    pvgroup.create_monitor(motor.llm, llm_string);
+    auto llm_input = PVInput(pvgroup.get(motor.llm).channel, llm_string);
+    pvgroup.set_monitor(motor.llm, llm_string);
 
     // dial high limit input and monitor
     std::string dhlm_string;
-    auto dhlm_input = PVInput(pvgroup.channels.at(motor.dhlm), dhlm_string);
-    pvgroup.create_monitor(motor.dhlm, dhlm_string);
+    auto dhlm_input = PVInput(pvgroup.get(motor.dhlm).channel, dhlm_string);
+    pvgroup.set_monitor(motor.dhlm, dhlm_string);
 
     // dial low limit input and monitor
     std::string dllm_string;
-    auto dllm_input = PVInput(pvgroup.channels.at(motor.dllm), dllm_string);
-    pvgroup.create_monitor(motor.dllm, dllm_string);
+    auto dllm_input = PVInput(pvgroup.get(motor.dllm).channel, dllm_string);
+    pvgroup.set_monitor(motor.dllm, dllm_string);
 
     // dial value input and monitor
     std::string dval_string;
-    auto dval_input = PVInput(pvgroup.channels.at(motor.dval), dval_string);
-    pvgroup.create_monitor(motor.dval, dval_string);
+    auto dval_input = PVInput(pvgroup.get(motor.dval).channel, dval_string);
+    pvgroup.set_monitor(motor.dval, dval_string);
 
     // tweak value and monitor
     std::string twv_string;
-    auto twv_input = PVInput(pvgroup.channels.at(motor.twv), twv_string);
-    pvgroup.create_monitor(motor.twv, twv_string);
+    auto twv_input = PVInput(pvgroup.get(motor.twv).channel, twv_string);
+    pvgroup.set_monitor(motor.twv, twv_string);
 
     // user readback value
     double rbv = 0.0;
-    pvgroup.create_monitor<double>(motor.rbv, rbv);
+    pvgroup.set_monitor<double>(motor.rbv, rbv);
     
     // dial readback value
     double drbv = 0.0;
-    pvgroup.create_monitor<double>(motor.drbv, drbv);
+    pvgroup.set_monitor<double>(motor.drbv, drbv);
 
     // EGU string readback
     std::string egu = "";
-    pvgroup.create_monitor(motor.egu, egu);
+    pvgroup.set_monitor(motor.egu, egu);
 
     // string description readback
     std::string desc = "";
-    pvgroup.create_monitor<std::string>(motor.desc, desc);
+    pvgroup.set_monitor<std::string>(motor.desc, desc);
 
     // High limit switch
     int hls = 0;
     std::string hls_box = unicode::rectangle(2, 1);
-    pvgroup.create_monitor<int>(motor.hls, hls);
+    pvgroup.set_monitor<int>(motor.hls, hls);
     
     // Low limit switch
     int lls = 0;
     std::string lls_box = unicode::rectangle(2, 1);
-    pvgroup.create_monitor<int>(motor.lls, lls);
+    pvgroup.set_monitor<int>(motor.lls, lls);
 
     // Set/Use buttons
     int setuse = 0;
-    auto set_button = PVButton(pvgroup.channels.at(motor.set), " Set ", 1);
-    auto use_button = PVButton(pvgroup.channels.at(motor.set), " Use ", 0);
+    auto set_button = PVButton(pvgroup.get(motor.set).channel, " Set ", 1);
+    auto use_button = PVButton(pvgroup.get(motor.set).channel, " Use ", 0);
 
     // Main container to define interactivity of components
     auto main_container = Container::Vertical({
@@ -252,9 +250,6 @@ int main(int argc, char *argv[]) {
 		separatorEmpty(),
 		twf_button->Render(),
 	    }) | center
-
-	    // separatorEmpty(),
-	    // paragraph(debug_string) | color(Color::Yellow) | hcenter,
 	}) | center;
     });
 

@@ -1,3 +1,4 @@
+#include <memory>
 #include <pv/caProvider.h>
 #include <pva/client.h>
 
@@ -6,42 +7,73 @@
 
 constexpr int PVGROUP_PRECISION = 4;
 
-static inline std::unordered_map<std::string, pvac::ClientChannel> construct_chan_map(pvac::ClientProvider &provider,
-                                                                   const std::vector<std::string> &pv_list) {
-    std::unordered_map<std::string, pvac::ClientChannel> map_out;
-    for (const auto &name : pv_list) {
-        map_out.insert({name, provider.connect(name)});
-    }
-    return map_out;
-}
+// // Helper function to contruct a map of ClientChannel's
+// static inline std::unordered_map<std::string, pvac::ClientChannel> construct_chan_map(pvac::ClientProvider &provider,
+                                                                   // const std::vector<std::string> &pv_list) {
+    // std::unordered_map<std::string, pvac::ClientChannel> map_out;
+    // for (const auto &name : pv_list) {
+        // map_out.insert({name, provider.connect(name)});
+    // }
+    // return map_out;
+// }
+//
 
-using MonitorPtr = std::variant<int*, double*, std::string*>;
+// Types of variables which can be set to be updated by a monitor
+using MonitorPtr = std::variant<std::monostate, int*, double*, std::string*>;
+
+class ConnectionMonitor : public pvac::ClientChannel::ConnectCallback {
+  public:
+    ConnectionMonitor() {}
+    virtual ~ConnectionMonitor() override = default;
+
+    virtual void connectEvent(const pvac::ConnectEvent& event) override final;
+
+    bool connected() const;
+
+  private:
+    bool connected_ = false;
+};
+
+
+enum class PVType {
+    PVTYPE_STRING,
+    PVTYPE_DOUBLE,
+    PVTYPE_INT,
+    PVTYPE_ENUM,
+};
+
+struct ProcessVariable {
+  public:
+    ProcessVariable(pvac::ClientProvider &provider, const std::string &pv_name);
+
+    bool connected() const;
+
+    pvac::ClientChannel channel;
+    std::string name;
+
+  private:
+    pvac::MonitorSync monitor;
+    MonitorPtr monitor_var_ptr;
+    std::shared_ptr<ConnectionMonitor> connection_monitor;
+
+    friend class PVGroup;
+};
+
 
 struct PVGroup {
+  public:
+    PVGroup(pvac::ClientProvider &provider, const std::vector<std::string> &pv_list);
 
-    // Constructor creates ClientChannels for each requested PV
-    PVGroup(pvac::ClientProvider &provider, const std::vector<std::string> &pv_list)
-        : channels(construct_chan_map(provider, pv_list)) {}
-
-    // create a monitor that updates the given variable
     template <typename T>
-    bool create_monitor(const std::string &pv_name, T &var) {
-        if (channels.count(pv_name)) {
-            if (!monitors.count(pv_name)) {
-                // create monitor if there isn't one
-                monitors[pv_name].first = channels.at(pv_name).monitor();
-            }
-            // if there is, set the variable which is updated
-            monitors[pv_name].second = &var;
-            return true;
-        } else {
-            return false;
-        }
+    void set_monitor(const std::string &pv_name, T &var) {
+        ProcessVariable& pv = this->get(pv_name);
+        pv.monitor_var_ptr = &var;
     }
 
-    // Update the variables associated with each monitor
+    ProcessVariable& get(const std::string &pv_name);
+
     void update();
 
-    std::unordered_map<std::string, pvac::ClientChannel> channels;
-    std::unordered_map<std::string, std::pair<pvac::MonitorSync, MonitorPtr>> monitors;
+  private:
+    std::unordered_map<std::string, ProcessVariable> pv_map;
 };
