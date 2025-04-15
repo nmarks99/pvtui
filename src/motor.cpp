@@ -165,6 +165,10 @@ int main(int argc, char *argv[]) {
     auto set_button = PVButton(pvgroup.get(motor.set), " Set ", 1);
     auto use_button = PVButton(pvgroup.get(motor.set), " Use ", 0);
 
+    // use this PV for connection status. We assume if we can connect
+    // to this, we can connect to all the PVs for this display
+    auto& desc_pv = pvgroup.get(motor.desc);
+
     // Main container to define interactivity of components
     auto main_container = Container::Vertical({
 	Container::Horizontal({
@@ -248,7 +252,16 @@ int main(int argc, char *argv[]) {
 		twv_input->Render() | EPICSColor::EDIT | size(WIDTH, EQUAL, 11) | center,
 		separatorEmpty(),
 		twf_button->Render() | color(Color::Black),
-	    }) | center
+	    }) | center,
+
+	    separatorEmpty(),
+	    [&](){
+		if (desc_pv.connected()) {
+		    return text("Connected") | color(Color::Green);
+		} else {
+		    return text("Disconnected") | color(Color::Red);
+		}
+	    }() | center,
 	}) | center | bgcolor(Color::RGB(196,196,196));
     });
 
