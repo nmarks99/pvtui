@@ -19,14 +19,14 @@ std::string rectangle(int width, int height) {
 
 
 ftxui::Component PVButton(ProcessVariable &pv, const std::string &label, int value) {
-    return ftxui::Button(ftxui::ButtonOption({
-	.label = label,
-	.on_click = [&](){
-	    if (pv.connected()) {
-		pv.channel.put().set("value", value).exec();
-	    } 
+    auto op = ftxui::ButtonOption::Ascii();
+    op.label = &label;
+    op.on_click = [&](){
+	if (pv.connected()) {
+	    pv.channel.put().set("value", value).exec();
 	}
-    }));
+    };
+    return ftxui::Button(op);
 };
 
 
@@ -48,5 +48,43 @@ ftxui::Component PVInput(ProcessVariable &pv, std::string &disp_str) {
 	    }
 	},
     }));
+}
 
+ftxui::Component PVChoiceH(ProcessVariable &pv, const std::vector<std::string> &labels, int &selected) {
+    ftxui::MenuOption op = ftxui::MenuOption::Toggle();
+    op.entries = &labels;
+    op.selected = &selected;
+    op.on_change = [&](){
+	if (pv.connected()) {
+	    // TODO: ProcessVariable struct should have put method than handles channel.put?
+	    pv.channel.put().set("value.index", selected).exec();
+	}
+    };
+    return ftxui::Menu(op);
+}
+
+ftxui::Component PVChoiceV(ProcessVariable &pv, const std::vector<std::string> &labels, int &selected) {
+    ftxui::MenuOption op = ftxui::MenuOption::Vertical();
+    op.entries = &labels;
+    op.selected = &selected;
+    op.on_change = [&](){
+	if (pv.connected()) {
+	    // TODO: ProcessVariable struct should have put method than handles channel.put?
+	    pv.channel.put().set("value.index", selected).exec();
+	}
+    };
+    op.entries_option.transform = [](const ftxui::EntryState& state) {
+	ftxui::Element e = ftxui::text(state.label);
+	if (state.focused) {
+	    e |= ftxui::inverted;
+	}
+	if (state.active) {
+	    e |= ftxui::bold;
+	}
+	if (!state.focused && !state.active) {
+	    e |= ftxui::dim;
+	}
+	return e;
+    };
+    return ftxui::Menu(op);
 }

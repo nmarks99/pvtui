@@ -36,6 +36,10 @@ PVGroup::PVGroup(pvac::ClientProvider &provider, const std::vector<std::string> 
 }
 
 ProcessVariable& PVGroup::get(const std::string &pv_name) {
+    if (!pv_map.count(pv_name)) {
+        std::string errmsg = pv_name + " not registered in PVGroup";
+        throw std::runtime_error(errmsg);
+    }
     return pv_map.at(pv_name);
 }
 

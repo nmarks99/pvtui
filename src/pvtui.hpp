@@ -21,11 +21,14 @@ std::string rectangle(int width, int height);
 namespace EPICSColor {
 using namespace ftxui;
 static const Decorator EDIT = bgcolor(Color::RGB(87,202,228)) | color(Color::Black);
-static const Decorator READBACK = color(Color::Blue);
+static const Decorator READBACK = color(Color::DarkBlue);
 static const Decorator BACKGROUND = color(Color::RGB(196,196,196));
 }
 
 ftxui::Component PVButton(ProcessVariable &pv, const std::string &label, int value);
 
 ftxui::Component PVInput(ProcessVariable &pv, std::string &disp_str);
+
+ftxui::Component PVChoiceH(ProcessVariable &pv, const std::vector<std::string> &labels, int &selected);
+ftxui::Component PVChoiceV(ProcessVariable &pv, const std::vector<std::string> &labels, int &selected);
 

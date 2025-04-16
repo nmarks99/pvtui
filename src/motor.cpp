@@ -36,6 +36,8 @@ struct MotorFields {
     std::string set;
     std::string hls;
     std::string lls;
+    std::string spmg;
+    std::string stop;
 };
 
 
@@ -66,6 +68,8 @@ int main(int argc, char *argv[]) {
 	.set  = motor_pv_str + ".SET",
 	.hls  = motor_pv_str + ".HLS",
 	.lls  = motor_pv_str + ".LLS",
+	.spmg  = motor_pv_str + ".SPMG",
+	.stop  = motor_pv_str + ".STOP",
     };
 
     // Create the FTXUI screen. Interactive and uses the full terminal screen
@@ -93,6 +97,8 @@ int main(int argc, char *argv[]) {
 	motor.set,
 	motor.hls,
 	motor.lls,
+	motor.spmg,
+	motor.stop,
     });
 
     // tweak buttons, don't need readback
@@ -160,14 +166,21 @@ int main(int argc, char *argv[]) {
     std::string lls_box = unicode::rectangle(2, 1);
     pvgroup.set_monitor<int>(motor.lls, lls);
 
-    // Set/Use buttons
-    int setuse = 0;
-    auto set_button = PVButton(pvgroup.get(motor.set), " Set ", 1);
-    auto use_button = PVButton(pvgroup.get(motor.set), " Use ", 0);
+    // Use/Set toggle
+    std::vector<std::string> use_set_labels {"Use", "Set"};
+    int use_set = 0;
+    auto use_set_menu = PVChoiceH(pvgroup.get(motor.set), use_set_labels, use_set);
+    pvgroup.set_monitor(motor.set, use_set);
+
+    // Stop, pause, move, go toggle
+    std::vector<std::string> spmg_labels {"Stop", "Pause ", "Move", "Go"};
+    int spmg_sel = 0;
+    auto spmg_menu = PVChoiceV(pvgroup.get(motor.spmg), spmg_labels, spmg_sel);
+    pvgroup.set_monitor(motor.spmg, spmg_sel);
 
     // use this PV for connection status. We assume if we can connect
     // to this, we can connect to all the PVs for this display
-    auto& desc_pv = pvgroup.get(motor.desc);
+    auto &desc_pv = pvgroup.get(motor.desc);
 
     // Main container to define interactivity of components
     auto main_container = Container::Vertical({
@@ -182,12 +195,13 @@ int main(int argc, char *argv[]) {
 		dval_input,
 		dllm_input,
 	    }),
+	    Container::Vertical({
+		use_set_menu,
+		spmg_menu,
+	    }),
 	}),
 	Container::Horizontal({
 	    twr_button, twv_input, twf_button
-	}),
-	Container::Horizontal({
-	    use_button, set_button,
 	}),
     });
 
@@ -205,17 +219,19 @@ int main(int argc, char *argv[]) {
         return vbox({
 	    text(desc) | color(Color::Black) | center,
 
-	    separator() | color(Color::Black),
+	    separatorEmpty() | color(Color::Black),
 
-	    // 4 column hbox
-	    // none | user | dial | other
+	    // 6 column hbox of vbox's
+	    // none | none | user | dial | lims/egu | spmg
 	    hbox({
+		vbox({}) | size(WIDTH, EQUAL, 7), // 5 = "Pause".length()
 		vbox({}) | size(WIDTH, EQUAL, egu.length()),
 		separatorEmpty(),
 		vbox({
+		    text("User") | center,
 		    hlm_input->Render()  | EPICSColor::EDIT | size(WIDTH, EQUAL, 10),
 		    separatorEmpty(), 	
-		    text(std::to_string(rbv)) | EPICSColor::READBACK | center,
+		    text(std::to_string(rbv)) | (use_set==0 ? EPICSColor::READBACK : color(Color::Yellow2)) | center,
 		    separatorEmpty(), 	
 		    val_input->Render()  | EPICSColor::EDIT | size(WIDTH, EQUAL, 10) | size(HEIGHT, EQUAL, 2),
 		    separatorEmpty(), 	
@@ -223,9 +239,10 @@ int main(int argc, char *argv[]) {
 		}),
 		separatorEmpty(), 	
 		vbox({
+		    text("Dial") | center,
 		    dhlm_input->Render()  | EPICSColor::EDIT | size(WIDTH, EQUAL, 10),
 		    separatorEmpty(), 	
-		    text(std::to_string(drbv)) | EPICSColor::READBACK | center,
+		    text(std::to_string(drbv)) | (use_set==0 ? EPICSColor::READBACK : color(Color::Yellow2)) | center,
 		    separatorEmpty(), 	
 		    dval_input->Render()  | EPICSColor::EDIT | size(WIDTH, EQUAL, 10) | size(HEIGHT, EQUAL, 2),
 		    separatorEmpty(), 	
@@ -242,6 +259,15 @@ int main(int argc, char *argv[]) {
 		    separatorEmpty(),
 		    text(lls ? unicode::rectangle(2,1) : "") | color(Color::Red),
 		}) | size(WIDTH, EQUAL, egu.length()),
+		separatorEmpty(),
+		vbox({
+		    separatorEmpty(),
+		    separatorEmpty(),
+		    separatorEmpty(),
+		    spmg_menu->Render() | EPICSColor::EDIT | center,
+		    separatorEmpty(),
+		    use_set_menu->Render() | EPICSColor::EDIT | center,
+		})
 	    }) | center,
 	    
 	    separatorEmpty(), 	
@@ -255,6 +281,7 @@ int main(int argc, char *argv[]) {
 	    }) | center,
 
 	    separatorEmpty(),
+
 	    [&](){
 		if (desc_pv.connected()) {
 		    return text("Connected") | color(Color::Green);
@@ -262,6 +289,8 @@ int main(int argc, char *argv[]) {
 		    return text("Disconnected") | color(Color::Red);
 		}
 	    }() | center,
+
+
 	}) | center | bgcolor(Color::RGB(196,196,196));
     });
 
