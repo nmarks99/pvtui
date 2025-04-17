@@ -38,38 +38,42 @@ struct MotorFields {
     std::string lls;
     std::string spmg;
     std::string stop;
+    std::string able;
 };
 
 
 int main(int argc, char *argv[]) {
    
-    if (argc == 1) {
-	printf("Usage: %s <motor>\n", argv[0]);
+    if (argc <= 2) {
+	printf("Usage: %s <prefix> <motor>\n", argv[0]);
 	return 0;
     }
-    std::string motor_pv_str(argv[1]);
-    assert(motor_pv_str.length() > 0);
+    std::string ioc_prefix(argv[1]);
+    std::string motor_pv(argv[2]);
+    assert(ioc_prefix.length() > 0);
+    assert(motor_pv.length() > 0);
 
     // struct of motor PV names for convenience
     const MotorFields motor {
-	.desc = motor_pv_str + ".DESC",
-	.rbv  = motor_pv_str + ".RBV",
-	.drbv = motor_pv_str + ".DRBV",
-	.val  = motor_pv_str + ".VAL",
-	.dval = motor_pv_str + ".DVAL",
-	.twr  = motor_pv_str + ".TWR",
-	.twv  = motor_pv_str + ".TWV",
-	.twf  = motor_pv_str + ".TWF",
-	.hlm  = motor_pv_str + ".HLM",
-	.llm  = motor_pv_str + ".LLM",
-	.dhlm = motor_pv_str + ".DHLM",
-	.dllm = motor_pv_str + ".DLLM",
-	.egu  = motor_pv_str + ".EGU",
-	.set  = motor_pv_str + ".SET",
-	.hls  = motor_pv_str + ".HLS",
-	.lls  = motor_pv_str + ".LLS",
-	.spmg  = motor_pv_str + ".SPMG",
-	.stop  = motor_pv_str + ".STOP",
+	.desc = ioc_prefix + motor_pv + ".DESC",
+	.rbv  = ioc_prefix + motor_pv + ".RBV",
+	.drbv = ioc_prefix + motor_pv + ".DRBV",
+	.val  = ioc_prefix + motor_pv + ".VAL",
+	.dval = ioc_prefix + motor_pv + ".DVAL",
+	.twr  = ioc_prefix + motor_pv + ".TWR",
+	.twv  = ioc_prefix + motor_pv + ".TWV",
+	.twf  = ioc_prefix + motor_pv + ".TWF",
+	.hlm  = ioc_prefix + motor_pv + ".HLM",
+	.llm  = ioc_prefix + motor_pv + ".LLM",
+	.dhlm = ioc_prefix + motor_pv + ".DHLM",
+	.dllm = ioc_prefix + motor_pv + ".DLLM",
+	.egu  = ioc_prefix + motor_pv + ".EGU",
+	.set  = ioc_prefix + motor_pv + ".SET",
+	.hls  = ioc_prefix + motor_pv + ".HLS",
+	.lls  = ioc_prefix + motor_pv + ".LLS",
+	.spmg = ioc_prefix + motor_pv + ".SPMG",
+	.stop = ioc_prefix + motor_pv + ".STOP",
+	.able = ioc_prefix + motor_pv + "_able",
     };
 
     // Create the FTXUI screen. Interactive and uses the full terminal screen
@@ -99,6 +103,7 @@ int main(int argc, char *argv[]) {
 	motor.lls,
 	motor.spmg,
 	motor.stop,
+	motor.able
     });
 
     // tweak buttons, don't need readback
@@ -166,6 +171,12 @@ int main(int argc, char *argv[]) {
     std::string lls_box = unicode::rectangle(2, 1);
     pvgroup.set_monitor<int>(motor.lls, lls);
 
+    // Enable/disable toggle
+    std::vector<std::string> en_dis_labels {"Enable", "Disable"};
+    int en_dis = 0;
+    auto en_dis_menu = PVChoiceH(pvgroup.get(motor.able), en_dis_labels, en_dis);
+    pvgroup.set_monitor(motor.able, en_dis);
+
     // Use/Set toggle
     std::vector<std::string> use_set_labels {"Use", "Set"};
     int use_set = 0;
@@ -196,13 +207,15 @@ int main(int argc, char *argv[]) {
 		dllm_input,
 	    }),
 	    Container::Vertical({
-		use_set_menu,
 		spmg_menu,
 	    }),
 	}),
 	Container::Horizontal({
 	    twr_button, twv_input, twf_button
 	}),
+	Container::Horizontal({
+	    en_dis_menu, use_set_menu,
+	})
     });
 
     // Event handler for main container
@@ -214,6 +227,8 @@ int main(int argc, char *argv[]) {
         return false;
     });
 
+    Decorator ColorDisabled = bgcolor(Color::RGBA(80,10,4,230)) | color(Color::Black);
+
     // Main renderer to define visual layout of components and elements
     auto main_renderer = Renderer(main_container, [&] {
         return vbox({
@@ -224,7 +239,7 @@ int main(int argc, char *argv[]) {
 	    // 6 column hbox of vbox's
 	    // none | none | user | dial | lims/egu | spmg
 	    hbox({
-		vbox({}) | size(WIDTH, EQUAL, 7), // 5 = "Pause".length()
+		vbox({}) | size(WIDTH, EQUAL, 7),
 		vbox({}) | size(WIDTH, EQUAL, egu.length()),
 		separatorEmpty(),
 		vbox({
@@ -233,7 +248,7 @@ int main(int argc, char *argv[]) {
 		    separatorEmpty(), 	
 		    text(std::to_string(rbv)) | (use_set==0 ? EPICSColor::READBACK : color(Color::Yellow2)) | center,
 		    separatorEmpty(), 	
-		    val_input->Render()  | EPICSColor::EDIT | size(WIDTH, EQUAL, 10) | size(HEIGHT, EQUAL, 2),
+		    val_input->Render()  | (en_dis==0 ? EPICSColor::EDIT : ColorDisabled) | size(WIDTH, EQUAL, 10) | size(HEIGHT, EQUAL, 2),
 		    separatorEmpty(), 	
 		    llm_input->Render()  | EPICSColor::EDIT | size(WIDTH, EQUAL, 10),
 		}),
@@ -244,14 +259,15 @@ int main(int argc, char *argv[]) {
 		    separatorEmpty(), 	
 		    text(std::to_string(drbv)) | (use_set==0 ? EPICSColor::READBACK : color(Color::Yellow2)) | center,
 		    separatorEmpty(), 	
-		    dval_input->Render()  | EPICSColor::EDIT | size(WIDTH, EQUAL, 10) | size(HEIGHT, EQUAL, 2),
+		    dval_input->Render()  | (en_dis==0 ? EPICSColor::EDIT : ColorDisabled) | size(WIDTH, EQUAL, 10) | size(HEIGHT, EQUAL, 2),
 		    separatorEmpty(), 	
 		    dllm_input->Render()  | EPICSColor::EDIT | size(WIDTH, EQUAL, 10),
 		}),
 		separatorEmpty(),
 		vbox({
+		    separatorEmpty(),
 		    text(hls ? unicode::rectangle(2,1) : "") | color(Color::Red),
-		    separatorEmpty(), 	
+		    separatorEmpty(),
 		    separatorEmpty(), 	
 		    separatorEmpty(), 	
 		    separatorEmpty(), 	
@@ -262,11 +278,7 @@ int main(int argc, char *argv[]) {
 		separatorEmpty(),
 		vbox({
 		    separatorEmpty(),
-		    separatorEmpty(),
-		    separatorEmpty(),
 		    spmg_menu->Render() | EPICSColor::EDIT | center,
-		    separatorEmpty(),
-		    use_set_menu->Render() | EPICSColor::EDIT | center,
 		})
 	    }) | center,
 	    
@@ -278,6 +290,15 @@ int main(int argc, char *argv[]) {
 		twv_input->Render() | EPICSColor::EDIT | size(WIDTH, EQUAL, 11) | center,
 		separatorEmpty(),
 		twf_button->Render() | color(Color::Black),
+	    }) | center,
+
+	    separatorEmpty(),
+
+	    hbox({
+		separatorEmpty(),
+		use_set_menu->Render() | EPICSColor::EDIT,
+		separatorEmpty(),
+		en_dis_menu->Render() | EPICSColor::EDIT,
 	    }) | center,
 
 	    separatorEmpty(),
