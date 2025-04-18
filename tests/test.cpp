@@ -50,6 +50,14 @@ int main() {
     // } else {
 	// std::cout << "No enum string for index " << index << std::endl;
     // }
+    
+
+    // auto chan = provider.connect("xxx:array");
+    // auto res = chan.get()->getSubFieldT<epics::pvData::PVDoubleArray>("value");
+    // epics::pvData::shared_vector<const double> values = res->view();
+    // for (const auto &v : values) {
+	// std::cout << v << "\n";
+    // }
 
     PVGroup pvgroup(provider, {
 	"xxx:m1.VAL",
@@ -63,7 +71,10 @@ int main() {
 	"xxx:long",
 	"xxx:string",
 	"xxx:float",
-	"xxx:mbbo",
+	"xxx:enum",
+	"xxx:double_array",
+	"xxx:long_array",
+	"xxx:string_array"
     });
 
     double rbv = 0;
@@ -78,13 +89,45 @@ int main() {
     PVEnum spmg;
     pvgroup.set_monitor("xxx:m1.SPMG", spmg);
 
+    std::vector<double> double_arr;
+    pvgroup.set_monitor("xxx:double_array", double_arr);
+
+    std::vector<int> long_arr;
+    pvgroup.set_monitor("xxx:long_array", long_arr);
+
+    std::vector<std::string> string_arr;
+    pvgroup.set_monitor("xxx:string_array", string_arr);
+
     while(g_signal_caught == 0) {
 	pvgroup.update();
 	std::cout << "rbv = " << rbv << std::endl;
+
 	std::cout << "desc = " << desc << std::endl;
+
 	std::cout << "prec = " << prec << std::endl;
+
 	std::cout << "spmg.index = " << spmg.index << std::endl;
+
 	std::cout << "spmg.choice = " << spmg.choice << std::endl;
+
+	std::cout << "xxx:double_array = ";
+	for (const auto &v : double_arr) {
+	    std::cout << v << " ";
+	}
+	std::cout << "\n";
+
+	std::cout << "xxx:long_array = ";
+	for (const auto &v : long_arr) {
+	    std::cout << v << " ";
+	}
+	std::cout << "\n";
+
+	std::cout << "xxx:string_array = ";
+	for (const auto &v : string_arr) {
+	    std::cout << v << " ";
+	}
+	std::cout << "\n";
+
 	std::cout << std::endl;
 	std::this_thread::sleep_for(std::chrono::milliseconds(100));
     }
