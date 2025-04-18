@@ -44,6 +44,13 @@ ProcessVariable& PVGroup::get(const std::string &pv_name) {
 }
 
 void PVGroup::update() {
+
+    using epics::pvData::PVDoubleArray;
+    using epics::pvData::PVIntArray;
+    using epics::pvData::PVStringArray;
+    using epics::pvData::PVInt;
+    using epics::pvData::shared_vector;
+
     for (auto &[pv_name, pv] : pv_map) {
         auto &monitor = pv.monitor;
         auto &monitor_ptr = pv.monitor_var_ptr;
@@ -99,15 +106,45 @@ void PVGroup::update() {
                             }
                         }
                         else if constexpr (std::is_same_v<PtrType, PVEnum*>) {
-                            using epics::pvData::PVStringArray;
-                            using epics::pvData::PVInt;
-                            using epics::pvData::shared_vector;
                             if (ptr) {
                                 shared_vector<const std::string> choices = pfield->getSubFieldT<PVStringArray>("value.choices")->view();
                                 int index = pfield->getSubFieldT<PVInt>("value.index")->getAs<int>();
                                 if (choices.size() > index) {
                                     ptr->index = index;
                                     ptr->choice = choices.at(index);
+                                }
+                            }
+                        }
+                        else if constexpr (std::is_same_v<PtrType, std::vector<double>*>) {
+                            if (ptr) {
+                                shared_vector<const double> vals = pfield->getSubFieldT<PVDoubleArray>("value")->view();
+                                if (ptr->size() != vals.size()) {
+                                    ptr->resize(vals.size());
+                                }
+                                for (int i = 0; i < vals.size(); i++) {
+                                    ptr->at(i) = vals.at(i);
+                                }
+                            }
+                        }
+                        else if constexpr (std::is_same_v<PtrType, std::vector<int>*>) {
+                            if (ptr) {
+                                shared_vector<const int> vals = pfield->getSubFieldT<PVIntArray>("value")->view();
+                                if (ptr->size() != vals.size()) {
+                                    ptr->resize(vals.size());
+                                }
+                                for (int i = 0; i < vals.size(); i++) {
+                                    ptr->at(i) = vals.at(i);
+                                }
+                            }
+                        }
+                        else if constexpr (std::is_same_v<PtrType, std::vector<std::string>*>) {
+                            if (ptr) {
+                                shared_vector<const std::string> vals = pfield->getSubFieldT<PVStringArray>("value")->view();
+                                if (ptr->size() != vals.size()) {
+                                    ptr->resize(vals.size());
+                                }
+                                for (int i = 0; i < vals.size(); i++) {
+                                    ptr->at(i) = vals.at(i);
                                 }
                             }
                         }

@@ -8,13 +8,23 @@
 
 constexpr int PVGROUP_PRECISION = 4;
 
+
+// Represents a typical "enum" (mbbo/mbbi) with an integer index and string name
 struct PVEnum {
     int index;
     std::string choice;
 };
 
 // Types of variables which can be set to be updated by a monitor
-using MonitorPtr = std::variant<std::monostate, int*, double*, std::string*, PVEnum*>;
+using MonitorPtr = std::variant<std::monostate,
+std::string*,
+int*,
+double*,
+std::vector<std::string>*,
+std::vector<int>*,
+std::vector<double>*,
+PVEnum*
+>;
 
 class ConnectionMonitor : public pvac::ClientChannel::ConnectCallback {
   public:
