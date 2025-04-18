@@ -2,6 +2,7 @@
 #include <variant>
 #include <charconv>
 
+
 void ConnectionMonitor::connectEvent(const pvac::ConnectEvent& event) {
     if (event.connected) {
         connected_ = true;
@@ -37,8 +38,7 @@ PVGroup::PVGroup(pvac::ClientProvider &provider, const std::vector<std::string> 
 
 ProcessVariable& PVGroup::get(const std::string &pv_name) {
     if (!pv_map.count(pv_name)) {
-        std::string errmsg = pv_name + " not registered in PVGroup";
-        throw std::runtime_error(errmsg);
+        throw std::runtime_error(pv_name + " not registered in PVGroup");
     }
     return pv_map.at(pv_name);
 }
@@ -68,6 +68,7 @@ void PVGroup::update() {
                             std::string type_str = pfield->getStructure()->getField("value")->getID();
                             if (type_str == "enum_t") {
                                 oss << pfield->getSubField("value.index");
+                                // pfield->getSubField("value.index")->dumpValue(oss);
                             } else {
                                 pfield->getSubField("value")->dumpValue(oss);
                             }
@@ -95,6 +96,19 @@ void PVGroup::update() {
                         else if constexpr (std::is_same_v<PtrType, std::string*>) {
                             if (ptr) {
                                 *ptr = val_str;
+                            }
+                        }
+                        else if constexpr (std::is_same_v<PtrType, PVEnum*>) {
+                            using epics::pvData::PVStringArray;
+                            using epics::pvData::PVInt;
+                            using epics::pvData::shared_vector;
+                            if (ptr) {
+                                shared_vector<const std::string> choices = pfield->getSubFieldT<PVStringArray>("value.choices")->view();
+                                int index = pfield->getSubFieldT<PVInt>("value.index")->getAs<int>();
+                                if (choices.size() > index) {
+                                    ptr->index = index;
+                                    ptr->choice = choices.at(index);
+                                }
                             }
                         }
                     }, monitor_ptr);

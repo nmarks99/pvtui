@@ -8,19 +8,13 @@
 
 constexpr int PVGROUP_PRECISION = 4;
 
-// // Helper function to contruct a map of ClientChannel's
-// static inline std::unordered_map<std::string, pvac::ClientChannel> construct_chan_map(pvac::ClientProvider &provider,
-                                                                   // const std::vector<std::string> &pv_list) {
-    // std::unordered_map<std::string, pvac::ClientChannel> map_out;
-    // for (const auto &name : pv_list) {
-        // map_out.insert({name, provider.connect(name)});
-    // }
-    // return map_out;
-// }
-//
+struct PVEnum {
+    int index;
+    std::string choice;
+};
 
 // Types of variables which can be set to be updated by a monitor
-using MonitorPtr = std::variant<std::monostate, int*, double*, std::string*>;
+using MonitorPtr = std::variant<std::monostate, int*, double*, std::string*, PVEnum*>;
 
 class ConnectionMonitor : public pvac::ClientChannel::ConnectCallback {
   public:
@@ -33,14 +27,6 @@ class ConnectionMonitor : public pvac::ClientChannel::ConnectCallback {
 
   private:
     bool connected_ = false;
-};
-
-
-enum class PVType {
-    PVTYPE_STRING,
-    PVTYPE_DOUBLE,
-    PVTYPE_INT,
-    PVTYPE_ENUM,
 };
 
 struct ProcessVariable {
