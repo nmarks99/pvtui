@@ -1,6 +1,5 @@
 #include "pvgroup.hpp"
 #include <variant>
-#include <charconv>
 
 
 void ConnectionMonitor::connectEvent(const pvac::ConnectEvent& event) {
@@ -49,6 +48,9 @@ void PVGroup::update() {
     using epics::pvData::PVIntArray;
     using epics::pvData::PVStringArray;
     using epics::pvData::PVInt;
+    using epics::pvData::PVScalar;
+    using epics::pvData::PVDouble;
+    using epics::pvData::PVString;
     using epics::pvData::shared_vector;
 
     for (auto &[pv_name, pv] : pv_map) {
@@ -65,44 +67,30 @@ void PVGroup::update() {
 
                     std::visit([&](auto ptr) {
                         using PtrType = std::decay_t<decltype(ptr)>;
-
-                        // get the value field and dump it into a ostringstream
-                        std::ostringstream oss;
-                        // TODO: get from PV PREC field
-                        oss << std::fixed << std::setprecision(PVGROUP_PRECISION);
                         auto pfield = monitor.root.get();
-                        if (pfield) {
-                            std::string type_str = pfield->getStructure()->getField("value")->getID();
-                            if (type_str == "enum_t") {
-                                oss << pfield->getSubField("value.index");
-                                // pfield->getSubField("value.index")->dumpValue(oss);
-                            } else {
-                                pfield->getSubField("value")->dumpValue(oss);
-                            }
-                        }
 
-                        std::string val_str = oss.str();
                         if constexpr (std::is_same_v<PtrType, int*>) {
                             if (ptr) {
-                                int val_int = 0;
-                                auto res = std::from_chars(val_str.data(), val_str.data()+val_str.size(), val_int);
-                                if (res.ec == std::errc()) {
-                                    *ptr = val_int;
-                                }
+                                if (auto val_field = pfield->getSubFieldT<PVScalar>("value")) {
+                                    *ptr = val_field->getAs<int>();
+                                };
                             }
                         }
                         else if constexpr (std::is_same_v<PtrType, double*>) {
                             if (ptr) {
-                                double val_double = 0.0;
-                                auto res = std::from_chars(val_str.data(), val_str.data()+val_str.size(), val_double);
-                                if (res.ec == std::errc()) {
-                                    *ptr = val_double;
-                                }
+                                if (auto val_field = pfield->getSubFieldT<PVDouble>("value")) {
+                                    *ptr = val_field->getAs<double>();
+                                };
                             }
                         }
                         else if constexpr (std::is_same_v<PtrType, std::string*>) {
+                            // it can be useful to be able to dump any value to a string
                             if (ptr) {
-                                *ptr = val_str;
+                                std::ostringstream oss;
+                                if (auto val_field = pfield->getSubField("value")) {
+                                    val_field->dumpValue(oss);
+                                    *ptr = oss.str();
+                                }
                             }
                         }
                         else if constexpr (std::is_same_v<PtrType, PVEnum*>) {

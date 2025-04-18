@@ -89,6 +89,9 @@ int main() {
     PVEnum spmg;
     pvgroup.set_monitor("xxx:m1.SPMG", spmg);
 
+    int long_val;
+    pvgroup.set_monitor("xxx:long", long_val);
+
     std::vector<double> double_arr;
     pvgroup.set_monitor("xxx:double_array", double_arr);
 
@@ -100,15 +103,15 @@ int main() {
 
     while(g_signal_caught == 0) {
 	pvgroup.update();
-	std::cout << "rbv = " << rbv << std::endl;
+	std::cout << "xxx:m1.RBV = " << rbv << std::endl;
 
-	std::cout << "desc = " << desc << std::endl;
+	std::cout << "xxx:m1.DESC = " << desc << std::endl;
 
-	std::cout << "prec = " << prec << std::endl;
+	std::cout << "xxx:m1.PREC = " << prec << std::endl;
 
-	std::cout << "spmg.index = " << spmg.index << std::endl;
+	std::cout << "xxx:long = " << long_val << std::endl;
 
-	std::cout << "spmg.choice = " << spmg.choice << std::endl;
+	std::cout << "xxx:m1.SPMG = " << spmg.choice << std::endl;
 
 	std::cout << "xxx:double_array = ";
 	for (const auto &v : double_arr) {

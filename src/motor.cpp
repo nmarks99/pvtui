@@ -173,21 +173,21 @@ int main(int argc, char *argv[]) {
 
     // Enable/disable toggle
     std::vector<std::string> en_dis_labels {"Enable", "Disable"};
-    int en_dis = 0;
-    auto en_dis_menu = PVChoiceH(pvgroup.get(motor.able), en_dis_labels, en_dis);
-    pvgroup.set_monitor(motor.able, en_dis);
+    PVEnum en_dis_enum;
+    auto en_dis_menu = PVChoiceH(pvgroup.get(motor.able), en_dis_labels, en_dis_enum.index);
+    pvgroup.set_monitor(motor.able, en_dis_enum);
 
     // Use/Set toggle
     std::vector<std::string> use_set_labels {"Use", "Set"};
-    int use_set = 0;
-    auto use_set_menu = PVChoiceH(pvgroup.get(motor.set), use_set_labels, use_set);
-    pvgroup.set_monitor(motor.set, use_set);
+    PVEnum use_set_enum;
+    auto use_set_menu = PVChoiceH(pvgroup.get(motor.set), use_set_labels, use_set_enum.index);
+    pvgroup.set_monitor(motor.set, use_set_enum);
 
     // Stop, pause, move, go toggle
     std::vector<std::string> spmg_labels {"Stop", "Pause ", "Move", "Go"};
-    int spmg_sel = 0;
-    auto spmg_menu = PVChoiceV(pvgroup.get(motor.spmg), spmg_labels, spmg_sel);
-    pvgroup.set_monitor(motor.spmg, spmg_sel);
+    PVEnum spmg_enum;
+    auto spmg_menu = PVChoiceV(pvgroup.get(motor.spmg), spmg_labels, spmg_enum.index);
+    pvgroup.set_monitor(motor.spmg, spmg_enum);
 
     // use this PV for connection status. We assume if we can connect
     // to this, we can connect to all the PVs for this display
@@ -246,9 +246,9 @@ int main(int argc, char *argv[]) {
 		    text("User") | center,
 		    hlm_input->Render()  | EPICSColor::EDIT | size(WIDTH, EQUAL, 10),
 		    separatorEmpty(), 	
-		    text(std::to_string(rbv)) | (use_set==0 ? EPICSColor::READBACK : color(Color::Yellow2)) | center,
+		    text(std::to_string(rbv)) | (use_set_enum.index==0 ? EPICSColor::READBACK : color(Color::Yellow2)) | center,
 		    separatorEmpty(), 	
-		    val_input->Render()  | (en_dis==0 ? EPICSColor::EDIT : ColorDisabled) | size(WIDTH, EQUAL, 10) | size(HEIGHT, EQUAL, 2),
+		    val_input->Render()  | (en_dis_enum.index==0 ? EPICSColor::EDIT : ColorDisabled) | size(WIDTH, EQUAL, 10) | size(HEIGHT, EQUAL, 2),
 		    separatorEmpty(), 	
 		    llm_input->Render()  | EPICSColor::EDIT | size(WIDTH, EQUAL, 10),
 		}),
@@ -257,9 +257,9 @@ int main(int argc, char *argv[]) {
 		    text("Dial") | center,
 		    dhlm_input->Render()  | EPICSColor::EDIT | size(WIDTH, EQUAL, 10),
 		    separatorEmpty(), 	
-		    text(std::to_string(drbv)) | (use_set==0 ? EPICSColor::READBACK : color(Color::Yellow2)) | center,
+		    text(std::to_string(drbv)) | (use_set_enum.index==0 ? EPICSColor::READBACK : color(Color::Yellow2)) | center,
 		    separatorEmpty(), 	
-		    dval_input->Render()  | (en_dis==0 ? EPICSColor::EDIT : ColorDisabled) | size(WIDTH, EQUAL, 10) | size(HEIGHT, EQUAL, 2),
+		    dval_input->Render()  | (en_dis_enum.index==0 ? EPICSColor::EDIT : ColorDisabled) | size(WIDTH, EQUAL, 10) | size(HEIGHT, EQUAL, 2),
 		    separatorEmpty(), 	
 		    dllm_input->Render()  | EPICSColor::EDIT | size(WIDTH, EQUAL, 10),
 		}),
