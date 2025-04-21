@@ -11,8 +11,8 @@ constexpr int PVGROUP_PRECISION = 4;
 
 // Represents a typical "enum" (mbbo/mbbi) with an integer index and string name
 struct PVEnum {
-    int index;
-    std::string choice;
+    int index = 0;
+    std::string choice = "";
 };
 
 // Types of variables which can be set to be updated by a monitor
@@ -51,7 +51,7 @@ struct ProcessVariable {
   private:
     pvac::MonitorSync monitor;
     MonitorPtr monitor_var_ptr;
-    std::shared_ptr<ConnectionMonitor> connection_monitor;
+    std::unique_ptr<ConnectionMonitor> connection_monitor;
 
     friend class PVGroup;
 };

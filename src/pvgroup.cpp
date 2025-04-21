@@ -18,7 +18,7 @@ bool ConnectionMonitor::connected() const {
 ProcessVariable::ProcessVariable(pvac::ClientProvider &provider, const std::string &pv_name) :
     channel(provider.connect(pv_name)),
     monitor(channel.monitor()),
-    connection_monitor(std::make_shared<ConnectionMonitor>()),
+    connection_monitor(std::make_unique<ConnectionMonitor>()),
     name(pv_name)
 {
     channel.addConnectListener(connection_monitor.get());
