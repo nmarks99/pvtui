@@ -1,8 +1,9 @@
 #include "pvgroup.hpp"
 #include <variant>
 
+constexpr int DEFAULT_PRECISION = 4;
 
-void ConnectionMonitor::connectEvent(const pvac::ConnectEvent& event) {
+void ConnectionMonitor::connectEvent(const pvac::ConnectEvent &event) {
     if (event.connected) {
         connected_ = true;
     } else {
@@ -10,24 +11,103 @@ void ConnectionMonitor::connectEvent(const pvac::ConnectEvent& event) {
     }
 }
 
-bool ConnectionMonitor::connected() const {
-    return connected_;
+bool ConnectionMonitor::connected() const { return connected_; }
+
+ProcessVariable::ProcessVariable(pvac::ClientProvider &provider, const std::string &pv_name)
+    : channel(provider.connect(pv_name)), monitor_(channel.monitor()),
+      connection_monitor_(std::make_unique<ConnectionMonitor>()), name(pv_name) {
+    channel.addConnectListener(connection_monitor_.get());
 }
 
+bool ProcessVariable::connected() const { return connection_monitor_->connected(); }
 
-ProcessVariable::ProcessVariable(pvac::ClientProvider &provider, const std::string &pv_name) :
-    channel(provider.connect(pv_name)),
-    monitor(channel.monitor()),
-    connection_monitor(std::make_unique<ConnectionMonitor>()),
-    name(pv_name)
-{
-    channel.addConnectListener(connection_monitor.get());
+void ProcessVariable::update() {
+    namespace pvd = epics::pvData;
+    if (monitor_.test()) {
+        switch (monitor_.event.event) {
+
+        case pvac::MonitorEvent::Data:
+            std::visit(
+                [&](auto ptr) {
+                    while (monitor_.poll()) {
+                        using PtrType = std::decay_t<decltype(ptr)>;
+                        auto pfield = monitor_.root.get();
+
+                        if constexpr (std::is_same_v<PtrType, int *>) {
+                            if (ptr) {
+                                if (auto val_field = pfield->getSubFieldT<pvd::PVScalar>("value")) {
+                                    *ptr = val_field->getAs<int>();
+                                };
+                            }
+                        } else if constexpr (std::is_same_v<PtrType, double *>) {
+                            if (ptr) {
+                                if (auto val_field = pfield->getSubFieldT<pvd::PVDouble>("value")) {
+                                    *ptr = val_field->getAs<double>();
+                                };
+                            }
+                        } else if constexpr (std::is_same_v<PtrType, std::string *>) {
+                            // it can be useful to be able to dump any value to a string
+                            if (ptr) {
+                                std::ostringstream oss;
+                                oss << std::fixed << std::setprecision(DEFAULT_PRECISION);
+                                if (auto val_field = pfield->getSubField("value")) {
+                                    val_field->dumpValue(oss);
+                                    *ptr = oss.str();
+                                }
+                            }
+                        } else if constexpr (std::is_same_v<PtrType, PVEnum *>) {
+                            if (ptr) {
+                                pvd::shared_vector<const std::string> choices =
+                                    pfield->getSubFieldT<pvd::PVStringArray>("value.choices")->view();
+                                int index = pfield->getSubFieldT<pvd::PVInt>("value.index")->getAs<int>();
+                                if (choices.size() > index) {
+                                    ptr->index = index;
+                                    ptr->choice = choices.at(index);
+                                }
+                            }
+                        } else if constexpr (std::is_same_v<PtrType, std::vector<double> *>) {
+                            if (ptr) {
+                                pvd::shared_vector<const double> vals =
+                                    pfield->getSubFieldT<pvd::PVDoubleArray>("value")->view();
+                                if (ptr->size() != vals.size()) {
+                                    ptr->resize(vals.size());
+                                }
+                                std::copy(vals.begin(), vals.end(), ptr->begin());
+                            }
+                        } else if constexpr (std::is_same_v<PtrType, std::vector<int> *>) {
+                            if (ptr) {
+                                pvd::shared_vector<const int> vals =
+                                    pfield->getSubFieldT<pvd::PVIntArray>("value")->view();
+                                if (ptr->size() != vals.size()) {
+                                    ptr->resize(vals.size());
+                                }
+                                std::copy(vals.begin(), vals.end(), ptr->begin());
+                            }
+                        } else if constexpr (std::is_same_v<PtrType, std::vector<std::string> *>) {
+                            if (ptr) {
+                                pvd::shared_vector<const std::string> vals =
+                                    pfield->getSubFieldT<pvd::PVStringArray>("value")->view();
+                                if (ptr->size() != vals.size()) {
+                                    ptr->resize(vals.size());
+                                }
+                                std::copy(vals.begin(), vals.end(), ptr->begin());
+                            }
+                        }
+                    }
+                }, monitor_var_ptr_);
+            break;
+
+        case pvac::MonitorEvent::Fail:
+            break;
+
+        case pvac::MonitorEvent::Cancel:
+            break;
+
+        case pvac::MonitorEvent::Disconnect:
+            break;
+        }
+    }
 }
-
-bool ProcessVariable::connected() const {
-    return connection_monitor->connected();
-}
-
 
 PVGroup::PVGroup(pvac::ClientProvider &provider, const std::vector<std::string> &pv_names) {
     for (const auto &name : pv_names) {
@@ -35,7 +115,7 @@ PVGroup::PVGroup(pvac::ClientProvider &provider, const std::vector<std::string> 
     }
 }
 
-ProcessVariable& PVGroup::get(const std::string &pv_name) {
+ProcessVariable &PVGroup::get(const std::string &pv_name) {
     if (!pv_map.count(pv_name)) {
         throw std::runtime_error(pv_name + " not registered in PVGroup");
     }
@@ -43,120 +123,7 @@ ProcessVariable& PVGroup::get(const std::string &pv_name) {
 }
 
 void PVGroup::update() {
-
-    using epics::pvData::PVDoubleArray;
-    using epics::pvData::PVIntArray;
-    using epics::pvData::PVStringArray;
-    using epics::pvData::PVInt;
-    using epics::pvData::PVScalar;
-    using epics::pvData::PVDouble;
-    using epics::pvData::PVString;
-    using epics::pvData::shared_vector;
-
-    for (auto &[pv_name, pv] : pv_map) {
-        auto &monitor = pv.monitor;
-        auto &monitor_ptr = pv.monitor_var_ptr;
-        if (std::holds_alternative<std::monostate>(monitor_ptr)) {
-            continue;
-        }
-        if (monitor.test()) {
-            switch (monitor.event.event) {
-
-            case pvac::MonitorEvent::Data:
-                while (monitor.poll()) {
-
-                    std::visit([&](auto ptr) {
-                        using PtrType = std::decay_t<decltype(ptr)>;
-                        auto pfield = monitor.root.get();
-
-                        if constexpr (std::is_same_v<PtrType, int*>) {
-                            if (ptr) {
-                                if (auto val_field = pfield->getSubFieldT<PVScalar>("value")) {
-                                    *ptr = val_field->getAs<int>();
-                                };
-                            }
-                        }
-                        else if constexpr (std::is_same_v<PtrType, double*>) {
-                            if (ptr) {
-                                if (auto val_field = pfield->getSubFieldT<PVDouble>("value")) {
-                                    *ptr = val_field->getAs<double>();
-                                };
-                            }
-                        }
-                        else if constexpr (std::is_same_v<PtrType, std::string*>) {
-                            // it can be useful to be able to dump any value to a string
-                            if (ptr) {
-                                std::ostringstream oss;
-                                if (auto val_field = pfield->getSubField("value")) {
-                                    val_field->dumpValue(oss);
-                                    *ptr = oss.str();
-                                }
-                            }
-                        }
-                        else if constexpr (std::is_same_v<PtrType, PVEnum*>) {
-                            if (ptr) {
-                                shared_vector<const std::string> choices = pfield->getSubFieldT<PVStringArray>("value.choices")->view();
-                                int index = pfield->getSubFieldT<PVInt>("value.index")->getAs<int>();
-                                if (choices.size() > index) {
-                                    ptr->index = index;
-                                    ptr->choice = choices.at(index);
-                                }
-                            }
-                        }
-                        else if constexpr (std::is_same_v<PtrType, std::vector<double>*>) {
-                            if (ptr) {
-                                shared_vector<const double> vals = pfield->getSubFieldT<PVDoubleArray>("value")->view();
-                                if (ptr->size() != vals.size()) {
-                                    ptr->resize(vals.size());
-                                }
-                                for (int i = 0; i < vals.size(); i++) {
-                                    ptr->at(i) = vals.at(i);
-                                }
-                            }
-                        }
-                        else if constexpr (std::is_same_v<PtrType, std::vector<int>*>) {
-                            if (ptr) {
-                                shared_vector<const int> vals = pfield->getSubFieldT<PVIntArray>("value")->view();
-                                if (ptr->size() != vals.size()) {
-                                    ptr->resize(vals.size());
-                                }
-                                for (int i = 0; i < vals.size(); i++) {
-                                    ptr->at(i) = vals.at(i);
-                                }
-                            }
-                        }
-                        else if constexpr (std::is_same_v<PtrType, std::vector<std::string>*>) {
-                            if (ptr) {
-                                shared_vector<const std::string> vals = pfield->getSubFieldT<PVStringArray>("value")->view();
-                                if (ptr->size() != vals.size()) {
-                                    ptr->resize(vals.size());
-                                }
-                                for (int i = 0; i < vals.size(); i++) {
-                                    ptr->at(i) = vals.at(i);
-                                }
-                            }
-                        }
-                    }, monitor_ptr);
-                }
-                break;
-
-
-            case pvac::MonitorEvent::Cancel:
-                std::cout << "Monitor Cancel: " << monitor.name() << std::endl;
-                break;
-
-
-            case pvac::MonitorEvent::Disconnect:
-                std::cout << "Monitor Disconnect: " << monitor.name() << std::endl;
-                break;
-
-
-            case pvac::MonitorEvent::Fail:
-                std::cout << "Monitor Fail: " << monitor.name() << std::endl;
-                break;
-
-
-            }
-        }
+    for (auto &[_,pv] : pv_map) {
+        pv.update();
     }
-}
+} 

@@ -17,14 +17,6 @@ void signal_handler(int signal) {
     }
 }
 
-// std::vector<std::string> get_vector(pvac::ClientChannel &chan) {
-    // auto pfield = chan.get();
-    // std::cout << pfield << std::endl;
-    // auto res = pfield->getSubFieldT<epics::pvData::PVStringArray>("value.choices");
-    // epics::pvData::shared_vector<const std::string> data_view = res->view();
-    // return std::vector<std::string>(data_view.begin(), data_view.end());
-// }
-
 int main() {
 
     // Register the signal handler for SIGINT
@@ -36,28 +28,6 @@ int main() {
     // Instantiate EPICS client
     epics::pvAccess::ca::CAClientFactory::start();
     pvac::ClientProvider provider("ca");
-
-    // std::ostringstream oss;
-    // auto chan = provider.connect("xxx:mbbo");
-    // auto pfield = chan.get();
-    // auto res_value = pfield->getSubFieldT<epics::pvData::PVInt>("value.index");
-    // auto res_choices = pfield->getSubFieldT<epics::pvData::PVStringArray>("value.choices");
-    // epics::pvData::shared_vector<const std::string> choices = res_choices->view();
-    // int index = res_value->getAs<int>();
-    // std::cout << index << "\n";
-    // if (choices.size() > index) {
-	// std::cout << choices.at(index) << "\n";
-    // } else {
-	// std::cout << "No enum string for index " << index << std::endl;
-    // }
-    
-
-    // auto chan = provider.connect("xxx:array");
-    // auto res = chan.get()->getSubFieldT<epics::pvData::PVDoubleArray>("value");
-    // epics::pvData::shared_vector<const double> values = res->view();
-    // for (const auto &v : values) {
-	// std::cout << v << "\n";
-    // }
 
     PVGroup pvgroup(provider, {
 	"xxx:m1.VAL",
