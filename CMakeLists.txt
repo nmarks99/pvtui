@@ -82,6 +82,18 @@ target_link_libraries(pvtui_motor
 )
 # ------------------------------------------------------------------------------
 
+# ------------------------------------------------------------------------------
+add_executable(pvtui_sr src/sr.cpp src/pvtui.cpp src/pvgroup.cpp)
+target_include_directories(pvtui_sr PUBLIC src ${EPICS_BASE_INCLUDES})
+
+target_link_libraries(pvtui_sr
+  PUBLIC ${EPICS_BASE_LIBRARIES}
+  PRIVATE ftxui::screen
+  PRIVATE ftxui::dom
+  PRIVATE ftxui::component
+)
+# ------------------------------------------------------------------------------
+
 
 # ------------------------------------------------------------------------------
 add_executable(test tests/test.cpp src/pvgroup.cpp)

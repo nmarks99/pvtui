@@ -10,10 +10,10 @@ record(stringout, "xxx:string") {
     field(VAL, "hello")
 }
 
-record(mbbo, "xxx:mbbo") {
+record(mbbo, "xxx:enum") {
     field(ZRVL, "0")
-    field(ONVL, "0")
-    field(TWVL, "0")
+    field(ONVL, "1")
+    field(TWVL, "2")
     field(ZRST, "zero")
     field(ONST, "one")
     field(TWST, "two")
@@ -23,4 +23,19 @@ record(bo, "xxx:bin") {
     field(ZNAM, "zero")
     field(ONAM, "one")
     field(VAL, 1)
+}
+
+record(aao, "xxx:double_array") {
+    field(FTVL, "DOUBLE")
+    field(NELM, 10)
+}
+
+record(aao, "xxx:long_array") {
+    field(FTVL, "LONG")
+    field(NELM, 10)
+}
+
+record(aao, "xxx:string_array") {
+    field(FTVL, "STRING")
+    field(NELM, 10)
 }
