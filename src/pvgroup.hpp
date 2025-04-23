@@ -50,7 +50,8 @@ struct ProcessVariable {
     MonitorPtr monitor_var_ptr_;
     std::unique_ptr<ConnectionMonitor> connection_monitor_;
 
-    friend class PVGroup;
+    void get_monitored_variable(const epics::pvData::PVStructure *pfield);
+
 };
 
 struct PVGroup {
@@ -58,11 +59,11 @@ struct PVGroup {
     PVGroup(pvac::ClientProvider &provider, const std::vector<std::string> &pv_list);
 
     template <typename T> void set_monitor(const std::string &pv_name, T &var) {
-        ProcessVariable &pv = this->get(pv_name); // will throw if pv not in map
+        ProcessVariable &pv = this->get_pv(pv_name); // will throw if pv not in map
         pv.set_monitor(var);
     }
 
-    ProcessVariable &get(const std::string &pv_name);
+    ProcessVariable &get_pv(const std::string &pv_name);
 
     void update();
 

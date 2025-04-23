@@ -93,6 +93,7 @@ int main(int argc, char *argv[]) {
 
     std::string current = "";
     pvgroup.set_monitor("S-DCCT:CurrentM", current);
+    auto &current_PV = pvgroup.get_pv("S-DCCT:CurrentM");
 
     int lifetime = 0;
     pvgroup.set_monitor("S-DCCT:LifetimeM", lifetime);
@@ -117,21 +118,9 @@ int main(int argc, char *argv[]) {
 
     std::vector<double> user_ops_current(1440, 0.0);
     pvgroup.set_monitor("S:UserOpsCurrent", user_ops_current);
-    auto pfield = pvgroup.get("S:UserOpsCurrent").channel.get();
-    epics::pvData::shared_vector<const double> vals = pfield->getSubFieldT<epics::pvData::PVDoubleArray>("value")->view();
-    if (user_ops_current.size() != vals.size()) {
-        user_ops_current.resize(vals.size());
-    }
-    std::copy(vals.begin(), vals.end(), user_ops_current.begin());
     
     std::vector<double> other_current(1440, 0.0);
     pvgroup.set_monitor("S:OtherCurrent", other_current);
-    auto pfield2 = pvgroup.get("S:OtherCurrent").channel.get();
-    epics::pvData::shared_vector<const double> vals2 = pfield2->getSubFieldT<epics::pvData::PVDoubleArray>("value")->view();
-    if (other_current.size() != vals2.size()) {
-        other_current.resize(vals2.size());
-    }
-    std::copy(vals2.begin(), vals2.end(), other_current.begin());
 
     std::string operators = "";
     pvgroup.set_monitor("OPS:message1", operators);
@@ -163,25 +152,14 @@ int main(int argc, char *argv[]) {
     std::string next_update = "";
     pvgroup.set_monitor("OPS:message18", next_update);
 
-    // Just using container for "q" to quit. Maybe there's a better way?
-    auto main_container = Container::Vertical({});
-    main_container |= CatchEvent([&](Event event) {
-        if (event == Event::Character('q')) {
-            screen.Exit();
-            return true;
-        }
-        return false;
-    });
-
-    const double CURR_MAX = 200;
-    const double CURR_MIN = 0;
-    const double TARGET_HEIGHT = 50;
-    const int TARGET_WIDTH = 100;
-    std::vector<double> comp_user = downsample_and_clip(user_ops_current, TARGET_WIDTH, CURR_MIN, CURR_MAX, TARGET_HEIGHT);
-    std::vector<double> comp_other = downsample_and_clip(other_current, TARGET_WIDTH, CURR_MIN, CURR_MAX, TARGET_HEIGHT);
-
     auto plot1_renderer = Renderer([&] {
+        const double CURR_MAX = 200;
+        const double CURR_MIN = 0;
+        const double TARGET_HEIGHT = 50;
+        const int TARGET_WIDTH = 100;
         auto c = Canvas(TARGET_WIDTH, TARGET_HEIGHT);
+        std::vector<double> comp_user = downsample_and_clip(user_ops_current, TARGET_WIDTH, CURR_MIN, CURR_MAX, TARGET_HEIGHT);
+        std::vector<double> comp_other = downsample_and_clip(other_current, TARGET_WIDTH, CURR_MIN, CURR_MAX, TARGET_HEIGHT);
 
         // "user" current
         std::vector<int> y1(comp_user.size());
@@ -204,6 +182,16 @@ int main(int argc, char *argv[]) {
         }
 
         return canvas(std::move(c));
+    });
+
+    // Container for "q" to quit. Maybe there's a better way?
+    auto main_container = Container::Vertical({});
+    main_container |= CatchEvent([&](Event event) {
+        if (event == Event::Character('q')) {
+            screen.Exit();
+            return true;
+        }
+        return false;
     });
 
     // Main renderer to define visual layout of components and elements
@@ -234,18 +222,30 @@ int main(int argc, char *argv[]) {
             separatorEmpty(),
             text("Beam History: ") | bold | italic | underlined | size(WIDTH, EQUAL, 11),
             vbox({
+                separator(),
                 hbox({
                     vbox({
                         text("200 -"),
                         filler(),
+                        text("150 -"),
+                        filler(),
                         text("100 -"),
                         filler(),
-                        text("0 -"),
+                        text("50  -"),
+                        filler(),
+                        text("0   -"),
                     }),
+                    separator(),
                     separatorEmpty(),
-                    plot1_renderer->Render(), 
+                    plot1_renderer->Render(),
+                    separatorEmpty(),
+                    separator(),
                 }),
-            }),
+                separator(),
+                // hbox({
+                    // text("    24hr"), filler(), text("  0hr")
+                // }),
+            }) | size(WIDTH, EQUAL, 57),
             separatorEmpty(),
 
             text("Messages from Operators: ") | bold | italic | underlined | size(WIDTH, EQUAL, 22),
