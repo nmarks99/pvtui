@@ -3,6 +3,7 @@
 #include <string>
 #include <cmath>
 #include <functional>
+#include <numeric>
 
 #include <pv/caProvider.h>
 #include <pva/client.h>
@@ -20,78 +21,28 @@
 
 using namespace ftxui;
 
-std::vector<double> squash_average(const std::vector<double>& input, std::size_t target_size) {
-    std::vector<double> output;
+std::vector<double> downsample_and_clip(const std::vector<double>& input, int target_size, double curr_min, double curr_max, double height) {
+    std::vector<double> result;
+    double chunk_size = static_cast<double>(input.size()) / target_size;
 
-    if (input.empty() || target_size == 0)
-        return output;
+    for (int i = 0; i < target_size; ++i) {
+        int start = static_cast<int>(i * chunk_size);
+        int end = static_cast<int>((i + 1) * chunk_size);
+        end = std::min(end, static_cast<int>(input.size()));
+        if (start >= end) break;
 
-    std::size_t input_size = input.size();
-    output.resize(target_size, 0.0);
+        double sum = std::accumulate(input.begin() + start, input.begin() + end, 0.0);
+        double avg = sum / (end - start);
 
-    for (std::size_t i = 0; i < target_size; ++i) {
-        // Compute the range of input indices that map to this output bin
-        std::size_t start_idx = std::floor(i * input_size / static_cast<double>(target_size));
-        std::size_t end_idx   = std::floor((i + 1) * input_size / static_cast<double>(target_size));
-
-        double sum = 0.0;
-        std::size_t count = 0;
-        for (std::size_t j = start_idx; j < end_idx && j < input_size; ++j) {
-            sum += input[j];
-            ++count;
-        }
-
-        output[i] = (count > 0) ? (sum / count) : 0.0;
+        double scaled = ((avg - curr_min) / (curr_max - curr_min)) * height;
+        scaled = std::clamp(scaled, 0.0, height);
+        result.push_back(scaled);
     }
 
-    return output;
+    return result;
 }
 
 std::string debug_string = "";
-
-struct CurrentGraph {
-    std::vector<int> operator()(int width, int height) const {
-        std::vector<int> output(width);
-        for (int i = 0; i < width; ++i) {
-            float v = 0;
-            v += 0.1f * sin((i + shift) * 0.1f);  
-            v += 0.2f * sin((i + shift + 10) * 0.15f);
-            v += 0.1f * sin((i + shift) * 0.03f);
-            v *= height;
-            v += 0.5f * height;
-            output[i] = static_cast<int>(v);
-        }
-        // for (const auto &v : output) {
-            // debug_string = debug_string + "," + std::to_string(v);
-        // }
-        return output;
-    }
-    int shift = 0;
-};
-
-struct RealDataGraph {
-    const std::vector<double>& data;
-
-    std::vector<int> operator()(int width, int height) const {
-        std::vector<double> squashed = squash_average(data, width);
-
-        constexpr double min_val = 0.0;
-        constexpr double max_val = 200.0;
-        constexpr double range = max_val - min_val;
-
-        std::vector<int> output(width);
-        for (int i = 0; i < width; ++i) {
-            // Clamp values outside the expected range
-            double clamped = std::clamp(squashed[i], min_val, max_val);
-
-            // Normalize and flip Y-axis
-            double normalized = (clamped - min_val) / range;
-            output.at(i) = static_cast<int>((1.0 - normalized) * (height - 1));
-        }
-
-        return output;
-    }
-};
 
 static const std::unordered_map<int, Element> inj_status_text = {
     {0, text("Waiting for Injection") | color(Color::Red)},
@@ -104,8 +55,9 @@ static const std::unordered_map<int, Element> inj_status_text = {
 
 static const std::unordered_map<int, Element> shutter_status_text = {
     {0, text("Shutters Disabled") | bgcolor(Color::Red) | size(WIDTH, EQUAL, 17)},
-    {1, text("Shutters Enabled") | bgcolor(Color::Green) | color(Color::Black) | size(WIDTH, EQUAL, 16)},
+    {1, text("Shutters Enabled") | bgcolor(Color::Green) | color(Color::Black) | size(WIDTH, EQUAL, 15)},
 };
+
 
 int main(int argc, char *argv[]) {
 
@@ -163,11 +115,23 @@ int main(int argc, char *argv[]) {
     int num_shutters_open = 0;
     pvgroup.set_monitor("NoOfShuttersOpenA", num_shutters_open);
 
-    std::vector<double> user_ops_current{1440, 0.0};
+    std::vector<double> user_ops_current(1440, 0.0);
     pvgroup.set_monitor("S:UserOpsCurrent", user_ops_current);
+    auto pfield = pvgroup.get("S:UserOpsCurrent").channel.get();
+    epics::pvData::shared_vector<const double> vals = pfield->getSubFieldT<epics::pvData::PVDoubleArray>("value")->view();
+    if (user_ops_current.size() != vals.size()) {
+        user_ops_current.resize(vals.size());
+    }
+    std::copy(vals.begin(), vals.end(), user_ops_current.begin());
     
-    std::vector<double> other_current{1440, 0.0};
+    std::vector<double> other_current(1440, 0.0);
     pvgroup.set_monitor("S:OtherCurrent", other_current);
+    auto pfield2 = pvgroup.get("S:OtherCurrent").channel.get();
+    epics::pvData::shared_vector<const double> vals2 = pfield2->getSubFieldT<epics::pvData::PVDoubleArray>("value")->view();
+    if (other_current.size() != vals2.size()) {
+        other_current.resize(vals2.size());
+    }
+    std::copy(vals2.begin(), vals2.end(), other_current.begin());
 
     std::string operators = "";
     pvgroup.set_monitor("OPS:message1", operators);
@@ -209,13 +173,44 @@ int main(int argc, char *argv[]) {
         return false;
     });
 
+    const double CURR_MAX = 200;
+    const double CURR_MIN = 0;
+    const double TARGET_HEIGHT = 50;
+    const int TARGET_WIDTH = 100;
+    std::vector<double> comp_user = downsample_and_clip(user_ops_current, TARGET_WIDTH, CURR_MIN, CURR_MAX, TARGET_HEIGHT);
+    std::vector<double> comp_other = downsample_and_clip(other_current, TARGET_WIDTH, CURR_MIN, CURR_MAX, TARGET_HEIGHT);
 
-    // RealDataGraph gr{user_ops_current};
-    CurrentGraph gr;
+    auto plot1_renderer = Renderer([&] {
+        auto c = Canvas(TARGET_WIDTH, TARGET_HEIGHT);
+
+        // "user" current
+        std::vector<int> y1(comp_user.size());
+        for (int x = 0; x < comp_user.size(); x++) {
+            float dx = float(x);
+            y1[x] = static_cast<int>(TARGET_HEIGHT-(comp_user.at(x)));
+        }
+        for (int x = 1; x < comp_user.size()-1; x++) {
+            c.DrawPointLine(x, y1[x], x + 1, y1[x + 1], Color::Blue);
+        }
+
+        // "other" current
+        std::vector<int> y2(comp_other.size());
+        for (int x = 0; x < comp_other.size(); x++) {
+            float dx = float(x);
+            y2[x] = static_cast<int>(TARGET_HEIGHT-(comp_other.at(x)));
+        }
+        for (int x = 1; x < comp_other.size()-1; x++) {
+            c.DrawPointLine(x, y2[x], x + 1, y2[x + 1], Color::Red);
+        }
+
+        return canvas(std::move(c));
+    });
 
     // Main renderer to define visual layout of components and elements
     auto main_renderer = Renderer(main_container, [&] {
         return vbox({
+            text("Storage Ring Status") | borderLight | bold | size(WIDTH, EQUAL, 19),
+
             hbox({
                 text("Current:  "),
                 text(current) | size(WIDTH, EQUAL, 7),
@@ -226,43 +221,45 @@ int main(int argc, char *argv[]) {
                 text(std::to_string(lifetime)) | size(WIDTH, EQUAL, 7),
                 text(" min")
             }),
+
             separatorEmpty(),
             inj_status_text.at(injection_status.index),
             text("Swapout In: " + injection_period + " sec."),
             separatorEmpty(),
+            shutter_status_text.at(shutter_status.index),
             text("Machine Status: " + desired_mode.choice),
             text("Operating Mode: " + actual_mode.choice),
-            shutter_status_text.at(shutter_status.index),
             text("Shutters Open: " + std::to_string(num_shutters_open)),
+
             separatorEmpty(),
-            hbox({
-                vbox({
-                    text("200 _"),
+            text("Beam History: ") | bold | italic | underlined | size(WIDTH, EQUAL, 11),
+            vbox({
+                hbox({
+                    vbox({
+                        text("200 -"),
+                        filler(),
+                        text("100 -"),
+                        filler(),
+                        text("0 -"),
+                    }),
                     separatorEmpty(),
-                    separatorEmpty(),
-                    separatorEmpty(),
-                    separatorEmpty(),
-                    text("100 _"),
-                    separatorEmpty(),
-                    separatorEmpty(),
-                    separatorEmpty(),
-                    separatorEmpty(),
-                    text("  0 _"),
-                }) | size(WIDTH, EQUAL, 5),
-                graph(std::ref(gr)) | size(HEIGHT, EQUAL, 10) | color(Color::Blue) | border,
+                    plot1_renderer->Render(), 
+                }),
             }),
             separatorEmpty(),
+
+            text("Messages from Operators: ") | bold | italic | underlined | size(WIDTH, EQUAL, 22),
             text("        Operators: " + operators),
             text("Floor Coordinator: " + floor_coord),
             text("     Fill Pattern: " + fill_patt),
             text(" Dump/Trip Reason: " + dump_reason),
             text("Trip Reason(cont): " + dump_reason_cont),
-            text("     Problem Info:" + prob_info),
-            text(" Prob Info (cont):" + prob_info_cont),
-            text("        Next Fill:" + next_fill),
-            text("  Next Fill(cont):" + next_fill_cont),
-            text("      Next Update:" + next_update),
-        }) | size(WIDTH, EQUAL, 70);
+            text("     Problem Info: " + prob_info),
+            text(" Prob Info (cont): " + prob_info_cont),
+            text("        Next Fill: " + next_fill),
+            text("  Next Fill(cont): " + next_fill_cont),
+            text("      Next Update: " + next_update),
+        });
     });
         
     // Custom main loop
