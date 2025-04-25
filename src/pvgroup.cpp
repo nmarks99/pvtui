@@ -5,6 +5,14 @@
 
 constexpr int DEFAULT_PRECISION = 4;
 
+std::string operator+(const PVAny& lhs, const std::string& rhs) {
+    return lhs.value + rhs;
+}
+
+std::string operator+(const std::string& lhs, const PVAny& rhs) {
+    return lhs + rhs.value;
+}
+
 void ConnectionMonitor::connectEvent(const pvac::ConnectEvent &event) {
     if (event.connected) {
         connected_ = true;
@@ -51,12 +59,15 @@ void ProcessVariable::get_monitored_variable(const epics::pvData::PVStructure *p
             } else if constexpr (std::is_same_v<PtrType, std::string *>) {
                 // it can be useful to be able to dump any value to a string
                 if (ptr) {
-                    std::ostringstream oss;
-                    oss << std::fixed << std::setprecision(DEFAULT_PRECISION);
-                    if (auto val_field = pfield->getSubField("value")) {
-                        val_field->dumpValue(oss);
-                        *ptr = oss.str();
+                    if (auto val_field = pfield->getSubField<pvd::PVString>("value")) {
+                        *ptr = val_field->getAs<std::string>();
                     }
+                    // std::ostringstream oss;
+                    // oss << std::fixed << std::setprecision(DEFAULT_PRECISION);
+                    // if (auto val_field = pfield->getSubField("value")) {
+                        // val_field->dumpValue(oss);
+                        // *ptr = oss.str();
+                    // }
                 }
             } else if constexpr (std::is_same_v<PtrType, PVEnum *>) {
                 if (ptr) {
@@ -93,6 +104,15 @@ void ProcessVariable::get_monitored_variable(const epics::pvData::PVStructure *p
                         ptr->resize(vals.size());
                     }
                     std::copy(vals.begin(), vals.end(), ptr->begin());
+                }
+            } else if constexpr (std::is_same_v<PtrType, PVAny*>) {
+                if (ptr) {
+                    std::ostringstream oss;
+                    oss << std::fixed << std::setprecision(ptr->prec);
+                    if (auto val_field = pfield->getSubField(ptr->subfield)) {
+                        val_field->dumpValue(oss);
+                        ptr->value = oss.str();
+                    }
                 }
             }
         },

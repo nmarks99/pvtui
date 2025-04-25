@@ -6,6 +6,23 @@
 #include <unordered_map>
 #include <variant>
 
+struct PVAny {
+    std::string subfield = "value";
+    std::string value = "";
+    int prec = 4;
+    
+    PVAny(const std::string &sfield) : subfield(sfield) {}
+    PVAny() : subfield("value"), value(""), prec(4) {}
+
+    operator std::string() const {
+        return value;
+    }
+
+};
+std::string operator+(const PVAny& lhs, const std::string& rhs);
+std::string operator+(const std::string& lhs, const PVAny& rhs);
+
+
 // Represents a typical "enum" (mbbo/mbbi) with an integer index and string name
 struct PVEnum {
     int index = 0;
@@ -14,7 +31,7 @@ struct PVEnum {
 
 // Types of variables which can be set to be updated by a monitor
 using MonitorPtr = std::variant<std::monostate, std::string *, int *, double *, std::vector<std::string> *,
-                                std::vector<int> *, std::vector<double> *, PVEnum *>;
+                                std::vector<int> *, std::vector<double> *, PVEnum *, PVAny*>;
 
 class ConnectionMonitor : public pvac::ClientChannel::ConnectCallback {
   public:

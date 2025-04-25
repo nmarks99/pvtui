@@ -38,6 +38,7 @@ int main() {
 	"xxx:m1.PREC",
 	"xxx:m1.DESC",
 	"xxx:m1.SPMG",
+	"xxx:m1.VELO",
 	"xxx:long",
 	"xxx:string",
 	"xxx:float",
@@ -59,6 +60,10 @@ int main() {
     PVEnum spmg;
     pvgroup.set_monitor("xxx:m1.SPMG", spmg);
 
+    // PVAny contains a string respresentation of "any" PV
+    PVAny velo_any;
+    pvgroup.set_monitor("xxx:m1.VELO", velo_any);
+
     int long_val;
     pvgroup.set_monitor("xxx:long", long_val);
 
@@ -79,9 +84,11 @@ int main() {
 
 	std::cout << "xxx:m1.PREC = " << prec << std::endl;
 
-	std::cout << "xxx:long = " << long_val << std::endl;
-
 	std::cout << "xxx:m1.SPMG = " << spmg.choice << std::endl;
+
+	std::cout << "xxx:m1.VELO (PVAny string) = " << velo_any.value << std::endl;
+
+	std::cout << "xxx:long = " << long_val << std::endl;
 
 	std::cout << "xxx:double_array = ";
 	for (const auto &v : double_arr) {

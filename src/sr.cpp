@@ -89,9 +89,13 @@ int main(int argc, char *argv[]) {
         "OPS:message16",
         "OPS:message17",
         "OPS:message18",
+        "S:IOC:timeOfDayForm1SI"
     });
 
-    std::string current = "";
+    std::string time_and_date = "";
+    pvgroup.set_monitor("S:IOC:timeOfDayForm1SI", time_and_date);
+
+    PVAny current;
     pvgroup.set_monitor("S-DCCT:CurrentM", current);
     auto &current_PV = pvgroup.get_pv("S-DCCT:CurrentM");
 
@@ -101,7 +105,7 @@ int main(int argc, char *argv[]) {
     PVEnum injection_status;
     pvgroup.set_monitor("S-INJ:InjectionOperationM", injection_status);
 
-    std::string injection_period;
+    PVAny injection_period; injection_period.prec=1;
     pvgroup.set_monitor("S-INJ:InjectionPeriodCounterM", injection_period);
 
     PVEnum desired_mode;
@@ -198,10 +202,12 @@ int main(int argc, char *argv[]) {
     auto main_renderer = Renderer(main_container, [&] {
         return vbox({
             text("Storage Ring Status") | borderLight | bold | size(WIDTH, EQUAL, 19),
+            text(time_and_date),
+            separatorEmpty(),
 
             hbox({
                 text("Current:  "),
-                text(current) | size(WIDTH, EQUAL, 7),
+                text(current.value) | size(WIDTH, EQUAL, 7),
                 text(" mA")
             }),
             hbox({
@@ -222,7 +228,8 @@ int main(int argc, char *argv[]) {
             separatorEmpty(),
             text("Beam History: ") | bold | italic | underlined | size(WIDTH, EQUAL, 11),
             vbox({
-                separator(),
+                // separator(),
+                separatorEmpty(),
                 hbox({
                     vbox({
                         text("200 -"),
@@ -239,12 +246,12 @@ int main(int argc, char *argv[]) {
                     separatorEmpty(),
                     plot1_renderer->Render(),
                     separatorEmpty(),
-                    separator(),
+                    // separator(),
                 }),
                 separator(),
-                // hbox({
-                    // text("    24hr"), filler(), text("  0hr")
-                // }),
+                hbox({
+                    text("    24hr"), filler(), text("12hr"), filler(), text("0hr")
+                }),
             }) | size(WIDTH, EQUAL, 57),
             separatorEmpty(),
 
