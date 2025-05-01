@@ -316,7 +316,7 @@ int main(int argc, char *argv[]) {
     });
 
     // Custom main loop
-    constexpr int POLL_PERIOD_MS = 10;
+    constexpr int POLL_PERIOD_MS = 100;
     Loop loop(&screen, main_renderer);
     while (!loop.HasQuitted()) {
 	pvgroup.update();
