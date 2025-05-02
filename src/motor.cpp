@@ -1,6 +1,5 @@
 #include <cassert>
 #include <cstdlib>
-#include <stdexcept>
 #include <string>
 
 #include <pv/caProvider.h>
@@ -52,6 +51,7 @@ Usage:
 Options:
   -h, --help                   Show this help message and exit.
   -m, --macro "k1=v1,k2=v2..." Define a macro variable. Same format as MEDM or caQtDM
+  --provider                   EPICS provider, either Channel Access("ca") or PVAccess("pva")
   --more                       Similar to motorx_more.adl
   --all                        Similar to motorx_all.adl
 
@@ -71,7 +71,7 @@ int main(int argc, char *argv[]) {
     // Parse command line arguments and macros
     pvtui::ArgParser args(argc, argv);
 
-    if (args.flag("help")) {
+    if (args.flag("help") or args.flag("h")) {
 	std::cout << CLI_HELP_MSG << std::endl;
 	return EXIT_SUCCESS;
     }
@@ -109,7 +109,7 @@ int main(int argc, char *argv[]) {
 
     // Instantiate EPICS client
     epics::pvAccess::ca::CAClientFactory::start();
-    pvac::ClientProvider provider("ca");
+    pvac::ClientProvider provider(args.provider);
 
     // PVGroup to connect to all the PVs we need and manager monitors
     PVGroup pvgroup(provider, {
@@ -133,6 +133,10 @@ int main(int argc, char *argv[]) {
 	motor.stop,
 	motor.able
     });
+
+    // Create monitors and ftxui components for all the PVs we will use.
+    // Note any PVs used below must be defined in the pvgroup in order
+    // for monitor to work.
 
     // tweak buttons, don't need readback
     auto twf_button = PVButton(pvgroup.get_pv(motor.twf), " > ", 1);

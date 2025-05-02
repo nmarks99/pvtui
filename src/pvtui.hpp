@@ -48,10 +48,10 @@ struct ArgParser {
     bool flag(const std::string &f) const;
 
     std::unordered_map<std::string, std::string> macros;
+    std::string provider = "ca";
 
   private:
     argh::parser cmdl_;
-    std::string help_msg_;
 
     // splits a string to a vector of strings by the given delimiter
     std::vector<std::string> split_string(const std::string& input, char delimiter);

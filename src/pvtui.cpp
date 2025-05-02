@@ -92,10 +92,12 @@ ftxui::Component PVChoiceV(ProcessVariable &pv, const std::vector<std::string> &
 }
 
 
-ArgParser::ArgParser(int argc, char *argv[]){
+ArgParser::ArgParser(int argc, char *argv[]) {
     cmdl_.add_params({"-m", "--macro", "--macros"});
+    cmdl_.add_params({"--provider"});
     cmdl_.parse(argc, argv);
-    macros = get_macro_dict(cmdl_({"-m", "--macro", "--macros"}).str());
+    this->macros = get_macro_dict(cmdl_({"-m", "--macro", "--macros"}).str());
+    this->provider = cmdl_("--provider").str().empty() ? "ca" : cmdl_("--provider").str();
 };
 
 bool ArgParser::macros_present(const std::vector<std::string> &macro_list) const {
