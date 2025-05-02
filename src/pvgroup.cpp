@@ -43,13 +43,6 @@ void ProcessVariable::get_monitored_variable(const epics::pvData::PVStructure *p
                         *ptr = val_field->getAs<int>();
                     };
                 }
-            }
-            if constexpr (std::is_same_v<PtrType, int *>) {
-                if (ptr) {
-                    if (auto val_field = pfield->getSubFieldT<pvd::PVScalar>("value")) {
-                        *ptr = val_field->getAs<int>();
-                    };
-                }
             } else if constexpr (std::is_same_v<PtrType, double *>) {
                 if (ptr) {
                     if (auto val_field = pfield->getSubFieldT<pvd::PVDouble>("value")) {
