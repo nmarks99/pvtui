@@ -3,6 +3,8 @@
 #include "ftxui/component/component.hpp"
 #include "ftxui/component/component_options.hpp"
 
+namespace pvtui {
+
 namespace unicode {
 std::string rectangle(int width, int height) {
     std::string out;
@@ -87,4 +89,52 @@ ftxui::Component PVChoiceV(ProcessVariable &pv, const std::vector<std::string> &
 	return e;
     };
     return ftxui::Menu(op);
+}
+
+
+ArgParser::ArgParser(int argc, char *argv[]){
+    cmdl_.add_params({"-m", "--macro", "--macros"});
+    cmdl_.parse(argc, argv);
+    macros = get_macro_dict(cmdl_({"-m", "--macro", "--macros"}).str());
+};
+
+bool ArgParser::macros_present(const std::vector<std::string> &macro_list) const {
+    for (const auto &m : macro_list) {
+	if (!this->macros.count(m)) {
+	    return false;
+	}
+    }
+    return true;
+};
+
+bool ArgParser::flag(const std::string &f) const {
+    return cmdl_[f];
+}
+
+std::vector<std::string> ArgParser::split_string(const std::string& input, char delimiter) {
+    std::vector<std::string> result;
+    std::stringstream ss(input);
+    std::string item;
+    while (std::getline(ss, item, delimiter)) {
+        result.push_back(std::move(item));
+    }
+    return result;
+}
+
+std::unordered_map<std::string, std::string> ArgParser::get_macro_dict(std::string all_macros) {
+    all_macros.erase(std::remove_if(all_macros.begin(), all_macros.end(), [](unsigned char s){
+	return std::isspace(s);
+    }), all_macros.end());
+
+    std::unordered_map<std::string, std::string> map_out;
+    for (const auto &m : split_string(all_macros, ',')) {
+	auto pair = split_string(m, '=');
+	if (pair.size() != 2) {
+	    return std::unordered_map<std::string, std::string>{};
+	}
+	map_out.emplace(std::move(pair.at(0)), std::move(pair.at(1)));
+    }
+    return map_out;
+}
+
 }

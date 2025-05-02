@@ -1,5 +1,6 @@
 #include <cassert>
 #include <cstdlib>
+#include <stdexcept>
 #include <string>
 
 #include <pv/caProvider.h>
@@ -18,6 +19,7 @@
 #include "pvgroup.hpp"
 
 using namespace ftxui;
+using namespace pvtui;
 
 struct MotorFields {
     std::string desc;
@@ -41,39 +43,65 @@ struct MotorFields {
     std::string able;
 };
 
+static constexpr std::string_view CLI_HELP_MSG = R"(
+PVTUI Motor - Terminal UI for EPICS motors
+
+Usage:
+  pvtui_motor [options] 
+
+Options:
+  -h, --help                   Show this help message and exit.
+  -m, --macro "k1=v1,k2=v2..." Define a macro variable. Same format as MEDM or caQtDM
+  --more                       Similar to motorx_more.adl
+  --all                        Similar to motorx_all.adl
+
+Examples:
+  pvtui_motor --macro "P=xxx:,M=m1"
+    Start TUI display for motor xxx:m1 with a style similar to motorx.adl
+  
+  pvtui_motor --more --macro "P=xxx:,M=m1"
+    Start TUI display for motor xxx:m1 with a style similar to motorx_more.adl
+
+For more details, visit: https://github.com/nmarks99/pvtui
+)";
+
 
 int main(int argc, char *argv[]) {
-   
-    if (argc <= 2) {
-	printf("Usage: %s <prefix> <motor>\n", argv[0]);
-	return 0;
+  
+    // Parse command line arguments and macros
+    pvtui::ArgParser args(argc, argv);
+
+    if (args.flag("help")) {
+	std::cout << CLI_HELP_MSG << std::endl;
+	return EXIT_SUCCESS;
     }
-    std::string ioc_prefix(argv[1]);
-    std::string motor_pv(argv[2]);
-    assert(ioc_prefix.length() > 0);
-    assert(motor_pv.length() > 0);
+
+    if (not args.macros_present({"P", "M"})) {
+	printf("Missing required macros\nRequired macros: P, M\n");
+	return EXIT_FAILURE;
+    }
 
     // struct of motor PV names for convenience
     const MotorFields motor {
-	.desc = ioc_prefix + motor_pv + ".DESC",
-	.rbv  = ioc_prefix + motor_pv + ".RBV",
-	.drbv = ioc_prefix + motor_pv + ".DRBV",
-	.val  = ioc_prefix + motor_pv + ".VAL",
-	.dval = ioc_prefix + motor_pv + ".DVAL",
-	.twr  = ioc_prefix + motor_pv + ".TWR",
-	.twv  = ioc_prefix + motor_pv + ".TWV",
-	.twf  = ioc_prefix + motor_pv + ".TWF",
-	.hlm  = ioc_prefix + motor_pv + ".HLM",
-	.llm  = ioc_prefix + motor_pv + ".LLM",
-	.dhlm = ioc_prefix + motor_pv + ".DHLM",
-	.dllm = ioc_prefix + motor_pv + ".DLLM",
-	.egu  = ioc_prefix + motor_pv + ".EGU",
-	.set  = ioc_prefix + motor_pv + ".SET",
-	.hls  = ioc_prefix + motor_pv + ".HLS",
-	.lls  = ioc_prefix + motor_pv + ".LLS",
-	.spmg = ioc_prefix + motor_pv + ".SPMG",
-	.stop = ioc_prefix + motor_pv + ".STOP",
-	.able = ioc_prefix + motor_pv + "_able",
+	.desc = args.macros.at("P") + args.macros.at("M") + ".DESC",
+	.rbv  = args.macros.at("P") + args.macros.at("M") + ".RBV",
+	.drbv = args.macros.at("P") + args.macros.at("M") + ".DRBV",
+	.val  = args.macros.at("P") + args.macros.at("M") + ".VAL",
+	.dval = args.macros.at("P") + args.macros.at("M") + ".DVAL",
+	.twr  = args.macros.at("P") + args.macros.at("M") + ".TWR",
+	.twv  = args.macros.at("P") + args.macros.at("M") + ".TWV",
+	.twf  = args.macros.at("P") + args.macros.at("M") + ".TWF",
+	.hlm  = args.macros.at("P") + args.macros.at("M") + ".HLM",
+	.llm  = args.macros.at("P") + args.macros.at("M") + ".LLM",
+	.dhlm = args.macros.at("P") + args.macros.at("M") + ".DHLM",
+	.dllm = args.macros.at("P") + args.macros.at("M") + ".DLLM",
+	.egu  = args.macros.at("P") + args.macros.at("M") + ".EGU",
+	.set  = args.macros.at("P") + args.macros.at("M") + ".SET",
+	.hls  = args.macros.at("P") + args.macros.at("M") + ".HLS",
+	.lls  = args.macros.at("P") + args.macros.at("M") + ".LLS",
+	.spmg = args.macros.at("P") + args.macros.at("M") + ".SPMG",
+	.stop = args.macros.at("P") + args.macros.at("M") + ".STOP",
+	.able = args.macros.at("P") + args.macros.at("M") + "_able",
     };
 
     // Create the FTXUI screen. Interactive and uses the full terminal screen
@@ -325,5 +353,5 @@ int main(int argc, char *argv[]) {
         std::this_thread::sleep_for(std::chrono::milliseconds(POLL_PERIOD_MS));
     }
 
-    return 0;
+    return EXIT_SUCCESS;
 }
