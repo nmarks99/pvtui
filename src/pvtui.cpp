@@ -37,7 +37,7 @@ ftxui::Component PVInput(ProcessVariable &pv, std::string &disp_str) {
     return ftxui::Input(ftxui::InputOption({
 	.content = &disp_str,
 	.transform = [](ftxui::InputState s) {
-	    return s.element | ftxui::center;
+	    return s.element | ftxui::center | ftxui::xflex;
 	},
 	.multiline = false,
 	.on_enter = [&pv, &disp_str](){

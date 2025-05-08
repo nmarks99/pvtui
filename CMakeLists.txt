@@ -14,21 +14,27 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
+list(APPEND CMAKE_PREFIX_PATH "$ENV{HOME}/.local")
 
 # --- Fetch FTXUI --------------------------------------------------------------
-include(FetchContent)
-
-set(FETCHCONTENT_UPDATES_DISCONNECTED ON)
-set(FETCHCONTENT_QUIET OFF)
-
-FetchContent_Declare(ftxui
-  GIT_REPOSITORY https://github.com/arthursonzogni/ftxui.git
-  GIT_TAG        v6.0.2
-  GIT_PROGRESS   TRUE
-  GIT_SHALLOW    TRUE
-  EXCLUDE_FROM_ALL
-)
-FetchContent_MakeAvailable(ftxui)
+find_package(ftxui REQUIRED CONFIG)
+if(ftxui_FOUND)
+    message(STATUS "ftxui found!")
+    message(STATUS "ftxui DIR: ${ftxui_DIR}")
+endif()
+# include(FetchContent)
+#
+# set(FETCHCONTENT_UPDATES_DISCONNECTED ON)
+# set(FETCHCONTENT_QUIET OFF)
+#
+# FetchContent_Declare(ftxui
+  # GIT_REPOSITORY https://github.com/arthursonzogni/ftxui.git
+  # GIT_TAG        v6.0.2
+  # GIT_PROGRESS   TRUE
+  # GIT_SHALLOW    TRUE
+  # EXCLUDE_FROM_ALL
+# )
+# FetchContent_MakeAvailable(ftxui)
 # ------------------------------------------------------------------------------
 
 
@@ -75,6 +81,18 @@ add_executable(pvtui_motor src/motor.cpp src/pvtui.cpp src/pvgroup.cpp)
 target_include_directories(pvtui_motor PUBLIC src ${EPICS_BASE_INCLUDES})
 
 target_link_libraries(pvtui_motor
+  PUBLIC ${EPICS_BASE_LIBRARIES}
+  PRIVATE ftxui::screen
+  PRIVATE ftxui::dom
+  PRIVATE ftxui::component
+)
+# ------------------------------------------------------------------------------
+
+# ------------------------------------------------------------------------------
+add_executable(pvtui_calcout src/calcout.cpp src/pvtui.cpp src/pvgroup.cpp)
+target_include_directories(pvtui_calcout PUBLIC src ${EPICS_BASE_INCLUDES})
+
+target_link_libraries(pvtui_calcout
   PUBLIC ${EPICS_BASE_LIBRARIES}
   PRIVATE ftxui::screen
   PRIVATE ftxui::dom

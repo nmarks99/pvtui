@@ -27,6 +27,7 @@ using namespace ftxui;
 static const Decorator EDIT = bgcolor(Color::RGB(87,202,228)) | color(Color::Black);
 static const Decorator READBACK = color(Color::DarkBlue);
 static const Decorator BACKGROUND = color(Color::RGB(196,196,196));
+static const Decorator LINK = bgcolor(Color::RGB(148,148,228)) | color(Color::Black);
 }
 
 ftxui::Component PVButton(ProcessVariable &pv, const std::string &label, int value);

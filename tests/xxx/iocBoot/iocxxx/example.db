@@ -39,3 +39,6 @@ record(aao, "xxx:string_array") {
     field(FTVL, "STRING")
     field(NELM, 10)
 }
+
+record(calcout, "xxx:calcout1") {
+}
