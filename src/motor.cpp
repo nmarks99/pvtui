@@ -39,6 +39,7 @@ struct MotorFields {
     std::string lls;
     std::string spmg;
     std::string stop;
+    std::string dmov;
     std::string able;
 };
 
@@ -101,6 +102,7 @@ int main(int argc, char *argv[]) {
 	.lls  = args.macros.at("P") + args.macros.at("M") + ".LLS",
 	.spmg = args.macros.at("P") + args.macros.at("M") + ".SPMG",
 	.stop = args.macros.at("P") + args.macros.at("M") + ".STOP",
+	.dmov = args.macros.at("P") + args.macros.at("M") + ".DMOV",
 	.able = args.macros.at("P") + args.macros.at("M") + "_able",
     };
 
@@ -131,6 +133,7 @@ int main(int argc, char *argv[]) {
 	motor.lls,
 	motor.spmg,
 	motor.stop,
+	motor.dmov,
 	motor.able
     });
 
@@ -184,13 +187,18 @@ int main(int argc, char *argv[]) {
     // dial readback value
     double drbv = 0.0;
     pvgroup.set_monitor<double>(motor.drbv, drbv);
+    
+    // done moving flag
+    int dmov = 0;
+    pvgroup.set_monitor<int>(motor.dmov, dmov);
 
     // EGU string readback
     std::string egu = "";
     pvgroup.set_monitor(motor.egu, egu);
 
-    // string description readback
+    // string description
     std::string desc = "";
+    auto desc_input = PVInput(pvgroup.get_pv(motor.desc), desc);
     pvgroup.set_monitor<std::string>(motor.desc, desc);
 
     // High limit switch
@@ -227,6 +235,7 @@ int main(int argc, char *argv[]) {
 
     // Main container to define interactivity of components
     auto main_container = Container::Vertical({
+	desc_input,
 	Container::Horizontal({
 	    Container::Vertical({
 		hlm_input,
@@ -264,16 +273,13 @@ int main(int argc, char *argv[]) {
     // Main renderer to define visual layout of components and elements
     auto main_renderer = Renderer(main_container, [&] {
         return vbox({
-	    text(desc) | color(Color::Black) | center,
-
-	    separatorEmpty() | color(Color::Black),
+	    desc_input->Render() | color(Color::Black) | bgcolor(Color::RGB(210,210,210)) | size(WIDTH, EQUAL, 21) | center,
+	    separatorEmpty(),
 
 	    // 6 column hbox of vbox's
 	    // none | none | user | dial | lims/egu | spmg
 	    hbox({
-		vbox({}) | size(WIDTH, EQUAL, 7),
-		vbox({}) | size(WIDTH, EQUAL, egu.length()),
-		separatorEmpty(),
+		filler() | size(WIDTH, EQUAL, egu.length()+8),
 		vbox({
 		    text("User") | center,
 		    hlm_input->Render()  | EPICSColor::EDIT | size(WIDTH, EQUAL, 10),
@@ -299,10 +305,7 @@ int main(int argc, char *argv[]) {
 		vbox({
 		    separatorEmpty(),
 		    text(hls ? unicode::rectangle(2,1) : "") | color(Color::Red),
-		    separatorEmpty(),
-		    separatorEmpty(), 	
-		    separatorEmpty(), 	
-		    separatorEmpty(), 	
+		    filler(),
 		    text(egu) | EPICSColor::READBACK,
 		    separatorEmpty(),
 		    text(lls ? unicode::rectangle(2,1) : "") | color(Color::Red),
@@ -311,7 +314,9 @@ int main(int argc, char *argv[]) {
 		vbox({
 		    separatorEmpty(),
 		    spmg_menu->Render() | EPICSColor::EDIT | center,
-		})
+		    text(dmov ? "" : "Moving") | color(Color::DarkGreen) | italic | bold,
+		}),
+		separatorEmpty(),
 	    }) | center,
 	    
 	    separatorEmpty(), 	
