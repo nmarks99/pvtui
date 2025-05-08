@@ -273,6 +273,15 @@ int main(int argc, char *argv[]) {
     // Main renderer to define visual layout of components and elements
     auto main_renderer = Renderer(main_container, [&] {
         return vbox({
+
+	    [&](){
+		if (desc_pv.connected()) {
+		    return text("");
+		} else {
+		    return text("Disconnected") | color(Color::Red);
+		}
+	    }() | center,
+
 	    desc_input->Render() | color(Color::Black) | bgcolor(Color::RGB(210,210,210)) | size(WIDTH, EQUAL, 21) | center,
 	    separatorEmpty(),
 
@@ -312,9 +321,9 @@ int main(int argc, char *argv[]) {
 		}) | size(WIDTH, EQUAL, egu.length()),
 		separatorEmpty(),
 		vbox({
-		    separatorEmpty(),
-		    spmg_menu->Render() | EPICSColor::EDIT | center,
 		    text(dmov ? "" : "Moving") | color(Color::DarkGreen) | italic | bold,
+		    spmg_menu->Render() | EPICSColor::EDIT | center,
+		    separatorEmpty(),
 		}),
 		separatorEmpty(),
 	    }) | center,
@@ -337,17 +346,6 @@ int main(int argc, char *argv[]) {
 		separatorEmpty(),
 		en_dis_menu->Render() | EPICSColor::EDIT,
 	    }) | center,
-
-	    separatorEmpty(),
-
-	    [&](){
-		if (desc_pv.connected()) {
-		    return text("Connected") | color(Color::Green);
-		} else {
-		    return text("Disconnected") | color(Color::Red);
-		}
-	    }() | center,
-
 
 	}) | center | bgcolor(Color::RGB(196,196,196));
     });
