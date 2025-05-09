@@ -259,14 +259,14 @@ int main(int argc, char *argv[]) {
 	})
     });
 
-    // Event handler for main container
-    main_container |= CatchEvent([&](Event event) {
-        if (event == Event::Character('q')) {
-            screen.Exit();
-            return true;
-        }
-        return false;
-    });
+    // // Event handler for main container
+    // main_container |= CatchEvent([&](Event event) {
+        // if (event == Event::Character('q')) {
+            // screen.Exit();
+            // return true;
+        // }
+        // return false;
+    // });
 
     Decorator ColorDisabled = bgcolor(Color::RGBA(80,10,4,230)) | color(Color::Black);
 

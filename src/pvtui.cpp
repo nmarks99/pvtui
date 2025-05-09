@@ -37,21 +37,18 @@ ftxui::Component PVInput(ProcessVariable &pv, std::string &disp_str, PVPutType p
     return ftxui::Input(ftxui::InputOption({
 	.content = &disp_str,
 	.transform = [](ftxui::InputState s) {
-	    return s.element | ftxui::center | ftxui::xflex;
+	    return s.element | ftxui::xflex | ftxui::center;
 	},
 	.multiline = false,
 	.on_enter = [&pv, &disp_str, put_type](){
-
-	    if (put_type == PVPutType::Double) {
-		double val_double;
-		auto res = std::from_chars(disp_str.data(), disp_str.data()+disp_str.size(), val_double);
-		if (res.ec == std::errc()) {
-		    if (pv.connected()) {
+	    if (pv.connected()) {
+		if (put_type == PVPutType::Double) {
+		    double val_double;
+		    auto res = std::from_chars(disp_str.data(), disp_str.data()+disp_str.size(), val_double);
+		    if (res.ec == std::errc()) {
 			pv.channel.put().set("value", val_double).exec();
 		    }
-		}
-	    } else if (put_type == PVPutType::String) {
-		if (pv.connected()) {
+		} else if (put_type == PVPutType::String) {
 		    pv.channel.put().set("value", disp_str).exec();
 		}
 	    }
@@ -65,7 +62,6 @@ ftxui::Component PVChoiceH(ProcessVariable &pv, const std::vector<std::string> &
     op.selected = &selected;
     op.on_change = [&](){
 	if (pv.connected()) {
-	    // TODO: ProcessVariable struct should have put method than handles channel.put?
 	    pv.channel.put().set("value.index", selected).exec();
 	}
     };
@@ -78,7 +74,6 @@ ftxui::Component PVChoiceV(ProcessVariable &pv, const std::vector<std::string> &
     op.selected = &selected;
     op.on_change = [&](){
 	if (pv.connected()) {
-	    // TODO: ProcessVariable struct should have put method than handles channel.put?
 	    pv.channel.put().set("value.index", selected).exec();
 	}
     };
@@ -98,6 +93,37 @@ ftxui::Component PVChoiceV(ProcessVariable &pv, const std::vector<std::string> &
     return ftxui::Menu(op);
 }
 
+ftxui::Component PVDropdown(ProcessVariable &pv, const std::vector<std::string> &labels, int &selected) {
+    using namespace ftxui;
+    auto dropdown_op = ftxui::DropdownOption({
+	.radiobox = {
+	    .entries = &labels,
+	    .selected = &selected,
+	    .on_change = [&](){
+		if (pv.connected()) {
+		    pv.channel.put().set("value.index", selected).exec();
+		}
+	    }
+	},
+	.transform =
+            [](bool open, ftxui::Element checkbox, ftxui::Element radiobox) {
+	    if (open) {
+		return ftxui::vbox({
+		    checkbox | inverted,
+		    radiobox | vscroll_indicator | frame |
+		    size(HEIGHT, LESS_THAN, 10),
+		    filler(),
+		});
+            }
+            return vbox({
+                checkbox,
+                filler(),
+            });
+        },
+
+    });
+    return ftxui::Dropdown(dropdown_op);
+}
 
 ArgParser::ArgParser(int argc, char *argv[]) {
     cmdl_.add_params({"-m", "--macro", "--macros"});

@@ -23,24 +23,25 @@ using namespace pvtui;
 struct CalcoutFields {
     std::string desc;
     std::string scan;
-
     std::string inpa;
     std::string inpb;
     std::string inpc;
     std::string inpd;
-
     std::string a;
     std::string b;
     std::string c;
     std::string d;
-
     std::string calc;
     std::string ocal;
     std::string val;
     std::string oval;
-
     std::string out;
     std::string flnk;
+    std::string odly;
+    std::string dopt;
+    std::string oopt;
+    std::string ivoa;
+    std::string ivov;
 };
 
 static constexpr std::string_view CLI_HELP_MSG = R"(
@@ -92,6 +93,11 @@ int main(int argc, char *argv[]) {
 	.oval = args.macros.at("P") + args.macros.at("C") + ".OVAL",
 	.out = args.macros.at("P") + args.macros.at("C") + ".OUT",
 	.flnk = args.macros.at("P") + args.macros.at("C") + ".FLNK",
+	.odly = args.macros.at("P") + args.macros.at("C") + ".ODLY",
+	.dopt = args.macros.at("P") + args.macros.at("C") + ".DOPT",
+	.oopt = args.macros.at("P") + args.macros.at("C") + ".OOPT",
+	.ivoa = args.macros.at("P") + args.macros.at("C") + ".IVOA",
+	.ivov = args.macros.at("P") + args.macros.at("C") + ".IVOV",
     };
 
     // Create the FTXUI screen. Interactive and uses the full terminal screen
@@ -119,11 +125,23 @@ int main(int argc, char *argv[]) {
 	calcout.oval,
 	calcout.out,
 	calcout.flnk,
+	calcout.odly,
+	calcout.dopt,
+	calcout.oopt,
+	calcout.ivoa,
+	calcout.ivov,
     });
 
     // Create monitors and ftxui components for all the PVs we will use.
     // Note any PVs used below must be defined in the pvgroup in order
     // for monitor to work.
+    std::string scan;
+    std::vector<std::string> scan_menu_labels{"Passive", "Event", "I/O Intr",
+	"10 second", "5 second", "2 second",
+	"1 second", ".5 second", ".2 second", ".1 second"};
+    PVEnum scan_enum;
+    auto scan_menu = PVDropdown(pvgroup.get_pv(calcout.scan), scan_menu_labels, scan_enum.index);
+    pvgroup.set_monitor(calcout.scan, scan_enum);
     
     std::string desc = "";
     auto desc_input = PVInput(pvgroup.get_pv(calcout.desc), desc, PVPutType::String);
@@ -161,10 +179,58 @@ int main(int argc, char *argv[]) {
     auto d_input = PVInput(pvgroup.get_pv(calcout.d), d_val, PVPutType::Double);
     pvgroup.set_monitor(calcout.d, d_val);
 
+    std::string calc;
+    auto calc_input = PVInput(pvgroup.get_pv(calcout.calc), calc, PVPutType::String);
+    pvgroup.set_monitor(calcout.calc, calc);
+
+    std::string ocal;
+    auto ocal_input = PVInput(pvgroup.get_pv(calcout.ocal), ocal, PVPutType::String);
+    pvgroup.set_monitor(calcout.ocal, ocal);
+
+    std::string out;
+    auto out_input = PVInput(pvgroup.get_pv(calcout.out), out, PVPutType::String);
+    pvgroup.set_monitor(calcout.out, out);
+
+    std::string flnk;
+    auto flnk_input = PVInput(pvgroup.get_pv(calcout.flnk), flnk, PVPutType::String);
+    pvgroup.set_monitor(calcout.flnk, flnk);
+
+    std::string val_rbv;
+    pvgroup.set_monitor(calcout.val, val_rbv);
+    
+    std::string oval_rbv;
+    pvgroup.set_monitor(calcout.oval, oval_rbv);
+
+    std::vector<std::string> dopt_menu_labels{"Use CALC", "Use OCAL"};
+    PVEnum dopt_enum;
+    auto dopt_menu = PVDropdown(pvgroup.get_pv(calcout.dopt), dopt_menu_labels, dopt_enum.index);
+    pvgroup.set_monitor(calcout.dopt, dopt_enum);
+
+    std::vector<std::string> ivoa_menu_labels{"Continue normally", "Don't drive outputs", "Set output to IVOV"};
+    PVEnum ivoa_enum;
+    auto ivoa_menu = PVDropdown(pvgroup.get_pv(calcout.ivoa), ivoa_menu_labels, ivoa_enum.index);
+    pvgroup.set_monitor(calcout.ivoa, ivoa_enum);
+    
+    std::vector<std::string> oopt_menu_labels{"Every Time", "On Change",
+	"When Zero", "When Non-zero",
+	"Transition To Zero", "Transition To Non-zero"
+    };
+    PVEnum oopt_enum;
+    auto oopt_menu = PVDropdown(pvgroup.get_pv(calcout.oopt), oopt_menu_labels, oopt_enum.index);
+    pvgroup.set_monitor(calcout.oopt, oopt_enum);
+
+    std::string odly;
+    auto odly_input = PVInput(pvgroup.get_pv(calcout.odly), odly, PVPutType::Double);
+    pvgroup.set_monitor(calcout.odly, odly);
+
+    std::string ivov;
+    auto ivov_input = PVInput(pvgroup.get_pv(calcout.ivov), ivov, PVPutType::Double);
+    pvgroup.set_monitor(calcout.ivov, ivov);
 
     // Main container to define interactivity of components
     auto main_container = Container::Vertical({
 	desc_input,
+	scan_menu,
 	Container::Horizontal({
 	    inpa_input, a_input
 	}),
@@ -177,25 +243,40 @@ int main(int argc, char *argv[]) {
 	Container::Horizontal({
 	    inpd_input, d_input
 	}),
+	calc_input,
+	ocal_input,
+	Container::Horizontal({
+	    odly_input, oopt_menu, dopt_menu
+	}),
+	Container::Horizontal({
+	    ivoa_menu, ivov_input, out_input, flnk_input,
+	})
     });
 
-    // Event handler for main container
-    main_container |= CatchEvent([&](Event event) {
-        if (event == Event::Character('q')) {
-            screen.Exit();
-            return true;
-        }
-        return false;
-    });
+    // // Event handler for main container
+    // main_container |= CatchEvent([&](Event event) {
+        // if (event == Event::Character('q')) {
+            // screen.Exit();
+            // return true;
+        // }
+        // return false;
+    // });
+    
 
     // Main renderer to define visual layout of components and elements
     auto main_renderer = Renderer(main_container, [&] {
         return vbox({
-	    desc_input->Render() | color(Color::Black) | bgcolor(Color::GrayDark) | size(WIDTH, EQUAL, 46),
+	    hbox({
+		desc_input->Render() | color(Color::Black) |  bgcolor(Color::RGB(210,210,210)) | size(WIDTH, LESS_THAN, 32) | xflex,
+		separatorEmpty(),
+		text("(" + args.macros.at("P")+args.macros.at("C") + ")") | color(Color::Black)
+	    }),
+	    separatorEmpty(),
+	    scan_menu->Render() | EPICSColor::EDIT | size(WIDTH, EQUAL, 10) | color(Color::Black),
 	    separatorEmpty(),
 
 	    hbox({
-		text("A") | bold | color(Color::Black),
+		text("A") | color(Color::Black),
 		separatorEmpty(),
 		inpa_input->Render() | size(WIDTH, EQUAL, 32) | EPICSColor::LINK,
 		separatorEmpty(),
@@ -203,7 +284,7 @@ int main(int argc, char *argv[]) {
 	    }),
 	    separatorEmpty(),
 	    hbox({
-		text("B") | bold | color(Color::Black),
+		text("B") | color(Color::Black),
 		separatorEmpty(),
 		inpb_input->Render() | size(WIDTH, EQUAL, 32) | EPICSColor::LINK,
 		separatorEmpty(),
@@ -211,7 +292,7 @@ int main(int argc, char *argv[]) {
 	    }),
 	    separatorEmpty(),
 	    hbox({
-		text("C") | bold | color(Color::Black),
+		text("C") | color(Color::Black),
 		separatorEmpty(),
 		inpc_input->Render() | size(WIDTH, EQUAL, 32) | EPICSColor::LINK,
 		separatorEmpty(),
@@ -219,12 +300,57 @@ int main(int argc, char *argv[]) {
 	    }),
 	    separatorEmpty(),
 	    hbox({
-		text("D") | bold | color(Color::Black),
+		text("D") | color(Color::Black),
 		separatorEmpty(),
 		inpd_input->Render() | size(WIDTH, EQUAL, 32) | EPICSColor::LINK,
 		separatorEmpty(),
 		d_input->Render() | size(WIDTH, EQUAL, 13) | EPICSColor::EDIT
 	    }),
+
+	    separator() | color(Color::Black),
+	    
+	    hbox({
+		text("CALC") | color(Color::Black),
+		filler() | size(WIDTH, EQUAL, 2),
+		calc_input->Render() | size(WIDTH, EQUAL, 32) | EPICSColor::EDIT,
+		separatorEmpty(),
+		text("   " + val_rbv) | EPICSColor::READBACK,
+	    }) | (dopt_enum.index == 0 ? border : borderEmpty) | color(Color::Black),
+
+	    hbox({
+		text("OCAL") | color(Color::Black),
+		filler() | size(WIDTH, EQUAL, 2),
+		ocal_input->Render() | size(WIDTH, EQUAL, 32) | EPICSColor::EDIT,
+		separatorEmpty(),
+		text("   " + oval_rbv) | EPICSColor::READBACK,
+	    }) | (dopt_enum.index == 1 ? border : borderEmpty) | color(Color::Black),
+
+	    separator() | color(Color::Black),
+
+	    hbox({
+		text("ODLY ") | color(Color::Black),
+		odly_input->Render() | size(WIDTH, EQUAL, 4) | color(Color::Black) | bgcolor(Color::RGB(245, 179, 27)),
+		filler() | size(WIDTH, EQUAL, 4),
+		oopt_menu->Render() | size(WIDTH, EQUAL, 25) | color(Color::Black) | bgcolor(Color::RGB(245, 179, 27)),
+		separatorEmpty(),
+		dopt_menu->Render() | size(WIDTH, EQUAL, 10) | color(Color::Yellow) | bgcolor(Color::RGB(130, 95, 16)) | xflex,
+	    }),
+
+	    separatorEmpty(),
+
+	    hbox({
+		ivoa_menu->Render() | color(Color::Yellow) | bgcolor(Color::RGB(130, 95, 16)) | size(WIDTH, EQUAL, 15),
+		text("  IVOV ") | color(Color::Black),
+		ivov_input->Render() | color(Color::Black) | bgcolor(Color::RGB(245, 179, 27)) | size(WIDTH, EQUAL, 4),
+		text("  OUT ") | color(Color::Black),
+		out_input->Render() | EPICSColor::LINK | xflex
+	    }),
+	    separatorEmpty(),
+	    hbox({
+		text("FLNK ") | color(Color::Black),
+		flnk_input->Render() | size(WIDTH, EQUAL, 18) | EPICSColor::LINK
+	    }),
+
 	}) | center | bgcolor(Color::RGB(196,196,196));
     });
 

@@ -44,6 +44,7 @@ ftxui::Component PVInput(ProcessVariable &pv, std::string &disp_str, PVPutType p
 ftxui::Component PVChoiceH(ProcessVariable &pv, const std::vector<std::string> &labels, int &selected);
 ftxui::Component PVChoiceV(ProcessVariable &pv, const std::vector<std::string> &labels, int &selected);
 
+ftxui::Component PVDropdown(ProcessVariable &pv, const std::vector<std::string> &labels, int &selected);
 
 struct ArgParser {
   public:
