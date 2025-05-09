@@ -32,7 +32,14 @@ static const Decorator LINK = bgcolor(Color::RGB(148,148,228)) | color(Color::Bl
 
 ftxui::Component PVButton(ProcessVariable &pv, const std::string &label, int value);
 
-ftxui::Component PVInput(ProcessVariable &pv, std::string &disp_str);
+
+enum class PVPutType {
+    Int,
+    Double,
+    String,
+};
+
+ftxui::Component PVInput(ProcessVariable &pv, std::string &disp_str, PVPutType put_type);
 
 ftxui::Component PVChoiceH(ProcessVariable &pv, const std::vector<std::string> &labels, int &selected);
 ftxui::Component PVChoiceV(ProcessVariable &pv, const std::vector<std::string> &labels, int &selected);

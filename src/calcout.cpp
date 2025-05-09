@@ -126,39 +126,39 @@ int main(int argc, char *argv[]) {
     // for monitor to work.
     
     std::string desc = "";
-    auto desc_input = PVInput(pvgroup.get_pv(calcout.desc), desc);
+    auto desc_input = PVInput(pvgroup.get_pv(calcout.desc), desc, PVPutType::String);
     pvgroup.set_monitor(calcout.desc, desc);
 
     std::string inpa = "";
-    auto inpa_input = PVInput(pvgroup.get_pv(calcout.inpa), inpa);
+    auto inpa_input = PVInput(pvgroup.get_pv(calcout.inpa), inpa, PVPutType::String);
     pvgroup.set_monitor(calcout.inpa, inpa);
 
-    PVAny a_val;
-    auto a_input = PVInput(pvgroup.get_pv(calcout.a), a_val.value);
+    std::string a_val;
+    auto a_input = PVInput(pvgroup.get_pv(calcout.a), a_val, PVPutType::Double);
     pvgroup.set_monitor(calcout.a, a_val);
 
     std::string inpb = "";
-    auto inpb_input = PVInput(pvgroup.get_pv(calcout.inpb), inpb);
+    auto inpb_input = PVInput(pvgroup.get_pv(calcout.inpb), inpb, PVPutType::String);
     pvgroup.set_monitor<std::string>(calcout.inpb, inpb);
     
-    PVAny b_val;
-    auto b_input = PVInput(pvgroup.get_pv(calcout.b), b_val.value);
+    std::string b_val;
+    auto b_input = PVInput(pvgroup.get_pv(calcout.b), b_val, PVPutType::Double);
     pvgroup.set_monitor(calcout.b, b_val);
     
     std::string inpc = "";
-    auto inpc_input = PVInput(pvgroup.get_pv(calcout.inpc), inpc);
+    auto inpc_input = PVInput(pvgroup.get_pv(calcout.inpc), inpc, PVPutType::String);
     pvgroup.set_monitor<std::string>(calcout.inpc, inpc);
     
-    PVAny c_val;
-    auto c_input = PVInput(pvgroup.get_pv(calcout.c), c_val.value);
+    std::string c_val;
+    auto c_input = PVInput(pvgroup.get_pv(calcout.c), c_val, PVPutType::Double);
     pvgroup.set_monitor(calcout.c, c_val);
    
     std::string inpd = "";
-    auto inpd_input = PVInput(pvgroup.get_pv(calcout.inpd), inpd);
+    auto inpd_input = PVInput(pvgroup.get_pv(calcout.inpd), inpd, PVPutType::String);
     pvgroup.set_monitor<std::string>(calcout.inpd, inpd);
     
-    PVAny d_val;
-    auto d_input = PVInput(pvgroup.get_pv(calcout.d), d_val.value);
+    std::string d_val;
+    auto d_input = PVInput(pvgroup.get_pv(calcout.d), d_val, PVPutType::Double);
     pvgroup.set_monitor(calcout.d, d_val);
 
 
@@ -191,7 +191,7 @@ int main(int argc, char *argv[]) {
     // Main renderer to define visual layout of components and elements
     auto main_renderer = Renderer(main_container, [&] {
         return vbox({
-	    desc_input->Render() | color(Color::Black) | bgcolor(Color::RGB(210,210,210)) | size(WIDTH, EQUAL, 45),
+	    desc_input->Render() | color(Color::Black) | bgcolor(Color::GrayDark) | size(WIDTH, EQUAL, 46),
 	    separatorEmpty(),
 
 	    hbox({

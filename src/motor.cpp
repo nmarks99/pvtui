@@ -146,38 +146,38 @@ int main(int argc, char *argv[]) {
     auto twr_button = PVButton(pvgroup.get_pv(motor.twr), " < ", 1);
 
     // user value input and monitor
-    PVAny val_string;
-    auto val_input = PVInput(pvgroup.get_pv(motor.val), val_string.value);
+    std::string val_string;
+    auto val_input = PVInput(pvgroup.get_pv(motor.val), val_string, PVPutType::Double);
     pvgroup.set_monitor(motor.val, val_string);
 
     // user high limit input and monitor
-    PVAny hlm_string;
-    auto hlm_input = PVInput(pvgroup.get_pv(motor.hlm), hlm_string.value);
+    std::string hlm_string;
+    auto hlm_input = PVInput(pvgroup.get_pv(motor.hlm), hlm_string, PVPutType::Double);
     pvgroup.set_monitor(motor.hlm, hlm_string);
 
     // user low limit input and monitor
-    PVAny llm_string;
-    auto llm_input = PVInput(pvgroup.get_pv(motor.llm), llm_string.value);
+    std::string llm_string;
+    auto llm_input = PVInput(pvgroup.get_pv(motor.llm), llm_string, PVPutType::Double);
     pvgroup.set_monitor(motor.llm, llm_string);
 
     // dial high limit input and monitor
-    PVAny dhlm_string;
-    auto dhlm_input = PVInput(pvgroup.get_pv(motor.dhlm), dhlm_string.value);
+    std::string dhlm_string;
+    auto dhlm_input = PVInput(pvgroup.get_pv(motor.dhlm), dhlm_string, PVPutType::Double);
     pvgroup.set_monitor(motor.dhlm, dhlm_string);
 
     // dial low limit input and monitor
-    PVAny dllm_string;
-    auto dllm_input = PVInput(pvgroup.get_pv(motor.dllm), dllm_string.value);
+    std::string dllm_string;
+    auto dllm_input = PVInput(pvgroup.get_pv(motor.dllm), dllm_string, PVPutType::Double);
     pvgroup.set_monitor(motor.dllm, dllm_string);
 
     // dial value input and monitor
-    PVAny dval_string;
-    auto dval_input = PVInput(pvgroup.get_pv(motor.dval), dval_string.value);
+    std::string dval_string;
+    auto dval_input = PVInput(pvgroup.get_pv(motor.dval), dval_string, PVPutType::Double);
     pvgroup.set_monitor(motor.dval, dval_string);
 
     // tweak value and monitor
-    PVAny twv_string;
-    auto twv_input = PVInput(pvgroup.get_pv(motor.twv), twv_string.value);
+    std::string twv_string;
+    auto twv_input = PVInput(pvgroup.get_pv(motor.twv), twv_string, PVPutType::Double);
     pvgroup.set_monitor(motor.twv, twv_string);
 
     // user readback value
@@ -198,7 +198,7 @@ int main(int argc, char *argv[]) {
 
     // string description
     std::string desc = "";
-    auto desc_input = PVInput(pvgroup.get_pv(motor.desc), desc);
+    auto desc_input = PVInput(pvgroup.get_pv(motor.desc), desc, PVPutType::String);
     pvgroup.set_monitor<std::string>(motor.desc, desc);
 
     // High limit switch

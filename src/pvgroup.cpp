@@ -52,15 +52,19 @@ void ProcessVariable::get_monitored_variable(const epics::pvData::PVStructure *p
             } else if constexpr (std::is_same_v<PtrType, std::string *>) {
                 // it can be useful to be able to dump any value to a string
                 if (ptr) {
-                    if (auto val_field = pfield->getSubField<pvd::PVString>("value")) {
-                        *ptr = val_field->getAs<std::string>();
+                    std::string type_str = pfield->getStructure()->getField("value")->getID();
+                    if (type_str == "string") {
+                        if (auto val_field = pfield->getSubField<pvd::PVString>("value")) {
+                            *ptr = val_field->getAs<std::string>();
+                        }
+                    } else {
+                        std::ostringstream oss;
+                        oss << std::fixed << std::setprecision(DEFAULT_PRECISION);
+                        if (auto val_field = pfield->getSubField("value")) {
+                            val_field->dumpValue(oss);
+                            *ptr = oss.str();
+                        }
                     }
-                    // std::ostringstream oss;
-                    // oss << std::fixed << std::setprecision(DEFAULT_PRECISION);
-                    // if (auto val_field = pfield->getSubField("value")) {
-                        // val_field->dumpValue(oss);
-                        // *ptr = oss.str();
-                    // }
                 }
             } else if constexpr (std::is_same_v<PtrType, PVEnum *>) {
                 if (ptr) {
