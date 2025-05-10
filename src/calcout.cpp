@@ -144,55 +144,55 @@ int main(int argc, char *argv[]) {
     pvgroup.set_monitor(calcout.scan, scan_enum);
     
     std::string desc = "";
-    auto desc_input = PVInput(pvgroup.get_pv(calcout.desc), desc, PVPutType::String);
+    auto desc_input = PVInput(pvgroup[calcout.desc], desc, PVPutType::String);
     pvgroup.set_monitor(calcout.desc, desc);
 
     std::string inpa = "";
-    auto inpa_input = PVInput(pvgroup.get_pv(calcout.inpa), inpa, PVPutType::String);
+    auto inpa_input = PVInput(pvgroup[calcout.inpa], inpa, PVPutType::String);
     pvgroup.set_monitor(calcout.inpa, inpa);
 
     std::string a_val;
-    auto a_input = PVInput(pvgroup.get_pv(calcout.a), a_val, PVPutType::Double);
+    auto a_input = PVInput(pvgroup[calcout.a], a_val, PVPutType::Double);
     pvgroup.set_monitor(calcout.a, a_val);
 
     std::string inpb = "";
-    auto inpb_input = PVInput(pvgroup.get_pv(calcout.inpb), inpb, PVPutType::String);
+    auto inpb_input = PVInput(pvgroup[calcout.inpb], inpb, PVPutType::String);
     pvgroup.set_monitor<std::string>(calcout.inpb, inpb);
     
     std::string b_val;
-    auto b_input = PVInput(pvgroup.get_pv(calcout.b), b_val, PVPutType::Double);
+    auto b_input = PVInput(pvgroup[calcout.b], b_val, PVPutType::Double);
     pvgroup.set_monitor(calcout.b, b_val);
     
     std::string inpc = "";
-    auto inpc_input = PVInput(pvgroup.get_pv(calcout.inpc), inpc, PVPutType::String);
+    auto inpc_input = PVInput(pvgroup[calcout.inpc], inpc, PVPutType::String);
     pvgroup.set_monitor<std::string>(calcout.inpc, inpc);
     
     std::string c_val;
-    auto c_input = PVInput(pvgroup.get_pv(calcout.c), c_val, PVPutType::Double);
+    auto c_input = PVInput(pvgroup[calcout.c], c_val, PVPutType::Double);
     pvgroup.set_monitor(calcout.c, c_val);
    
     std::string inpd = "";
-    auto inpd_input = PVInput(pvgroup.get_pv(calcout.inpd), inpd, PVPutType::String);
+    auto inpd_input = PVInput(pvgroup[calcout.inpd], inpd, PVPutType::String);
     pvgroup.set_monitor<std::string>(calcout.inpd, inpd);
     
     std::string d_val;
-    auto d_input = PVInput(pvgroup.get_pv(calcout.d), d_val, PVPutType::Double);
+    auto d_input = PVInput(pvgroup[calcout.d], d_val, PVPutType::Double);
     pvgroup.set_monitor(calcout.d, d_val);
 
     std::string calc;
-    auto calc_input = PVInput(pvgroup.get_pv(calcout.calc), calc, PVPutType::String);
+    auto calc_input = PVInput(pvgroup[calcout.calc], calc, PVPutType::String);
     pvgroup.set_monitor(calcout.calc, calc);
 
     std::string ocal;
-    auto ocal_input = PVInput(pvgroup.get_pv(calcout.ocal), ocal, PVPutType::String);
+    auto ocal_input = PVInput(pvgroup[calcout.ocal], ocal, PVPutType::String);
     pvgroup.set_monitor(calcout.ocal, ocal);
 
     std::string out;
-    auto out_input = PVInput(pvgroup.get_pv(calcout.out), out, PVPutType::String);
+    auto out_input = PVInput(pvgroup[calcout.out], out, PVPutType::String);
     pvgroup.set_monitor(calcout.out, out);
 
     std::string flnk;
-    auto flnk_input = PVInput(pvgroup.get_pv(calcout.flnk), flnk, PVPutType::String);
+    auto flnk_input = PVInput(pvgroup[calcout.flnk], flnk, PVPutType::String);
     pvgroup.set_monitor(calcout.flnk, flnk);
 
     std::string val_rbv;

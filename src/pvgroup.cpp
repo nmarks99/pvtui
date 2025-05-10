@@ -153,6 +153,10 @@ ProcessVariable &PVGroup::get_pv(const std::string &pv_name) {
     return pv_map.at(pv_name);
 }
 
+ProcessVariable& PVGroup::operator[](const std::string &pv_name) {
+    return this->get_pv(pv_name);
+}
+
 void PVGroup::update() {
     for (auto &[_, pv] : pv_map) {
         pv.update();

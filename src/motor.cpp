@@ -143,8 +143,8 @@ int main(int argc, char *argv[]) {
     // for monitor to work.
 
     // tweak buttons, don't need readback
-    auto twf_button = PVButton(pvgroup.get_pv(motor.twf), " > ", 1);
-    auto twr_button = PVButton(pvgroup.get_pv(motor.twr), " < ", 1);
+    auto twf_button = PVButton(pvgroup[motor.twf], " > ", 1);
+    auto twr_button = PVButton(pvgroup[motor.twr], " < ", 1);
 
     // adjustment to the default way PVInput renders
     auto tform = [](ftxui::InputState s) {
@@ -153,37 +153,37 @@ int main(int argc, char *argv[]) {
 
     // user value input and monitor
     std::string val_string;
-    auto val_input = PVInput(pvgroup.get_pv(motor.val), val_string, PVPutType::Double, tform);
+    auto val_input = PVInput(pvgroup[motor.val], val_string, PVPutType::Double, tform);
     pvgroup.set_monitor(motor.val, val_string);
 
     // user high limit input and monitor
     std::string hlm_string;
-    auto hlm_input = PVInput(pvgroup.get_pv(motor.hlm), hlm_string, PVPutType::Double, tform);
+    auto hlm_input = PVInput(pvgroup[motor.hlm], hlm_string, PVPutType::Double, tform);
     pvgroup.set_monitor(motor.hlm, hlm_string);
 
     // user low limit input and monitor
     std::string llm_string;
-    auto llm_input = PVInput(pvgroup.get_pv(motor.llm), llm_string, PVPutType::Double, tform);
+    auto llm_input = PVInput(pvgroup[motor.llm], llm_string, PVPutType::Double, tform);
     pvgroup.set_monitor(motor.llm, llm_string);
 
     // dial high limit input and monitor
     std::string dhlm_string;
-    auto dhlm_input = PVInput(pvgroup.get_pv(motor.dhlm), dhlm_string, PVPutType::Double, tform);
+    auto dhlm_input = PVInput(pvgroup[motor.dhlm], dhlm_string, PVPutType::Double, tform);
     pvgroup.set_monitor(motor.dhlm, dhlm_string);
 
     // dial low limit input and monitor
     std::string dllm_string;
-    auto dllm_input = PVInput(pvgroup.get_pv(motor.dllm), dllm_string, PVPutType::Double, tform);
+    auto dllm_input = PVInput(pvgroup[motor.dllm], dllm_string, PVPutType::Double, tform);
     pvgroup.set_monitor(motor.dllm, dllm_string);
 
     // dial value input and monitor
     std::string dval_string;
-    auto dval_input = PVInput(pvgroup.get_pv(motor.dval), dval_string, PVPutType::Double, tform);
+    auto dval_input = PVInput(pvgroup[motor.dval], dval_string, PVPutType::Double, tform);
     pvgroup.set_monitor(motor.dval, dval_string);
 
     // tweak value and monitor
     std::string twv_string;
-    auto twv_input = PVInput(pvgroup.get_pv(motor.twv), twv_string, PVPutType::Double, tform);
+    auto twv_input = PVInput(pvgroup[motor.twv], twv_string, PVPutType::Double, tform);
     pvgroup.set_monitor(motor.twv, twv_string);
 
     // user readback value
@@ -204,7 +204,7 @@ int main(int argc, char *argv[]) {
 
     // string description
     std::string desc = "";
-    auto desc_input = PVInput(pvgroup.get_pv(motor.desc), desc, PVPutType::String, tform);
+    auto desc_input = PVInput(pvgroup[motor.desc], desc, PVPutType::String, tform);
     pvgroup.set_monitor<std::string>(motor.desc, desc);
 
     // High limit switch
@@ -220,24 +220,24 @@ int main(int argc, char *argv[]) {
     // Enable/disable toggle
     std::vector<std::string> en_dis_labels {"Enable", "Disable"};
     PVEnum en_dis_enum;
-    auto en_dis_menu = PVChoiceH(pvgroup.get_pv(motor.able), en_dis_labels, en_dis_enum.index);
+    auto en_dis_menu = PVChoiceH(pvgroup[motor.able], en_dis_labels, en_dis_enum.index);
     pvgroup.set_monitor(motor.able, en_dis_enum);
 
     // Use/Set toggle
     std::vector<std::string> use_set_labels {"Use", "Set"};
     PVEnum use_set_enum;
-    auto use_set_menu = PVChoiceH(pvgroup.get_pv(motor.set), use_set_labels, use_set_enum.index);
+    auto use_set_menu = PVChoiceH(pvgroup[motor.set], use_set_labels, use_set_enum.index);
     pvgroup.set_monitor(motor.set, use_set_enum);
 
     // Stop, pause, move, go toggle
     std::vector<std::string> spmg_labels {"Stop", "Pause ", "Move", "Go"};
     PVEnum spmg_enum;
-    auto spmg_menu = PVChoiceV(pvgroup.get_pv(motor.spmg), spmg_labels, spmg_enum.index);
+    auto spmg_menu = PVChoiceV(pvgroup[motor.spmg], spmg_labels, spmg_enum.index);
     pvgroup.set_monitor(motor.spmg, spmg_enum);
 
     // use this PV for connection status. We assume if we can connect
     // to this, we can connect to all the PVs for this display
-    auto &desc_pv = pvgroup.get_pv(motor.desc);
+    auto &desc_pv = pvgroup[motor.desc];
 
     // Main container to define interactivity of components
     auto main_container = Container::Vertical({

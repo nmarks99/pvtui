@@ -80,7 +80,10 @@ struct PVGroup {
         pv.set_monitor(var);
     }
 
-    ProcessVariable &get_pv(const std::string &pv_name);
+    ProcessVariable& get_pv(const std::string &pv_name);
+
+    // equivalent to PVGroup.get_pv("pv_name")
+    ProcessVariable& operator[](const std::string &pv_name);
 
     void update();
 
