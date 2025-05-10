@@ -7,6 +7,7 @@
 #include <unordered_map>
  
 #include "ftxui/component/component_base.hpp"
+#include "ftxui/component/component_options.hpp"
 #include "ftxui/component/screen_interactive.hpp"
 #include "ftxui/component/loop.hpp"
 
@@ -40,6 +41,7 @@ enum class PVPutType {
 };
 
 ftxui::Component PVInput(ProcessVariable &pv, std::string &disp_str, PVPutType put_type);
+ftxui::Component PVInput(ProcessVariable &pv, std::string &disp_str, PVPutType put_type, std::function<ftxui::Element(ftxui::InputState)> transform);
 
 ftxui::Component PVChoiceH(ProcessVariable &pv, const std::vector<std::string> &labels, int &selected);
 ftxui::Component PVChoiceV(ProcessVariable &pv, const std::vector<std::string> &labels, int &selected);
