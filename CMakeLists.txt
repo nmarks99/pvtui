@@ -130,3 +130,15 @@ target_link_libraries(test
   PRIVATE ftxui::component
 )
 # ------------------------------------------------------------------------------
+
+# ------------------------------------------------------------------------------
+add_executable(pvtui_demo tests/demo.cpp src/pvgroup.cpp src/pvtui.cpp)
+target_include_directories(pvtui_demo PUBLIC tests src ${EPICS_BASE_INCLUDES})
+
+target_link_libraries(pvtui_demo
+  PUBLIC ${EPICS_BASE_LIBRARIES}
+  PRIVATE ftxui::screen
+  PRIVATE ftxui::dom
+  PRIVATE ftxui::component
+)
+# ------------------------------------------------------------------------------
