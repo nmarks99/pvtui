@@ -23,7 +23,7 @@ std::string rectangle(int width, int height) {
 ftxui::Component PVButton(ProcessVariable &pv, const std::string &label, int value) {
     auto op = ftxui::ButtonOption::Ascii();
     op.label = label;
-    op.on_click = [&](){
+    op.on_click = [&pv, value](){
 	if (pv.connected()) {
 	    pv.channel.put().set("value", value).exec();
 	}
