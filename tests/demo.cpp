@@ -68,7 +68,8 @@ int main(int argc, char *argv[]) {
 	"xxx:m1.DESC",
 	"xxx:m1.SPMG",
 	"xxx:m1.VELO",
-	"xxx:long",
+	"xxx:long.VAL",
+	"xxx:long.SCAN",
 	"xxx:string",
 	"xxx:float",
 	"xxx:enum",
@@ -81,7 +82,6 @@ int main(int argc, char *argv[]) {
     // rbv double value will be updated when xxx:m1.RBV changes
     double rbv = 0.0;
     pvgroup.set_monitor("xxx:m1.RBV", rbv);
-
     // You can alternatively monitor and store the value of most PV's as a string
     // regardless of their actual type. This can be useful for this
     // library since everything is displayed as a string anyway
@@ -93,29 +93,42 @@ int main(int argc, char *argv[]) {
     std::string desc = "";
     pvgroup.set_monitor("xxx:m1.DESC", desc);
 
-
     // Monitor xxx:string
-    std::string xxxstr = "";
-    pvgroup.set_monitor("xxx:string", xxxstr);
     // Create an input field to change and display the value of xxx:string
     auto tform = [](ftxui::InputState s) {
-	return s.element | color(Color::White);
+	return s.element | color(Color::Black) | bgcolor(Color::LightSeaGreen);
     };
-    auto string_input = PVInput(pvgroup["xxx:string"], xxxstr, PVPutType::String, tform);
+    auto desc_input = PVInput(pvgroup["xxx:m1.DESC"], desc, PVPutType::String, tform);
 
     // Clickable buttons
     auto twf_button = PVButton(pvgroup["xxx:m1.TWF"], " > ", 1);
     auto twr_button = PVButton(pvgroup["xxx:m1.TWR"], " < ", 1);
 
+    // SPMG is an enum type. We can use pvtui::PVEnum
+    // and a pvtui::PVChoice or pvtui::Dropdown menu
+    PVEnum spmg;
+    std::vector<std::string> spmg_ops = {"Stop", "Pause", "Move", "Go"};
+    int spmg_selected = 0;
+    auto spmg_choiceh = PVChoiceH(pvgroup["xxx:m1.SPMG"], spmg_ops, spmg_selected);
+    auto spmg_choicev = PVChoiceV(pvgroup["xxx:m1.SPMG"], spmg_ops, spmg_selected);
+
+    // Dropdown menu
+    // xxx:long is just a longout record
+    int scan_choice = 0;
+    std::vector<std::string> scan_menu_labels{"Passive", "Event", "I/O Intr",
+	"10 second", "5 second", "2 second",
+	"1 second", ".5 second", ".2 second", ".1 second"};
+    auto scan_dropdown = PVDropdown(pvgroup["xxx:long.SCAN"], scan_menu_labels, scan_choice);
 
     // Main container to define interactivity of components
     auto main_container = Container::Vertical({
 	Container::Horizontal({
 	    twr_button, twf_button,
 	}),
-	Container::Horizontal({
-	    string_input,
-	}),
+	desc_input,
+	spmg_choiceh,
+	spmg_choicev,
+	scan_dropdown,	
     });
 
     // Main renderer to define visual layout of components and elements
@@ -123,32 +136,56 @@ int main(int argc, char *argv[]) {
         return vbox({
 	    separator(),
 	    hbox({
-		text("xxx:m1.DESC") | size(WIDTH, EQUAL, 20), separator(),
-		text(desc),
-	    }),
-	    separator(),
-	    hbox({
-		text("xxx:m1.RBV") | size(WIDTH, EQUAL, 20), separator(),
-		text(std::to_string(rbv)),
-	    }),
-	    separator(),
-	    hbox({
-		text("xxx:m1.TWR/TWF") | size(WIDTH, EQUAL, 20),
+		text("Display a string PV") | size(WIDTH, EQUAL, 20),
 		separator(),
-		text("Click the buttons to tweak the motor: "),
-		separatorEmpty(),
-		twr_button->Render() | color(Color::Orange1),
-		separatorEmpty(),
-		twf_button->Render() | color(Color::Orange1),
+		text("xxx:m1.DESC = "),
+		text(desc) | color(Color::Blue),
 	    }),
 	    separator(),
 	    hbox({
-		text("xxx:string") | size(WIDTH, EQUAL, 20),
+		text("Display a float PV") | size(WIDTH, EQUAL, 20),
 		separator(),
-		string_input->Render()
+		text("xxx:m1.RBV = "),
+		text(std::to_string(rbv)) | color(Color::Blue),
 	    }),
 	    separator(),
-        }) | size(WIDTH, EQUAL, 80);
+	    hbox({
+		text("PVButton") | size(WIDTH, EQUAL, 20),
+		separator(),
+		text("xxx:m1.TWF/TWR"),
+		separatorEmpty(),
+		twr_button->Render() | color(Color::LightSeaGreen),
+		separatorEmpty(),
+		twf_button->Render() | color(Color::LightSeaGreen),
+	    }),
+	    separator(),
+	    hbox({
+		text("PVInput") | size(WIDTH, EQUAL, 20),
+		separator(),
+		text("xxx:m1.DESC  "),
+		desc_input->Render() | size(WIDTH, EQUAL, 30)
+	    }),
+	    separator(),
+	    hbox({
+		text("PVChoiceH") | size(WIDTH, EQUAL, 20),
+		separator(),
+		spmg_choiceh->Render(),
+	    }),
+	    separator(),
+	    hbox({
+		text("PVChoiceV") | size(WIDTH, EQUAL, 20) | vcenter,
+		separator(),
+		spmg_choicev->Render(),
+	    }),
+	    separator(),
+	    hbox({
+		text("PVDropdown") | size(WIDTH, EQUAL, 20),
+		separator(),
+		text("xxx:long.SCAN   "),
+		scan_dropdown->Render() | border,
+	    }),
+	    separator(),
+        }) | size(WIDTH, EQUAL, 70);
     });
 
     // Custom main loop
