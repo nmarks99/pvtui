@@ -29,11 +29,16 @@ Usage:
 Options:
   -h, --help                   Show this help message and exit.
 
-Examples:
-    ???
-
 For more details, visit: https://github.com/nmarks99/pvtui
 )";
+
+const std::string PVTUI_ASCII_ART = R"(
+██████╗ ██╗   ██╗████████╗██╗   ██╗██╗
+██╔══██╗██║   ██║╚══██╔══╝██║   ██║██║
+██████╔╝██║   ██║   ██║   ██║   ██║██║
+██╔═══╝ ╚██╗ ██╔╝   ██║   ██║   ██║██║
+██║      ╚████╔╝    ██║   ╚██████╔╝██║
+╚═╝       ╚═══╝     ╚═╝    ╚═════╝ ╚═╝)";
 
 
 int main(int argc, char *argv[]) {
@@ -121,19 +126,26 @@ int main(int argc, char *argv[]) {
     auto scan_dropdown = PVDropdown(pvgroup["xxx:long.SCAN"], scan_menu_labels, scan_choice);
 
     // Main container to define interactivity of components
-    auto main_container = Container::Vertical({
+    // auto main_container = Container::Vertical({
+	// Container::Horizontal({
+	    // twr_button, twf_button,
+	// }),
+	// desc_input,
+	// spmg_choiceh,
+	// spmg_choicev,
+	// scan_dropdown,
+    // });
+
+    auto tab1_container = Container::Vertical({
 	Container::Horizontal({
 	    twr_button, twf_button,
 	}),
 	desc_input,
-	spmg_choiceh,
-	spmg_choicev,
-	scan_dropdown,	
     });
 
-    // Main renderer to define visual layout of components and elements
-    auto main_renderer = Renderer(main_container, [&] {
-        return vbox({
+    auto tab1_renderer = Renderer(tab1_container, [&]{
+	return vbox({
+	    paragraphAlignCenter(PVTUI_ASCII_ART) | color(Color::DarkViolet),
 	    separator(),
 	    hbox({
 		text("Display a string PV") | size(WIDTH, EQUAL, 20),
@@ -166,6 +178,19 @@ int main(int argc, char *argv[]) {
 		desc_input->Render() | size(WIDTH, EQUAL, 30)
 	    }),
 	    separator(),
+	});
+    });
+
+    auto tab2_container = Container::Vertical({
+	spmg_choiceh,
+	spmg_choicev,
+	scan_dropdown,
+    });
+
+    auto tab2_renderer = Renderer(tab2_container, [&]{
+	return vbox({
+	    paragraphAlignCenter(PVTUI_ASCII_ART) | color(Color::DarkViolet),
+	    separator(),
 	    hbox({
 		text("PVChoiceH") | size(WIDTH, EQUAL, 20),
 		separator(),
@@ -182,10 +207,61 @@ int main(int argc, char *argv[]) {
 		text("PVDropdown") | size(WIDTH, EQUAL, 20),
 		separator(),
 		text("xxx:long.SCAN   "),
-		scan_dropdown->Render() | border,
+		scan_dropdown->Render() | size(WIDTH, EQUAL, 15) | EPICSColor::EDIT,
 	    }),
 	    separator(),
-        }) | size(WIDTH, EQUAL, 70);
+	});
+    });
+
+
+    int tab_selected = 0;
+    std::vector<std::string> reldis_labels = {
+	"Screen 1", "Screen 2"
+    };
+    auto dropdown_op = DropdownOption({
+	.radiobox = {
+	    .entries = &reldis_labels,
+	    .selected = &tab_selected,
+	},
+	.transform =
+            [](bool open, ftxui::Element checkbox, ftxui::Element radiobox) {
+	    if (open) {
+		return ftxui::vbox({
+		    checkbox | inverted,
+		    radiobox | vscroll_indicator | frame |
+		    size(HEIGHT, LESS_THAN, 10),
+		    filler(),
+		});
+            }
+            return vbox({
+                checkbox,
+                filler(),
+            });
+        }
+    });
+    // auto related_display = Dropdown(&dropdown_ops, &tab_selected);
+    auto related_display = Dropdown(dropdown_op);
+    auto reldis_renderer = Renderer(related_display, [&]{
+	return vbox({
+	    separatorEmpty(),
+	    related_display->Render() | EPICSColor::MENU | size(WIDTH, EQUAL, 10) 
+	});
+    });
+
+    auto main_container = Container::Vertical({
+	Container::Tab({
+	    tab1_renderer,
+	    tab2_renderer,
+	}, &tab_selected),
+	Container::Vertical({
+	    reldis_renderer,
+	}),
+    });
+
+    auto main_renderer = Renderer(main_container, [&] {
+	return vbox({
+	    main_container->Render(),
+	}) | size(WIDTH, EQUAL, 70) | size(HEIGHT, EQUAL, 70) | center;
     });
 
     // Custom main loop
