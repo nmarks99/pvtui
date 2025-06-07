@@ -41,18 +41,24 @@ const std::string PVTUI_ASCII_ART = R"(
 ╚═╝       ╚═══╝     ╚═╝    ╚═════╝ ╚═╝)";
 
 
+// Creates a ftxui::Dropdown component with a more minimal style
+Component SmallDropdown(const std::vector<std::string> &labels, int &selected);
+
 int main(int argc, char *argv[]) {
   
-    // Parse command line arguments and macros
+    // The pvtui library includes a minimal argument parser
     pvtui::ArgParser args(argc, argv);
 
+    // Handle the "--help" or "-h" flags to show a help message
     if (args.flag("help") or args.flag("h")) {
 	std::cout << CLI_HELP_MSG << std::endl;
 	return EXIT_SUCCESS;
     }
 
-    // if (not args.macros_present({"P", "C"})) {
-	// printf("Missing required macros\nRequired macros: P, C\n");
+    // For most applications we'd want to parse a "--macros" argument
+    // for things like an IOC prefic "P", but we won't for this demo.
+    // if (not args.macros_present({"P", "R"})) {
+	// printf("Missing required macros\nRequired macros: P, R\n");
 	// return EXIT_FAILURE;
     // }
 
@@ -60,9 +66,14 @@ int main(int argc, char *argv[]) {
     auto screen = ScreenInteractive::Fullscreen();
 
     // Instantiate EPICS client
+    // If you want to connect to CA PVs as well, you must start the CAClientFactory
     epics::pvAccess::ca::CAClientFactory::start();
     pvac::ClientProvider provider(args.provider);
 
+    // The PVGroup class makes it easy to manage PVs in an application like this.
+    // We create a PVGroup with all the PVs we will use for this program, then later
+    // we can link variables in our code to PVs and the values will be updated
+    // automatically by calling pvgroup.update() in our main program loop
     PVGroup pvgroup(provider, {
 	"xxx:m1.VAL",
 	"xxx:m1.RBV",
@@ -85,11 +96,12 @@ int main(int argc, char *argv[]) {
 
     // Set monitors like this
     // rbv double value will be updated when xxx:m1.RBV changes
+    // after calling pvgroup.update()
     double rbv = 0.0;
     pvgroup.set_monitor("xxx:m1.RBV", rbv);
     // You can alternatively monitor and store the value of most PV's as a string
     // regardless of their actual type. This can be useful for this
-    // library since everything is displayed as a string anyway
+    // since everything is ultimately displayed as a string anyway
     // e.g.
     // std::string rbv_str = "";
     // pvgroup.set_monitor("xxx:m1.RBV", rbv_str);
@@ -118,24 +130,18 @@ int main(int argc, char *argv[]) {
     auto spmg_choicev = PVChoiceV(pvgroup["xxx:m1.SPMG"], spmg_ops, spmg_selected);
 
     // Dropdown menu
-    // xxx:long is just a longout record
+    // xxx:long is just a longout record for demonstration create
+    // a dropdown menu to change its SCAN field
     int scan_choice = 0;
     std::vector<std::string> scan_menu_labels{"Passive", "Event", "I/O Intr",
 	"10 second", "5 second", "2 second",
 	"1 second", ".5 second", ".2 second", ".1 second"};
     auto scan_dropdown = PVDropdown(pvgroup["xxx:long.SCAN"], scan_menu_labels, scan_choice);
 
-    // Main container to define interactivity of components
-    // auto main_container = Container::Vertical({
-	// Container::Horizontal({
-	    // twr_button, twf_button,
-	// }),
-	// desc_input,
-	// spmg_choiceh,
-	// spmg_choicev,
-	// scan_dropdown,
-    // });
+    // Tabs can be used to enable cycling through several displays
+    // We might want tabs to replicate "related display" features
 
+    // Defines interactivity of tab1
     auto tab1_container = Container::Vertical({
 	Container::Horizontal({
 	    twr_button, twf_button,
@@ -143,6 +149,7 @@ int main(int argc, char *argv[]) {
 	desc_input,
     });
 
+    // Defines visual layout of tab1
     auto tab1_renderer = Renderer(tab1_container, [&]{
 	return vbox({
 	    paragraphAlignCenter(PVTUI_ASCII_ART) | color(Color::DarkViolet),
@@ -212,35 +219,13 @@ int main(int argc, char *argv[]) {
 	    separator(),
 	});
     });
-
-
+ 
+    // Dropdown menu to swtich between tabs
     int tab_selected = 0;
     std::vector<std::string> reldis_labels = {
 	"Screen 1", "Screen 2"
     };
-    auto dropdown_op = DropdownOption({
-	.radiobox = {
-	    .entries = &reldis_labels,
-	    .selected = &tab_selected,
-	},
-	.transform =
-            [](bool open, ftxui::Element checkbox, ftxui::Element radiobox) {
-	    if (open) {
-		return ftxui::vbox({
-		    checkbox | inverted,
-		    radiobox | vscroll_indicator | frame |
-		    size(HEIGHT, LESS_THAN, 10),
-		    filler(),
-		});
-            }
-            return vbox({
-                checkbox,
-                filler(),
-            });
-        }
-    });
-    // auto related_display = Dropdown(&dropdown_ops, &tab_selected);
-    auto related_display = Dropdown(dropdown_op);
+    auto related_display = SmallDropdown(reldis_labels, tab_selected);
     auto reldis_renderer = Renderer(related_display, [&]{
 	return vbox({
 	    separatorEmpty(),
@@ -248,6 +233,7 @@ int main(int argc, char *argv[]) {
 	});
     });
 
+    // The container defines the interactivity of components
     auto main_container = Container::Vertical({
 	Container::Tab({
 	    tab1_renderer,
@@ -258,13 +244,14 @@ int main(int argc, char *argv[]) {
 	}),
     });
 
+    // The renderer defines the visual layout
     auto main_renderer = Renderer(main_container, [&] {
 	return vbox({
 	    main_container->Render(),
 	}) | size(WIDTH, EQUAL, 70) | size(HEIGHT, EQUAL, 70) | center;
     });
 
-    // Custom main loop
+    // Main program loop
     constexpr int POLL_PERIOD_MS = 100;
     Loop loop(&screen, main_renderer);
     while (!loop.HasQuitted()) {
@@ -280,4 +267,29 @@ int main(int argc, char *argv[]) {
     }
 
     return EXIT_SUCCESS;
+}
+
+Component SmallDropdown(const std::vector<std::string> &labels, int &selected) {
+    auto dropdown_op = DropdownOption({
+	.radiobox = {
+	    .entries = &labels,
+	    .selected = &selected,
+	},
+	.transform =
+            [](bool open, ftxui::Element checkbox, ftxui::Element radiobox) {
+	    if (open) {
+		return ftxui::vbox({
+		    checkbox | inverted,
+		    radiobox | vscroll_indicator | frame |
+		    size(HEIGHT, LESS_THAN, 10),
+		    filler(),
+		});
+            }
+            return vbox({
+                checkbox,
+                filler(),
+            });
+        },
+    });
+    return Dropdown(dropdown_op);
 }
