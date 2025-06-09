@@ -118,12 +118,11 @@ target_link_libraries(pvtui_sr
 )
 # ------------------------------------------------------------------------------
 
-
 # ------------------------------------------------------------------------------
-add_executable(test tests/test.cpp src/pvgroup.cpp)
-target_include_directories(test PUBLIC tests src ${EPICS_BASE_INCLUDES})
+add_executable(pvtui_demo apps/demo.cpp src/pvgroup.cpp src/pvtui.cpp)
+target_include_directories(pvtui_demo PUBLIC src ${EPICS_BASE_INCLUDES})
 
-target_link_libraries(test
+target_link_libraries(pvtui_demo
   PUBLIC ${EPICS_BASE_LIBRARIES}
   PRIVATE ftxui::screen
   PRIVATE ftxui::dom
@@ -132,10 +131,10 @@ target_link_libraries(test
 # ------------------------------------------------------------------------------
 
 # ------------------------------------------------------------------------------
-add_executable(pvtui_demo tests/demo.cpp src/pvgroup.cpp src/pvtui.cpp)
-target_include_directories(pvtui_demo PUBLIC tests src ${EPICS_BASE_INCLUDES})
+add_executable(test tests/test.cpp src/pvgroup.cpp)
+target_include_directories(test PUBLIC tests src ${EPICS_BASE_INCLUDES})
 
-target_link_libraries(pvtui_demo
+target_link_libraries(test
   PUBLIC ${EPICS_BASE_LIBRARIES}
   PRIVATE ftxui::screen
   PRIVATE ftxui::dom
