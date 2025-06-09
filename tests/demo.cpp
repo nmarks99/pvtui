@@ -138,117 +138,97 @@ int main(int argc, char *argv[]) {
 	"1 second", ".5 second", ".2 second", ".1 second"};
     auto scan_dropdown = PVDropdown(pvgroup["xxx:long.SCAN"], scan_menu_labels, scan_choice);
 
-    // Tabs can be used to enable cycling through several displays
-    // We might want tabs to replicate "related display" features
+    // Dropdown menu to swtich between tabs
+    int selected_tab = 0;
+    std::vector<std::string> reldis_labels = {
+	"Screen 1", "Screen 2"
+    };
+    auto related_display = SmallDropdown(reldis_labels, selected_tab);
 
-    // Defines interactivity of tab1
-    auto tab1_container = Container::Vertical({
+    // The container defines the interactivity of components
+    // Every component you want to interact with must be in here
+    auto main_container = Container::Vertical({
+	// Tab 1 ------------
 	Container::Horizontal({
 	    twr_button, twf_button,
 	}),
 	desc_input,
-    });
+	// ------------------
 
-    // Defines visual layout of tab1
-    auto tab1_renderer = Renderer(tab1_container, [&]{
-	return vbox({
-	    paragraphAlignCenter(PVTUI_ASCII_ART) | color(Color::DarkViolet),
-	    separator(),
-	    hbox({
-		text("Display a string PV") | size(WIDTH, EQUAL, 20),
-		separator(),
-		text("xxx:m1.DESC = "),
-		text(desc) | color(Color::Blue),
-	    }),
-	    separator(),
-	    hbox({
-		text("Display a float PV") | size(WIDTH, EQUAL, 20),
-		separator(),
-		text("xxx:m1.RBV = "),
-		text(std::to_string(rbv)) | color(Color::Blue),
-	    }),
-	    separator(),
-	    hbox({
-		text("PVButton") | size(WIDTH, EQUAL, 20),
-		separator(),
-		text("xxx:m1.TWF/TWR"),
-		separatorEmpty(),
-		twr_button->Render() | color(Color::LightSeaGreen),
-		separatorEmpty(),
-		twf_button->Render() | color(Color::LightSeaGreen),
-	    }),
-	    separator(),
-	    hbox({
-		text("PVInput") | size(WIDTH, EQUAL, 20),
-		separator(),
-		text("xxx:m1.DESC  "),
-		desc_input->Render() | size(WIDTH, EQUAL, 30)
-	    }),
-	    separator(),
-	});
-    });
-
-    auto tab2_container = Container::Vertical({
+	// Tab 2 ------------
 	spmg_choiceh,
 	spmg_choicev,
 	scan_dropdown,
-    });
+	// ------------------
 
-    auto tab2_renderer = Renderer(tab2_container, [&]{
-	return vbox({
-	    paragraphAlignCenter(PVTUI_ASCII_ART) | color(Color::DarkViolet),
-	    separator(),
-	    hbox({
-		text("PVChoiceH") | size(WIDTH, EQUAL, 20),
-		separator(),
-		spmg_choiceh->Render(),
-	    }),
-	    separator(),
-	    hbox({
-		text("PVChoiceV") | size(WIDTH, EQUAL, 20) | vcenter,
-		separator(),
-		spmg_choicev->Render(),
-	    }),
-	    separator(),
-	    hbox({
-		text("PVDropdown") | size(WIDTH, EQUAL, 20),
-		separator(),
-		text("xxx:long.SCAN   "),
-		scan_dropdown->Render() | size(WIDTH, EQUAL, 15) | EPICSColor::EDIT,
-	    }),
-	    separator(),
-	});
-    });
- 
-    // Dropdown menu to swtich between tabs
-    int tab_selected = 0;
-    std::vector<std::string> reldis_labels = {
-	"Screen 1", "Screen 2"
-    };
-    auto related_display = SmallDropdown(reldis_labels, tab_selected);
-    auto reldis_renderer = Renderer(related_display, [&]{
-	return vbox({
-	    separatorEmpty(),
-	    related_display->Render() | EPICSColor::MENU | size(WIDTH, EQUAL, 10) 
-	});
-    });
-
-    // The container defines the interactivity of components
-    auto main_container = Container::Vertical({
-	Container::Tab({
-	    tab1_renderer,
-	    tab2_renderer,
-	}, &tab_selected),
-	Container::Vertical({
-	    reldis_renderer,
-	}),
+	related_display,
     });
 
     // The renderer defines the visual layout
     auto main_renderer = Renderer(main_container, [&] {
-	return vbox({
-	    main_container->Render(),
-	}) | size(WIDTH, EQUAL, 70) | size(HEIGHT, EQUAL, 70) | center;
+	if (selected_tab == 0) {
+	    return vbox({
+		paragraphAlignCenter(PVTUI_ASCII_ART) | color(Color::DarkViolet),
+		separator(),
+		hbox({
+		    text("Display a string PV") | size(WIDTH, EQUAL, 20),
+		    separator(),
+		    text("xxx:m1.DESC = "),
+		    text(desc) | color(Color::Blue),
+		}),
+		separator(),
+		hbox({
+		    text("Display a float PV") | size(WIDTH, EQUAL, 20),
+		    separator(),
+		    text("xxx:m1.RBV = "),
+		    text(std::to_string(rbv)) | color(Color::Blue),
+		}),
+		separator(),
+		hbox({
+		    text("PVButton") | size(WIDTH, EQUAL, 20),
+		    separator(),
+		    text("xxx:m1.TWF/TWR"),
+		    separatorEmpty(),
+		    twr_button->Render() | color(Color::LightSeaGreen),
+		    separatorEmpty(),
+		    twf_button->Render() | color(Color::LightSeaGreen),
+		}),
+		separator(),
+		hbox({
+		    text("PVInput") | size(WIDTH, EQUAL, 20),
+		    separator(),
+		    text("xxx:m1.DESC  "),
+		    desc_input->Render() | size(WIDTH, EQUAL, 30)
+		}),
+		separator(),
+		related_display->Render() | EPICSColor::MENU | size(WIDTH, EQUAL, 10)
+	    }) | size(WIDTH, EQUAL, 70) | size(HEIGHT, EQUAL, 70) | center;
+	} else {
+	    return vbox({
+		paragraphAlignCenter(PVTUI_ASCII_ART) | color(Color::DarkViolet),
+		separator(),
+		hbox({
+		    text("PVChoiceH") | size(WIDTH, EQUAL, 20),
+		    separator(),
+		    spmg_choiceh->Render(),
+		}),
+		separator(),
+		hbox({
+		    text("PVChoiceV") | size(WIDTH, EQUAL, 20) | vcenter,
+		    separator(),
+		    spmg_choicev->Render(),
+		}),
+		separator(),
+		hbox({
+		    text("PVDropdown") | size(WIDTH, EQUAL, 20),
+		    separator(),
+		    text("xxx:long.SCAN   "),
+		    scan_dropdown->Render() | size(WIDTH, EQUAL, 15) | EPICSColor::EDIT,
+		}),
+		separator(),
+		related_display->Render() | EPICSColor::MENU | size(WIDTH, EQUAL, 10)
+	    }) | size(WIDTH, EQUAL, 70) | size(HEIGHT, EQUAL, 70) | center;
+	}
     });
 
     // Main program loop
