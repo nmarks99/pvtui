@@ -235,13 +235,12 @@ int main(int argc, char *argv[]) {
     constexpr int POLL_PERIOD_MS = 100;
     Loop loop(&screen, main_renderer);
     while (!loop.HasQuitted()) {
-
 	// update monitors for PV's in the PVGroup
-	pvgroup.update();
-
-	// Force an update by posting an event
-	// and run the FTXUI main loop once
-        screen.PostEvent(Event::Custom);
+	if (pvgroup.update()) {
+	    // Force an update by posting an event
+	    // only if there is new data (update returns true)
+	    screen.PostEvent(Event::Custom);
+	}
         loop.RunOnce();
         std::this_thread::sleep_for(std::chrono::milliseconds(POLL_PERIOD_MS));
     }

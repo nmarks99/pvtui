@@ -55,7 +55,8 @@ struct ProcessVariable {
 
     bool connected() const;
 
-    void update();
+    // returns true is new data was received, else false
+    bool update();
 
     template <typename T>
     void set_monitor(T &var) {
@@ -85,7 +86,8 @@ struct PVGroup {
     // equivalent to PVGroup.get_pv("pv_name")
     ProcessVariable& operator[](const std::string &pv_name);
 
-    void update();
+    // returns true is new data was received, else false
+    bool update();
 
   private:
     std::unordered_map<std::string, ProcessVariable> pv_map;

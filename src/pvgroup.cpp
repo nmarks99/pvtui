@@ -116,15 +116,16 @@ void ProcessVariable::get_monitored_variable(const epics::pvData::PVStructure *p
         monitor_var_ptr_);
 }
 
-void ProcessVariable::update() {
-
+bool ProcessVariable::update() {
+    bool new_data = false;
     if (std::holds_alternative<std::monostate>(this->monitor_var_ptr_)) {
-        return;
+        return new_data;
     }
 
     if (monitor_.test()) {
         switch (monitor_.event.event) {
         case pvac::MonitorEvent::Data:
+            new_data = true;
             while (monitor_.poll()) {
                 auto pfield = monitor_.root.get();
                 this->get_monitored_variable(pfield);
@@ -138,6 +139,8 @@ void ProcessVariable::update() {
             break;
         }
     }
+
+    return new_data;
 }
 
 PVGroup::PVGroup(pvac::ClientProvider &provider, const std::vector<std::string> &pv_names) {
@@ -157,8 +160,10 @@ ProcessVariable& PVGroup::operator[](const std::string &pv_name) {
     return this->get_pv(pv_name);
 }
 
-void PVGroup::update() {
+bool PVGroup::update() {
+    bool new_data = false;
     for (auto &[_, pv] : pv_map) {
-        pv.update();
+        new_data |= pv.update();
     }
+    return new_data;
 }
