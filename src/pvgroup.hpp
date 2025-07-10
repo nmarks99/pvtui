@@ -26,6 +26,7 @@ std::string operator+(const std::string& lhs, const PVAny& rhs);
 // Represents a typical "enum" (mbbo/mbbi) with an integer index and string name
 struct PVEnum {
     int index = 0;
+    std::vector<std::string> choices;
     std::string choice = "";
 };
 

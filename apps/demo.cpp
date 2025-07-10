@@ -124,19 +124,16 @@ int main(int argc, char *argv[]) {
     // SPMG is an enum type. We can use pvtui::PVEnum
     // and a pvtui::PVChoice or pvtui::Dropdown menu
     PVEnum spmg;
-    std::vector<std::string> spmg_ops = {"Stop", "Pause", "Move", "Go"};
-    int spmg_selected = 0;
-    auto spmg_choiceh = PVChoiceH(pvgroup["xxx:m1.SPMG"], spmg_ops, spmg_selected);
-    auto spmg_choicev = PVChoiceV(pvgroup["xxx:m1.SPMG"], spmg_ops, spmg_selected);
+    pvgroup.set_monitor("xxx:m1.SPMG", spmg);
+    auto spmg_choiceh = PVChoiceH(pvgroup["xxx:m1.SPMG"], spmg.choices, spmg.index);
+    auto spmg_choicev = PVChoiceV(pvgroup["xxx:m1.SPMG"], spmg.choices, spmg.index);
 
     // Dropdown menu
     // xxx:long is just a longout record for demonstration create
     // a dropdown menu to change its SCAN field
-    int scan_choice = 0;
-    std::vector<std::string> scan_menu_labels{"Passive", "Event", "I/O Intr",
-	"10 second", "5 second", "2 second",
-	"1 second", ".5 second", ".2 second", ".1 second"};
-    auto scan_dropdown = PVDropdown(pvgroup["xxx:long.SCAN"], scan_menu_labels, scan_choice);
+    PVEnum long_scan;
+    pvgroup.set_monitor("xxx:long.SCAN", long_scan);
+    auto scan_dropdown = PVDropdown(pvgroup["xxx:long.SCAN"], long_scan.choices, long_scan.index);
 
     // Dropdown menu to swtich between tabs
     int selected_tab = 0;

@@ -188,7 +188,7 @@ int main(int argc, char *argv[]) {
         return canvas(std::move(c));
     });
 
-    // Container for "q" to quit. Maybe there's a better way?
+    // Container for "q" to quit
     auto main_container = Container::Vertical({});
     main_container |= CatchEvent([&](Event event) {
         if (event == Event::Character('q')) {
@@ -228,7 +228,6 @@ int main(int argc, char *argv[]) {
             separatorEmpty(),
             text("Beam History: ") | bold | italic | underlined | size(WIDTH, EQUAL, 11),
             vbox({
-                // separator(),
                 separatorEmpty(),
                 hbox({
                     vbox({
@@ -246,7 +245,6 @@ int main(int argc, char *argv[]) {
                     separatorEmpty(),
                     plot1_renderer->Render(),
                     separatorEmpty(),
-                    // separator(),
                 }),
                 separator(),
                 hbox({
@@ -255,7 +253,7 @@ int main(int argc, char *argv[]) {
             }) | size(WIDTH, EQUAL, 57),
             separatorEmpty(),
 
-            text("Messages from Operators: ") | bold | italic | underlined | size(WIDTH, EQUAL, 22),
+            text("Messages from Operations: ") | bold | italic | underlined | size(WIDTH, EQUAL, 22),
             text("        Operators: " + operators),
             text("Floor Coordinator: " + floor_coord),
             text("     Fill Pattern: " + fill_patt),

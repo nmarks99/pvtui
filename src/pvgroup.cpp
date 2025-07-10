@@ -74,6 +74,10 @@ void ProcessVariable::get_monitored_variable(const epics::pvData::PVStructure *p
                     if (choices.size() > index) {
                         ptr->index = index;
                         ptr->choice = choices.at(index);
+                        if (ptr->choices.size() != choices.size()) {
+                            ptr->choices.resize(choices.size());
+                        }
+                        std::copy(choices.begin(), choices.end(), ptr->choices.begin());
                     }
                 }
             } else if constexpr (std::is_same_v<PtrType, std::vector<double> *>) {
