@@ -218,21 +218,18 @@ int main(int argc, char *argv[]) {
     pvgroup.set_monitor<int>(motor.lls, lls);
 
     // Enable/disable toggle
-    std::vector<std::string> en_dis_labels {"Enable", "Disable"};
     PVEnum en_dis_enum;
-    auto en_dis_menu = PVChoiceH(pvgroup[motor.able], en_dis_labels, en_dis_enum.index);
+    auto en_dis_menu = PVChoiceH(pvgroup[motor.able], en_dis_enum.choices, en_dis_enum.index);
     pvgroup.set_monitor(motor.able, en_dis_enum);
 
     // Use/Set toggle
-    std::vector<std::string> use_set_labels {"Use", "Set"};
     PVEnum use_set_enum;
-    auto use_set_menu = PVChoiceH(pvgroup[motor.set], use_set_labels, use_set_enum.index);
+    auto use_set_menu = PVChoiceH(pvgroup[motor.set], use_set_enum.choices, use_set_enum.index);
     pvgroup.set_monitor(motor.set, use_set_enum);
 
     // Stop, pause, move, go toggle
-    std::vector<std::string> spmg_labels {"Stop", "Pause ", "Move", "Go"};
     PVEnum spmg_enum;
-    auto spmg_menu = PVChoiceV(pvgroup[motor.spmg], spmg_labels, spmg_enum.index);
+    auto spmg_menu = PVChoiceV(pvgroup[motor.spmg], spmg_enum.choices, spmg_enum.index);
     pvgroup.set_monitor(motor.spmg, spmg_enum);
 
     // use this PV for connection status. We assume if we can connect

@@ -136,11 +136,8 @@ int main(int argc, char *argv[]) {
     // Note any PVs used below must be defined in the pvgroup in order
     // for monitor to work.
     std::string scan;
-    std::vector<std::string> scan_menu_labels{"Passive", "Event", "I/O Intr",
-	"10 second", "5 second", "2 second",
-	"1 second", ".5 second", ".2 second", ".1 second"};
     PVEnum scan_enum;
-    auto scan_menu = PVDropdown(pvgroup.get_pv(calcout.scan), scan_menu_labels, scan_enum.index);
+    auto scan_menu = PVDropdown(pvgroup.get_pv(calcout.scan), scan_enum.choices, scan_enum.index);
     pvgroup.set_monitor(calcout.scan, scan_enum);
     
     std::string desc = "";
@@ -201,22 +198,16 @@ int main(int argc, char *argv[]) {
     std::string oval_rbv;
     pvgroup.set_monitor(calcout.oval, oval_rbv);
 
-    std::vector<std::string> dopt_menu_labels{"Use CALC", "Use OCAL"};
     PVEnum dopt_enum;
-    auto dopt_menu = PVDropdown(pvgroup.get_pv(calcout.dopt), dopt_menu_labels, dopt_enum.index);
+    auto dopt_menu = PVDropdown(pvgroup.get_pv(calcout.dopt), dopt_enum.choices, dopt_enum.index);
     pvgroup.set_monitor(calcout.dopt, dopt_enum);
 
-    std::vector<std::string> ivoa_menu_labels{"Continue normally", "Don't drive outputs", "Set output to IVOV"};
     PVEnum ivoa_enum;
-    auto ivoa_menu = PVDropdown(pvgroup.get_pv(calcout.ivoa), ivoa_menu_labels, ivoa_enum.index);
+    auto ivoa_menu = PVDropdown(pvgroup.get_pv(calcout.ivoa), ivoa_enum.choices, ivoa_enum.index);
     pvgroup.set_monitor(calcout.ivoa, ivoa_enum);
     
-    std::vector<std::string> oopt_menu_labels{"Every Time", "On Change",
-	"When Zero", "When Non-zero",
-	"Transition To Zero", "Transition To Non-zero"
-    };
     PVEnum oopt_enum;
-    auto oopt_menu = PVDropdown(pvgroup.get_pv(calcout.oopt), oopt_menu_labels, oopt_enum.index);
+    auto oopt_menu = PVDropdown(pvgroup.get_pv(calcout.oopt), oopt_enum.choices, oopt_enum.index);
     pvgroup.set_monitor(calcout.oopt, oopt_enum);
 
     std::string odly;
@@ -253,15 +244,6 @@ int main(int argc, char *argv[]) {
 	})
     });
 
-    // // Event handler for main container
-    // main_container |= CatchEvent([&](Event event) {
-        // if (event == Event::Character('q')) {
-            // screen.Exit();
-            // return true;
-        // }
-        // return false;
-    // });
-    
 
     // Main renderer to define visual layout of components and elements
     auto main_renderer = Renderer(main_container, [&] {
