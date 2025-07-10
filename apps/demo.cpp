@@ -112,10 +112,10 @@ int main(int argc, char *argv[]) {
 
     // Monitor xxx:string
     // Create an input field to change and display the value of xxx:string
-    auto tform = [](ftxui::InputState s) {
-	return s.element | color(Color::Black) | bgcolor(Color::LightSeaGreen);
-    };
-    auto desc_input = PVInput(pvgroup["xxx:m1.DESC"], desc, PVPutType::String, tform);
+    // auto tform = [](ftxui::InputState s) {
+	// return s.element | color(Color::Black) | bgcolor(Color::LightSeaGreen);
+    // };
+    auto desc_input = PVInput(pvgroup["xxx:m1.DESC"], desc, PVPutType::String);
 
     // Clickable buttons
     auto twf_button = PVButton(pvgroup["xxx:m1.TWF"], " > ", 1);
@@ -195,7 +195,7 @@ int main(int argc, char *argv[]) {
 		    text("PVInput") | size(WIDTH, EQUAL, 20),
 		    separator(),
 		    text("xxx:m1.DESC  "),
-		    desc_input->Render() | size(WIDTH, EQUAL, 30)
+		    desc_input->Render() | size(WIDTH, EQUAL, 30) |  EPICSColor::EDIT
 		}),
 		separator(),
 		related_display->Render() | EPICSColor::MENU | size(WIDTH, EQUAL, 10)

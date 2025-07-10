@@ -41,8 +41,8 @@ enum class PVPutType {
     String,
 };
 
-ftxui::Component PVInput(ProcessVariable &pv, std::string &disp_str, PVPutType put_type);
-ftxui::Component PVInput(ProcessVariable &pv, std::string &disp_str, PVPutType put_type, std::function<ftxui::Element(ftxui::InputState)> transform);
+using InputTransform = std::function<ftxui::Element(ftxui::InputState)>;
+ftxui::Component PVInput(ProcessVariable &pv, std::string &disp_str, PVPutType put_type, InputTransform = nullptr);
 
 ftxui::Component PVChoiceH(ProcessVariable &pv, const std::vector<std::string> &labels, int &selected);
 ftxui::Component PVChoiceV(ProcessVariable &pv, const std::vector<std::string> &labels, int &selected);

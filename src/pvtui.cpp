@@ -32,33 +32,24 @@ ftxui::Component PVButton(ProcessVariable &pv, const std::string &label, int val
 };
 
 
-ftxui::Component PVInput(ProcessVariable &pv, std::string &disp_str, PVPutType put_type, std::function<ftxui::Element(ftxui::InputState)> transform) {
-    return ftxui::Input(ftxui::InputOption({
-	.content = &disp_str,
-	.transform = transform,
-	.multiline = false,
-	.on_enter = [&pv, &disp_str, put_type](){
-	    if (pv.connected()) {
-		if (put_type == PVPutType::Double) {
-		    double val_double;
-		    auto res = std::from_chars(disp_str.data(), disp_str.data()+disp_str.size(), val_double);
-		    if (res.ec == std::errc()) {
-			pv.channel.put().set("value", val_double).exec();
-		    }
-		} else if (put_type == PVPutType::String) {
-		    pv.channel.put().set("value", disp_str).exec();
-		}
-	    }
-	},
-    }));
-}
+ftxui::Component PVInput(ProcessVariable &pv, std::string &disp_str, PVPutType put_type, InputTransform tf) {
 
-ftxui::Component PVInput(ProcessVariable &pv, std::string &disp_str, PVPutType put_type) {
+    auto default_input_transform =  [](ftxui::InputState s) {
+	s.element |= ftxui::color(ftxui::Color::Black);
+	if (s.is_placeholder) {
+	    s.element |= ftxui::dim;
+	}
+	if (s.focused) {
+	    s.element |= ftxui::inverted;
+	} else if (s.hovered) {
+	    s.element |= ftxui::bgcolor(ftxui::Color::GrayDark);
+	}
+	return s.element;
+    };
+
     return ftxui::Input(ftxui::InputOption({
 	.content = &disp_str,
-	.transform = [](ftxui::InputState s) {
-	    return s.element | ftxui::color(ftxui::Color::Black);
-	},
+	.transform = tf ? tf : default_input_transform,
 	.multiline = false,
 	.on_enter = [&pv, &disp_str, put_type](){
 	    if (pv.connected()) {

@@ -54,7 +54,7 @@ Options:
   -h, --help                   Show this help message and exit.
 
 Examples:
-    ???
+    pvtui_calcout --macro "P=xxx:,C=userCalcOut1"
 
 For more details, visit: https://github.com/nmarks99/pvtui
 )";
@@ -135,7 +135,7 @@ int main(int argc, char *argv[]) {
     // Create monitors and ftxui components for all the PVs we will use.
     // Note any PVs used below must be defined in the pvgroup in order
     // for monitor to work.
-    std::string scan;
+    // std::string scan;
     PVEnum scan_enum;
     auto scan_menu = PVDropdown(pvgroup.get_pv(calcout.scan), scan_enum.choices, scan_enum.index);
     pvgroup.set_monitor(calcout.scan, scan_enum);

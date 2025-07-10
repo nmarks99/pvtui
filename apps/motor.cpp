@@ -53,16 +53,10 @@ Usage:
 Options:
   -h, --help                   Show this help message and exit.
   -m, --macro "k1=v1,k2=v2..." Define a macro variable. Same format as MEDM or caQtDM
-  --provider                   EPICS provider, either Channel Access("ca") or PVAccess("pva")
-  --more                       Similar to motorx_more.adl
-  --all                        Similar to motorx_all.adl
 
 Examples:
   pvtui_motor --macro "P=xxx:,M=m1"
     Start TUI display for motor xxx:m1 with a style similar to motorx.adl
-  
-  pvtui_motor --more --macro "P=xxx:,M=m1"
-    Start TUI display for motor xxx:m1 with a style similar to motorx_more.adl
 
 For more details, visit: https://github.com/nmarks99/pvtui
 )";
@@ -146,44 +140,54 @@ int main(int argc, char *argv[]) {
     auto twf_button = PVButton(pvgroup[motor.twf], " > ", 1);
     auto twr_button = PVButton(pvgroup[motor.twr], " < ", 1);
 
-    // adjustment to the default way PVInput renders
-    auto tform = [](ftxui::InputState s) {
-	return s.element | center | color(Color::Black);
-    };
+    // // adjustment to the default way PVInput renders
+    // auto tform = [](ftxui::InputState s) {
+	// // return s.element | center | color(Color::Black);
+	// s.element |= ftxui::color(ftxui::Color::Black);
+	// if (s.is_placeholder) {
+	    // s.element |= ftxui::dim;
+	// }
+	// if (s.focused) {
+	    // s.element |= ftxui::inverted;
+	// } else if (s.hovered) {
+	    // s.element |= ftxui::bgcolor(ftxui::Color::GrayLight);
+	// }
+	// return s.element;
+    // };
 
     // user value input and monitor
     std::string val_string;
-    auto val_input = PVInput(pvgroup[motor.val], val_string, PVPutType::Double, tform);
+    auto val_input = PVInput(pvgroup[motor.val], val_string, PVPutType::Double);
     pvgroup.set_monitor(motor.val, val_string);
 
     // user high limit input and monitor
     std::string hlm_string;
-    auto hlm_input = PVInput(pvgroup[motor.hlm], hlm_string, PVPutType::Double, tform);
+    auto hlm_input = PVInput(pvgroup[motor.hlm], hlm_string, PVPutType::Double);
     pvgroup.set_monitor(motor.hlm, hlm_string);
 
     // user low limit input and monitor
     std::string llm_string;
-    auto llm_input = PVInput(pvgroup[motor.llm], llm_string, PVPutType::Double, tform);
+    auto llm_input = PVInput(pvgroup[motor.llm], llm_string, PVPutType::Double);
     pvgroup.set_monitor(motor.llm, llm_string);
 
     // dial high limit input and monitor
     std::string dhlm_string;
-    auto dhlm_input = PVInput(pvgroup[motor.dhlm], dhlm_string, PVPutType::Double, tform);
+    auto dhlm_input = PVInput(pvgroup[motor.dhlm], dhlm_string, PVPutType::Double);
     pvgroup.set_monitor(motor.dhlm, dhlm_string);
 
     // dial low limit input and monitor
     std::string dllm_string;
-    auto dllm_input = PVInput(pvgroup[motor.dllm], dllm_string, PVPutType::Double, tform);
+    auto dllm_input = PVInput(pvgroup[motor.dllm], dllm_string, PVPutType::Double);
     pvgroup.set_monitor(motor.dllm, dllm_string);
 
     // dial value input and monitor
     std::string dval_string;
-    auto dval_input = PVInput(pvgroup[motor.dval], dval_string, PVPutType::Double, tform);
+    auto dval_input = PVInput(pvgroup[motor.dval], dval_string, PVPutType::Double);
     pvgroup.set_monitor(motor.dval, dval_string);
 
     // tweak value and monitor
     std::string twv_string;
-    auto twv_input = PVInput(pvgroup[motor.twv], twv_string, PVPutType::Double, tform);
+    auto twv_input = PVInput(pvgroup[motor.twv], twv_string, PVPutType::Double);
     pvgroup.set_monitor(motor.twv, twv_string);
 
     // user readback value
@@ -204,7 +208,7 @@ int main(int argc, char *argv[]) {
 
     // string description
     std::string desc = "";
-    auto desc_input = PVInput(pvgroup[motor.desc], desc, PVPutType::String, tform);
+    auto desc_input = PVInput(pvgroup[motor.desc], desc, PVPutType::String);
     pvgroup.set_monitor<std::string>(motor.desc, desc);
 
     // High limit switch
@@ -262,14 +266,6 @@ int main(int argc, char *argv[]) {
 	})
     });
 
-    // // Event handler for main container
-    // main_container |= CatchEvent([&](Event event) {
-        // if (event == Event::Character('q')) {
-            // screen.Exit();
-            // return true;
-        // }
-        // return false;
-    // });
 
     Decorator ColorDisabled = bgcolor(Color::RGBA(80,10,4,230)) | color(Color::Black);
 
@@ -294,22 +290,22 @@ int main(int argc, char *argv[]) {
 		filler() | size(WIDTH, EQUAL, egu.length()+8),
 		vbox({
 		    text("User") | center,
-		    hlm_input->Render()  | EPICSColor::EDIT | size(WIDTH, EQUAL, 10),
+		    hlm_input->Render() | center | EPICSColor::EDIT | size(WIDTH, EQUAL, 10),
 		    separatorEmpty(), 	
 		    text(std::to_string(rbv)) | (use_set_enum.index==0 ? EPICSColor::READBACK : color(Color::Yellow2)) | center,
 		    separatorEmpty(), 	
-		    val_input->Render()  | (en_dis_enum.index==0 ? EPICSColor::EDIT : ColorDisabled) | size(WIDTH, EQUAL, 10) | size(HEIGHT, EQUAL, 2),
+		    val_input->Render() | center | (en_dis_enum.index==0 ? EPICSColor::EDIT : ColorDisabled) | size(WIDTH, EQUAL, 10) | size(HEIGHT, EQUAL, 2),
 		    separatorEmpty(), 	
 		    llm_input->Render()  | EPICSColor::EDIT | size(WIDTH, EQUAL, 10),
 		}),
 		separatorEmpty(), 	
 		vbox({
 		    text("Dial") | center,
-		    dhlm_input->Render()  | EPICSColor::EDIT | size(WIDTH, EQUAL, 10),
+		    dhlm_input->Render() | center | EPICSColor::EDIT | size(WIDTH, EQUAL, 10),
 		    separatorEmpty(), 	
 		    text(std::to_string(drbv)) | (use_set_enum.index==0 ? EPICSColor::READBACK : color(Color::Yellow2)) | center,
 		    separatorEmpty(), 	
-		    dval_input->Render()  | (en_dis_enum.index==0 ? EPICSColor::EDIT : ColorDisabled) | size(WIDTH, EQUAL, 10) | size(HEIGHT, EQUAL, 2),
+		    dval_input->Render() | center | (en_dis_enum.index==0 ? EPICSColor::EDIT : ColorDisabled) | size(WIDTH, EQUAL, 10) | size(HEIGHT, EQUAL, 2),
 		    separatorEmpty(), 	
 		    dllm_input->Render()  | EPICSColor::EDIT | size(WIDTH, EQUAL, 10),
 		}),
@@ -336,7 +332,7 @@ int main(int argc, char *argv[]) {
 	    hbox({
 		twr_button->Render() | color(Color::Black),
 		separatorEmpty(),
-		twv_input->Render() | EPICSColor::EDIT | size(WIDTH, EQUAL, 11) | center,
+		twv_input->Render() | center | EPICSColor::EDIT | size(WIDTH, EQUAL, 11) | center,
 		separatorEmpty(),
 		twf_button->Render() | color(Color::Black),
 	    }) | center,
