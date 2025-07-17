@@ -3,12 +3,9 @@
 #include "motor_display.hpp"
 
 #include "ftxui/component/component.hpp"
-#include "ftxui/component/component_options.hpp"
 #include "ftxui/component/component_base.hpp"
 #include "ftxui/component/loop.hpp"
 #include "ftxui/component/screen_interactive.hpp"
-#include "ftxui/dom/elements.hpp"
-#include "ftxui/screen/color.hpp"
 #include <ftxui/component/event.hpp>
 #include <ftxui/dom/node.hpp>
 
@@ -33,6 +30,7 @@ int main(int argc, char *argv[]) {
     pvac::ClientProvider provider(args.provider);
 
     SmallMotorDisplay display(provider, args);
+
     auto main_container = display.get_container();
     auto main_renderer = ftxui::Renderer(main_container, [&] {
 	return display.get_renderer();

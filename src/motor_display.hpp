@@ -7,6 +7,7 @@
 
 template <typename T>
 struct Widget {
+    std::string pv_name;
     T value; 
     ftxui::Component component;
 };
@@ -17,8 +18,12 @@ class SmallMotorDisplay : public DisplayBase {
     ~SmallMotorDisplay() override = default;
     ftxui::Element get_renderer() override;
     ftxui::Component get_container() override;
-    bool pv_update() override;
 
   private:
     Widget<std::string> desc;
+    Widget<std::string> val;
+    Widget<std::string> twr;
+    Widget<std::string> twv;
+    Widget<std::string> twf;
+    Widget<double> rbv;
 };

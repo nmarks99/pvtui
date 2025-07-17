@@ -147,10 +147,34 @@ bool ProcessVariable::update() {
     return new_data;
 }
 
-PVGroup::PVGroup(pvac::ClientProvider &provider, const std::vector<std::string> &pv_names) {
+PVGroup::PVGroup(pvac::ClientProvider &provider, const std::vector<std::string> &pv_names) : provider_(provider) {
     for (const auto &name : pv_names) {
         pv_map.emplace(name, ProcessVariable(provider, name));
     }
+}
+
+PVGroup::PVGroup(pvac::ClientProvider &provider) : provider_(provider) {}
+
+std::string fill_macros(const std::string &instr, const std::unordered_map<std::string,std::string> &macros_dict) {
+    std::string out = instr;
+    size_t ind = 0;
+    for (auto &[k, v] : macros_dict) {
+	std::string pholder = "$(" + k + ")";
+	while ((ind = out.find(pholder)) != std::string::npos) {
+	    out.replace(ind, 4, v);
+	}
+    }
+    return out;
+}
+
+std::string PVGroup::add(const std::string &pv_name, const std::unordered_map<std::string, std::string> &macros_dict) {
+    auto name = fill_macros(pv_name, macros_dict);
+    pv_map.emplace(name, ProcessVariable(provider_, name));
+    return name;
+}
+
+void PVGroup::add(const std::string &pv_name) {
+    pv_map.emplace(pv_name, ProcessVariable(provider_, pv_name));
 }
 
 ProcessVariable &PVGroup::get_pv(const std::string &pv_name) {

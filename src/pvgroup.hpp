@@ -76,6 +76,10 @@ struct ProcessVariable {
 struct PVGroup {
   public:
     PVGroup(pvac::ClientProvider &provider, const std::vector<std::string> &pv_list);
+    PVGroup(pvac::ClientProvider &provider);
+
+    std::string add(const std::string &pv_name, const std::unordered_map<std::string, std::string> &macros_dict);
+    void add(const std::string &pv_name);
 
     template <typename T> void set_monitor(const std::string &pv_name, T &var) {
         ProcessVariable &pv = this->get_pv(pv_name); // will throw if pv not in map
@@ -91,5 +95,6 @@ struct PVGroup {
     bool update();
 
   private:
+    pvac::ClientProvider &provider_;
     std::unordered_map<std::string, ProcessVariable> pv_map;
 };
