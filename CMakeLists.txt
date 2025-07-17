@@ -141,3 +141,15 @@ target_link_libraries(test
   PRIVATE ftxui::component
 )
 # ------------------------------------------------------------------------------
+
+# ------------------------------------------------------------------------------
+add_executable(motor_small apps/motor_small.cpp src/pvgroup.cpp src/pvtui.cpp src/display_base.cpp src/motor_display.cpp)
+target_include_directories(motor_small PUBLIC src ${EPICS_BASE_INCLUDES})
+
+target_link_libraries(motor_small
+  PUBLIC ${EPICS_BASE_LIBRARIES}
+  PRIVATE ftxui::screen
+  PRIVATE ftxui::dom
+  PRIVATE ftxui::component
+)
+# ------------------------------------------------------------------------------
