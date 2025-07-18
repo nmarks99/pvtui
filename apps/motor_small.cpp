@@ -1,5 +1,4 @@
 #include "pvtui.hpp"
-#include "pvgroup.hpp"
 #include "motor_display.hpp"
 
 #include "ftxui/component/component.hpp"

@@ -6,17 +6,28 @@
 namespace pvtui {
 
 namespace unicode {
-std::string rectangle(int width, int height) {
+// std::string rectangle(int width, int height) {
+    // std::string out;
+    // out.reserve(width*height*full_block.length()+height);
+    // for (int i = 0; i < height; i++){
+	// for (int j = 0; j < width; j++){
+	   // out.append(full_block);
+	// }
+	// out.append("\n");
+    // }
+    // return out;
+// }
+
+std::string rectangle(int len) {
     std::string out;
-    out.reserve(width*height*full_block.length()+height);
-    for (int i = 0; i < height; i++){
-	for (int j = 0; j < width; j++){
-	   out.append(full_block);
-	}
+    out.reserve(len*full_block.length());
+    for (int i = 0; i < len; i++){
+	out.append(full_block);
 	out.append("\n");
     }
     return out;
 }
+
 }
 
 

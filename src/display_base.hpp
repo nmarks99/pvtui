@@ -16,6 +16,6 @@ public:
     virtual ftxui::Component get_container() = 0;
 
   protected:
-    PVGroup pvgroup_;
-    const pvtui::ArgParser &args_;
+    PVGroup pvgroup;
+    const pvtui::ArgParser &args;
 };

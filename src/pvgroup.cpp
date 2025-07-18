@@ -167,14 +167,18 @@ std::string fill_macros(const std::string &instr, const std::unordered_map<std::
     return out;
 }
 
-std::string PVGroup::add(const std::string &pv_name, const std::unordered_map<std::string, std::string> &macros_dict) {
-    auto name = fill_macros(pv_name, macros_dict);
-    pv_map.emplace(name, ProcessVariable(provider_, name));
-    return name;
+void PVGroup::add(const std::string &pv_name) {
+    if (pv_map.count(pv_name)) {
+        throw std::runtime_error("PV " + pv_name + " already registered in PVGroup");
+    } else {
+        pv_map.emplace(pv_name, ProcessVariable(provider_, pv_name));
+    }
 }
 
-void PVGroup::add(const std::string &pv_name) {
-    pv_map.emplace(pv_name, ProcessVariable(provider_, pv_name));
+std::string PVGroup::add(const std::string &pv_name, const std::unordered_map<std::string, std::string> &macros_dict) {
+    auto name = fill_macros(pv_name, macros_dict);
+    this->add(name);
+    return name;
 }
 
 ProcessVariable &PVGroup::get_pv(const std::string &pv_name) {

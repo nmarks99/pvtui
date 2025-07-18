@@ -5,6 +5,8 @@
 #include "display_base.hpp"
 #include "pvtui.hpp"
 
+struct NoValue{};
+
 template <typename T>
 struct Widget {
     std::string pv_name;
@@ -20,10 +22,18 @@ class SmallMotorDisplay : public DisplayBase {
     ftxui::Component get_container() override;
 
   private:
+    void init();
     Widget<std::string> desc;
     Widget<std::string> val;
-    Widget<std::string> twr;
+    Widget<NoValue> twr;
     Widget<std::string> twv;
-    Widget<std::string> twf;
-    Widget<double> rbv;
+    Widget<NoValue> twf;
+    Widget<std::string> rbv;
+    Widget<int> dmov;
+    Widget<int> lls;
+    Widget<int> hls;
+    Widget<std::string> egu;
+    Widget<PVEnum> en_dis;
+    Widget<PVEnum> use_set;
+    Widget<NoValue> stop;
 };

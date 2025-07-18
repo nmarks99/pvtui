@@ -20,7 +20,8 @@ namespace unicode {
 constexpr std::string_view full_block = "█";
 constexpr std::string_view green_circle = "🟢";
 constexpr std::string_view red_circle = "🔴";
-std::string rectangle(int width, int height);
+// std::string rectangle(int width, int height);
+std::string rectangle(int len);
 }
 
 namespace EPICSColor {
