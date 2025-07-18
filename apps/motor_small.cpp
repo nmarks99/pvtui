@@ -1,3 +1,7 @@
+#include <stdexcept>
+#include <vector>
+#include <charconv>
+
 #include "pvtui.hpp"
 #include "motor_display.hpp"
 
@@ -11,13 +15,35 @@
 using namespace ftxui;
 using namespace pvtui;
 
+enum class MotorDisplayType {
+    Small,
+    Medium,
+    Setup,
+    Multi,
+};
+
 int main(int argc, char *argv[]) {
 
     // Parse command line arguments and macros
     pvtui::ArgParser args(argc, argv);
 
+    MotorDisplayType display_type = MotorDisplayType::Small;
+
+    if (args.flag("medium")) {
+	display_type = MotorDisplayType::Medium;
+    } else if (args.flag("setup")) {
+	display_type = MotorDisplayType::Setup;
+    }
+
     if (not args.macros_present({"P"})) {
-	printf("Missing required macros\nRequired macros: P, M\n");
+	printf("Missing required macro P\n");
+	return EXIT_FAILURE;
+    }
+
+    if (args.macros_present({"M1"})) {
+	display_type = MotorDisplayType::Multi;
+    } else if (not args.macros_present({"M"})) {
+	printf("Missing required macro M or (M1,M2,...)\n");
 	return EXIT_FAILURE;
     }
 
@@ -28,29 +54,62 @@ int main(int argc, char *argv[]) {
     epics::pvAccess::ca::CAClientFactory::start();
     pvac::ClientProvider provider(args.provider);
 
-    auto args1 = args;
-    args1.macros["M"] = args1.macros.at("M1");
-    
-    auto args2 = args;
-    args2.macros["M"] = args2.macros.at("M2");
-    
-    auto args3 = args;
-    args3.macros["M"] = args2.macros.at("M3");
-
-    SmallMotorDisplay display1(provider, args1);
-    SmallMotorDisplay display2(provider, args2);
-    SmallMotorDisplay display3(provider, args3);
+    std::vector<std::unique_ptr<SmallMotorDisplay>> displays;
+    std::vector<int> motor_num_vec;
+    std::vector<ArgParser> args_vec;
+    switch (display_type) {
+	case MotorDisplayType::Multi:
+	    for (const auto &[k, v] : args.macros) {
+		size_t ind = k.find("M");
+		if (ind != std::string::npos) {
+		    const std::string num_str = std::string(k.begin()+ind+1, k.end());
+		    int num;
+		    if (std::from_chars(num_str.data(), num_str.data()+num_str.size(), num).ec != std::errc()) {
+			throw std::runtime_error("Invalid macro " + k);
+		    }
+		    motor_num_vec.push_back(num);
+		}
+	    }
+	    std::sort(motor_num_vec.begin(), motor_num_vec.end());
+	    for (const auto &v : motor_num_vec) {
+		auto args_n = args;
+		args_n.macros["M"] = args_n.macros.at("M" + std::to_string(v));
+		args_vec.push_back(args_n);
+		displays.emplace_back(std::make_unique<SmallMotorDisplay>(provider, args_n));
+	    }
+	    break;
+	case MotorDisplayType::Small:
+	    std::cout << "Not implemented" << std::endl;
+	    return EXIT_FAILURE;
+	    break;
+	case MotorDisplayType::Medium:
+	    std::cout << "Not implemented" << std::endl;
+	    return EXIT_FAILURE;
+	    break;
+	case MotorDisplayType::Setup:
+	    std::cout << "Not implemented" << std::endl;
+	    return EXIT_FAILURE;
+	    break;
+    }
 
     auto main_container = ftxui::Container::Horizontal({
-	display1.get_container(),
-	display2.get_container(),
-	display3.get_container(),
+	[&](){
+	    auto c = ftxui::Container::Horizontal({});
+	    for (auto &d : displays) {
+		c->Add(d->get_container());
+	    }
+	    return c;
+	}()
     });
+
+
     auto main_renderer = ftxui::Renderer(main_container, [&] {
+	Elements elements_vec;
+	for (auto &d : displays) {
+	    elements_vec.push_back(d->get_renderer());
+	}
 	return hbox({
-	    display1.get_renderer(),
-	    display2.get_renderer(),
-	    display3.get_renderer(),
+	    elements_vec
 	}) | center;
     });
 
@@ -58,14 +117,10 @@ int main(int argc, char *argv[]) {
     constexpr int POLL_PERIOD_MS = 100;
     Loop loop(&screen, main_renderer);
     while (!loop.HasQuitted()) {
-	if (display1.pv_update()) {
-	    screen.PostEvent(Event::Custom);
-	}
-	if (display2.pv_update()) {
-	    screen.PostEvent(Event::Custom);
-	}
-	if (display3.pv_update()) {
-	    screen.PostEvent(Event::Custom);
+	for (auto &d : displays) {
+	    if (d->pv_update()) {
+		screen.PostEvent(Event::Custom);
+	    }
 	}
         loop.RunOnce();
 	std::this_thread::sleep_for(std::chrono::milliseconds(POLL_PERIOD_MS));
