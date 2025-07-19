@@ -28,6 +28,7 @@ class SmallMotorDisplay : public DisplayBase {
     PVWidget<PVEnum> en_dis;
     PVWidget<PVEnum> use_set;
     PVWidget<NoValue> stop;
+    PVWidget<NoValue> test;
 
     // initializes the above PVWidgets
     void init();

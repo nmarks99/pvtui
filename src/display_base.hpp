@@ -1,7 +1,6 @@
 #pragma once
-#include "pvgroup.hpp"
-#include "pvtui.hpp"
 #include "ftxui/component/component_base.hpp"
+#include "pvgroup.hpp"
 #include <pv/caProvider.h>
 #include <pva/client.h>
 
@@ -16,22 +15,27 @@ class DisplayBase {
 
   protected:
     PVGroup pvgroup;
-    // const pvtui::ArgParser &args;
 };
 
+struct NoValue {};
 
-struct NoValue{};
 
-template <typename T>
-struct PVWidget {
-    std::string pv_name;
-    T value; 
-    ftxui::Component component = nullptr;
-    // ftxui::Component get_component() {
-        // if (component) {
-            // return component;
-        // } else {
-            // throw std::runtime_error("No component for " + pv_name);
-        // }
-    // };
+// convenience struct for holding related pv name, component value, and component
+template <typename T> struct PVWidget {
+  public:
+    std::string pv_name = "";
+    T value;
+    void set_component(ftxui::Component component) {
+        component_ = component;
+    };
+    ftxui::Component component() {
+        if (component_) {
+            return component_;
+        } else {
+            throw std::runtime_error("No component defined for " + pv_name);
+        }
+    };
+
+  private:
+    ftxui::Component component_ = nullptr;
 };
