@@ -51,7 +51,7 @@ void SmallMotorDisplay::init() {
 }
 
 SmallMotorDisplay::SmallMotorDisplay(pvac::ClientProvider &provider, const pvtui::ArgParser &args)
-    : DisplayBase(provider, args) {
+    : DisplayBase(provider), args(args) {
     this->init();
 }
 
@@ -202,7 +202,7 @@ void MediumMotorDisplay::init() {
 }
 
 MediumMotorDisplay::MediumMotorDisplay(pvac::ClientProvider &provider, const pvtui::ArgParser &args)
-    : DisplayBase(provider, args) {
+    : DisplayBase(provider), args(args) {
     this->init();
 }
 

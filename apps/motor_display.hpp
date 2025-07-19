@@ -31,6 +31,9 @@ class SmallMotorDisplay : public DisplayBase {
 
     // initializes the above PVWidgets
     void init();
+
+    // Store macro arguments
+    const pvtui::ArgParser &args;
 };
 
 
@@ -53,9 +56,7 @@ class MediumMotorDisplay : public DisplayBase {
     PVWidget<int> lls;
     PVWidget<int> hls;
     PVWidget<std::string> egu;
-    // PVWidget<PVEnum> en_dis;
     PVWidget<PVEnum> use_set;
-
     PVWidget<std::string> drbv;
     PVWidget<std::string> dval;
     PVWidget<std::string> hlm;
@@ -67,4 +68,7 @@ class MediumMotorDisplay : public DisplayBase {
 
     // initializes the above PVWidgets
     void init();
+
+    // Store macro arguments
+    const pvtui::ArgParser &args;
 };

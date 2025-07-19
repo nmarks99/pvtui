@@ -7,8 +7,8 @@
 
 class DisplayBase {
   public:
-    DisplayBase(pvac::ClientProvider &provider, const pvtui::ArgParser &args, const std::vector<std::string> pv_names);
-    DisplayBase(pvac::ClientProvider &provider, const pvtui::ArgParser &args);
+    DisplayBase(pvac::ClientProvider &provider, const std::vector<std::string> pv_names);
+    DisplayBase(pvac::ClientProvider &provider);
     virtual ~DisplayBase() = default;
     virtual bool pv_update();
     virtual ftxui::Element get_renderer() = 0;
@@ -16,7 +16,7 @@ class DisplayBase {
 
   protected:
     PVGroup pvgroup;
-    const pvtui::ArgParser &args;
+    // const pvtui::ArgParser &args;
 };
 
 
