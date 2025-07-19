@@ -26,6 +26,11 @@ int main(int argc, char *argv[]) {
 
     // Parse command line arguments and macros
     pvtui::ArgParser args(argc, argv);
+    
+    if (not args.macros_present({"P"})) {
+	printf("Missing required macro P\n");
+	return EXIT_FAILURE;
+    }
 
     MotorDisplayType display_type = MotorDisplayType::Small;
 
@@ -33,11 +38,6 @@ int main(int argc, char *argv[]) {
 	display_type = MotorDisplayType::Medium;
     } else if (args.flag("setup")) {
 	display_type = MotorDisplayType::Setup;
-    }
-
-    if (not args.macros_present({"P"})) {
-	printf("Missing required macro P\n");
-	return EXIT_FAILURE;
     }
 
     if (args.macros_present({"M1"})) {
@@ -53,6 +53,11 @@ int main(int argc, char *argv[]) {
     // Instantiate EPICS client
     epics::pvAccess::ca::CAClientFactory::start();
     pvac::ClientProvider provider(args.provider);
+
+    std::unique_ptr<DisplayBase> display;
+
+    ftxui::Component main_container;
+    ftxui::Component main_renderer;
 
     std::vector<std::unique_ptr<SmallMotorDisplay>> displays;
     std::vector<int> motor_num_vec;
@@ -78,60 +83,63 @@ int main(int argc, char *argv[]) {
 		displays.emplace_back(std::make_unique<SmallMotorDisplay>(provider, args_n));
 	    }
 	    break;
+
 	case MotorDisplayType::Small:
-	    // std::cout << "Small not implemented" << std::endl;
-	    // return EXIT_FAILURE;
+	    display = std::make_unique<SmallMotorDisplay>(provider, args);
 	    break;
+
 	case MotorDisplayType::Medium:
-	    // std::cout << "Medium not implemented" << std::endl;
-	    // return EXIT_FAILURE;
+	    display = std::make_unique<MediumMotorDisplay>(provider, args);
 	    break;
+
 	case MotorDisplayType::Setup:
 	    std::cout << "Setup not implemented" << std::endl;
 	    return EXIT_FAILURE;
 	    break;
     }
+    
+    if (display_type != MotorDisplayType::Multi) {
+	main_container = display->get_container();
+	main_renderer = Renderer(main_container, [&]{
+	    return display->get_renderer();
+	});
+    } else {
+	main_container = ftxui::Container::Horizontal({
+	    [&](){
+		auto c = ftxui::Container::Horizontal({});
+		for (auto &d : displays) {
+		    c->Add(d->get_container());
+		}
+		return c;
+	    }()
+	});
 
-    MediumMotorDisplay display(provider, args);
-    auto main_container = display.get_container();
-    auto main_renderer = Renderer(main_container, [&]{
-	return display.get_renderer();
-    });
-
-
-    // auto main_container = ftxui::Container::Horizontal({
-	// [&](){
-	    // auto c = ftxui::Container::Horizontal({});
-	    // for (auto &d : displays) {
-		// c->Add(d->get_container());
-	    // }
-	    // return c;
-	// }()
-    // });
-//
-//
-    // auto main_renderer = ftxui::Renderer(main_container, [&] {
-	// Elements elements_vec;
-	// for (auto &d : displays) {
-	    // elements_vec.push_back(d->get_renderer());
-	// }
-	// return hbox({
-	    // elements_vec
-	// }) | center;
-    // });
+	main_renderer = ftxui::Renderer(main_container, [&] {
+	    Elements elements_vec;
+	    for (auto &d : displays) {
+		elements_vec.push_back(d->get_renderer());
+	    }
+	    return hbox({
+		elements_vec
+	    }) | center;
+	});
+    }
 
     // Custom main loop
     constexpr int POLL_PERIOD_MS = 100;
     Loop loop(&screen, main_renderer);
     while (!loop.HasQuitted()) {
-	if (display.pv_update()) {
-	    screen.PostEvent(Event::Custom);
+	if (display_type == MotorDisplayType::Multi) {
+	    for (auto &d : displays) {
+		if (d->pv_update()) {
+		    screen.PostEvent(Event::Custom);
+		}
+	    }
+	} else {
+	    if (display.get()->pv_update()) {
+		screen.PostEvent(Event::Custom);
+	    }
 	}
-	// for (auto &d : displays) {
-	    // if (d->pv_update()) {
-		// screen.PostEvent(Event::Custom);
-	    // }
-	// }
         loop.RunOnce();
 	std::this_thread::sleep_for(std::chrono::milliseconds(POLL_PERIOD_MS));
     }
