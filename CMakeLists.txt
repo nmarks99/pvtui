@@ -82,17 +82,17 @@ set(EPICS_BASE_INCLUDES
 # ------------------------------------------------------------------------------
 
 
-# ------------------------------------------------------------------------------
-add_executable(pvtui_motor apps/motor.cpp src/pvtui.cpp src/pvgroup.cpp)
-target_include_directories(pvtui_motor PUBLIC src ${EPICS_BASE_INCLUDES})
-
-target_link_libraries(pvtui_motor
-  PUBLIC ${EPICS_BASE_LIBRARIES}
-  PRIVATE ftxui::screen
-  PRIVATE ftxui::dom
-  PRIVATE ftxui::component
-)
-# ------------------------------------------------------------------------------
+# # ------------------------------------------------------------------------------
+# add_executable(pvtui_motor apps/motor.cpp src/pvtui.cpp src/pvgroup.cpp)
+# target_include_directories(pvtui_motor PUBLIC src ${EPICS_BASE_INCLUDES})
+#
+# target_link_libraries(pvtui_motor
+  # PUBLIC ${EPICS_BASE_LIBRARIES}
+  # PRIVATE ftxui::screen
+  # PRIVATE ftxui::dom
+  # PRIVATE ftxui::component
+# )
+# # ------------------------------------------------------------------------------
 
 # ------------------------------------------------------------------------------
 add_executable(pvtui_calcout apps/calcout.cpp src/pvtui.cpp src/pvgroup.cpp)
@@ -143,10 +143,10 @@ target_link_libraries(test
 # ------------------------------------------------------------------------------
 
 # ------------------------------------------------------------------------------
-add_executable(motor_small apps/motor_small.cpp src/pvgroup.cpp src/pvtui.cpp src/display_base.cpp src/motor_display.cpp)
-target_include_directories(motor_small PUBLIC src ${EPICS_BASE_INCLUDES})
+add_executable(motor apps/motor_display.cpp apps/motor.cpp src/pvgroup.cpp src/pvtui.cpp src/display_base.cpp)
+target_include_directories(motor PUBLIC src ${EPICS_BASE_INCLUDES})
 
-target_link_libraries(motor_small
+target_link_libraries(motor
   PUBLIC ${EPICS_BASE_LIBRARIES}
   PRIVATE ftxui::screen
   PRIVATE ftxui::dom

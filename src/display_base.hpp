@@ -6,8 +6,7 @@
 #include <pva/client.h>
 
 class DisplayBase {
-  
-public:
+  public:
     DisplayBase(pvac::ClientProvider &provider, const pvtui::ArgParser &args, const std::vector<std::string> pv_names);
     DisplayBase(pvac::ClientProvider &provider, const pvtui::ArgParser &args);
     virtual ~DisplayBase() = default;
@@ -18,4 +17,21 @@ public:
   protected:
     PVGroup pvgroup;
     const pvtui::ArgParser &args;
+};
+
+
+struct NoValue{};
+
+template <typename T>
+struct PVWidget {
+    std::string pv_name;
+    T value; 
+    ftxui::Component component = nullptr;
+    // ftxui::Component get_component() {
+        // if (component) {
+            // return component;
+        // } else {
+            // throw std::runtime_error("No component for " + pv_name);
+        // }
+    // };
 };

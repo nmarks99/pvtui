@@ -149,7 +149,7 @@ bool ProcessVariable::update() {
 
 PVGroup::PVGroup(pvac::ClientProvider &provider, const std::vector<std::string> &pv_names) : provider_(provider) {
     for (const auto &name : pv_names) {
-        pv_map.emplace(name, ProcessVariable(provider, name));
+        this->add(name);
     }
 }
 
