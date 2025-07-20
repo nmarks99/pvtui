@@ -244,7 +244,7 @@ ftxui::Element MediumMotorDisplay::get_renderer() {
     return ftxui::vbox({
 	(desc_pv.connected() ? text("") : text("Disconnected") | color(Color::Red)) | center,
 
-	desc.component()->Render() | color(Color::Black) | bgcolor(Color::RGB(210,210,210)) | size(WIDTH, EQUAL, 21) | center,
+	desc.component()->Render() | color(Color::Black) | bgcolor(Color::RGB(210,210,210)) | size(WIDTH, EQUAL, 22) | center,
 	separatorEmpty(),
 
 	// 6 column hbox of vbox's
@@ -253,24 +253,43 @@ ftxui::Element MediumMotorDisplay::get_renderer() {
 	    filler() | size(WIDTH, EQUAL, egu.value.length()+8),
 	    vbox({
 		text("User") | center,
-		hlm.component()->Render() | center | EPICSColor::EDIT | size(WIDTH, EQUAL, 10),
+		hlm.component()->Render()
+		    | center
+		    | EPICSColor::EDIT
+		    | size(WIDTH, EQUAL, 10),
+		text(rbv.value)
+		    | (use_set.value.index==0 ? EPICSColor::READBACK : color(Color::Yellow2))
+		    | (dmov.value == 0 ? borderHeavy | color(Color::Green) : borderEmpty)
+		    | center,
+		val.component()->Render()
+		    | center
+		    | (able.value.index==0 ? EPICSColor::EDIT : ColorDisabled)
+		    | size(WIDTH, EQUAL, 10) | size(HEIGHT, EQUAL, 2),
 		separatorEmpty(), 	
-		text(rbv.value) | (use_set.value.index==0 ? EPICSColor::READBACK : color(Color::Yellow2)) | center,
-		separatorEmpty(), 	
-		val.component()->Render() | center | (able.value.index==0 ? EPICSColor::EDIT : ColorDisabled) | size(WIDTH, EQUAL, 10) | size(HEIGHT, EQUAL, 2),
-		separatorEmpty(), 	
-		llm.component()->Render()  | EPICSColor::EDIT | size(WIDTH, EQUAL, 10),
+		llm.component()->Render()
+		    | EPICSColor::EDIT
+		    | size(WIDTH, EQUAL, 10),
 	    }),
 	    separatorEmpty(), 	
 	    vbox({
 		text("Dial") | center,
-		dhlm.component()->Render() | center | EPICSColor::EDIT | size(WIDTH, EQUAL, 10),
+		dhlm.component()->Render()
+		    | center
+		    | EPICSColor::EDIT
+		    | size(WIDTH, EQUAL, 10),
+		text(drbv.value)
+		    | (use_set.value.index==0 ? EPICSColor::READBACK : color(Color::Yellow2))
+		    | (dmov.value == 0 ? borderHeavy | color(Color::Green) : borderEmpty)
+		    | center,
+		dval.component()->Render()
+		    | center
+		    | (able.value.index==0 ? EPICSColor::EDIT : ColorDisabled)
+		    | size(WIDTH, EQUAL, 10)
+		    | size(HEIGHT, EQUAL, 2),
 		separatorEmpty(), 	
-		text(drbv.value) | (use_set.value.index==0 ? EPICSColor::READBACK : color(Color::Yellow2)) | center,
-		separatorEmpty(), 	
-		dval.component()->Render() | center | (able.value.index==0 ? EPICSColor::EDIT : ColorDisabled) | size(WIDTH, EQUAL, 10) | size(HEIGHT, EQUAL, 2),
-		separatorEmpty(), 	
-		dllm.component()->Render()  | EPICSColor::EDIT | size(WIDTH, EQUAL, 10),
+		dllm.component()->Render()
+		    | EPICSColor::EDIT
+		    | size(WIDTH, EQUAL, 10),
 	    }),
 	    separatorEmpty(),
 	    vbox({
@@ -282,12 +301,9 @@ ftxui::Element MediumMotorDisplay::get_renderer() {
 		text(lls.value ? unicode::rectangle(2) : "") | color(Color::Red),
 	    }) | size(WIDTH, EQUAL, egu.value.length()),
 	    separatorEmpty(),
-	    vbox({
-		text(dmov.value ? "" : "Moving") | color(Color::DarkGreen) | italic | bold,
-		spmg.component()->Render() | EPICSColor::EDIT | center,
-		separatorEmpty(),
-	    }),
-	    separatorEmpty(),
+	    spmg.component()->Render()
+		| EPICSColor::EDIT
+		| size(HEIGHT, EQUAL, 2),
 	}) | center,
 	
 	separatorEmpty(), 	
@@ -295,7 +311,10 @@ ftxui::Element MediumMotorDisplay::get_renderer() {
 	hbox({
 	    twr.component()->Render() | color(Color::Black),
 	    separatorEmpty(),
-	    twv.component()->Render() | center | EPICSColor::EDIT | size(WIDTH, EQUAL, 11) | center,
+	    twv.component()->Render()
+		| center
+		| EPICSColor::EDIT
+		| size(WIDTH, EQUAL, 11),
 	    separatorEmpty(),
 	    twf.component()->Render() | color(Color::Black),
 	}) | center,
@@ -308,7 +327,5 @@ ftxui::Element MediumMotorDisplay::get_renderer() {
 	    separatorEmpty(),
 	    able.component()->Render() | EPICSColor::EDIT,
 	}) | center,
-    })
-    | center 
-    | bgcolor(Color::RGB(196,196,196));
+    })| center | bgcolor(Color::RGB(196,196,196));
 }

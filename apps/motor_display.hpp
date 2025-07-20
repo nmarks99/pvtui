@@ -8,7 +8,6 @@
 
 class SmallMotorDisplay : public DisplayBase {
   public:
-    // SmallMotorDisplay(pvac::ClientProvider &provider, const pvtui::ArgParser &args);
     SmallMotorDisplay(const std::shared_ptr<PVGroup> &pvgroup, const pvtui::ArgParser &args);
     ~SmallMotorDisplay() override = default;
     ftxui::Element get_renderer() override;
