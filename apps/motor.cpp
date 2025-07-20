@@ -54,12 +54,18 @@ int main(int argc, char *argv[]) {
     epics::pvAccess::ca::CAClientFactory::start();
     pvac::ClientProvider provider(args.provider);
 
+    // unique_ptr to DisplayBase for single displays
     std::unique_ptr<DisplayBase> display;
+
+    // vec of unique_ptr to DisplayBase for screens with several displays
+    std::vector<std::unique_ptr<DisplayBase>> displays;
+
+    // shared_ptr to PVGroup to manage all PVs for displays
+    std::shared_ptr<PVGroup> pvgroup = std::make_shared<PVGroup>(provider);
 
     ftxui::Component main_container;
     ftxui::Component main_renderer;
 
-    std::vector<std::unique_ptr<SmallMotorDisplay>> displays;
     std::vector<int> motor_num_vec;
     std::vector<ArgParser> args_vec;
     switch (display_type) {
@@ -80,16 +86,16 @@ int main(int argc, char *argv[]) {
 		auto args_n = args;
 		args_n.macros["M"] = args_n.macros.at("M" + std::to_string(v));
 		args_vec.push_back(args_n);
-		displays.emplace_back(std::make_unique<SmallMotorDisplay>(provider, args_n));
+		displays.emplace_back(std::make_unique<SmallMotorDisplay>(pvgroup, args_n));
 	    }
 	    break;
 
 	case MotorDisplayType::Small:
-	    display = std::make_unique<SmallMotorDisplay>(provider, args);
+	    display = std::make_unique<SmallMotorDisplay>(pvgroup, args);
 	    break;
 
 	case MotorDisplayType::Medium:
-	    display = std::make_unique<MediumMotorDisplay>(provider, args);
+	    display = std::make_unique<MediumMotorDisplay>(pvgroup, args);
 	    break;
 
 	case MotorDisplayType::Setup:

@@ -8,7 +8,8 @@
 
 class SmallMotorDisplay : public DisplayBase {
   public:
-    SmallMotorDisplay(pvac::ClientProvider &provider, const pvtui::ArgParser &args);
+    // SmallMotorDisplay(pvac::ClientProvider &provider, const pvtui::ArgParser &args);
+    SmallMotorDisplay(const std::shared_ptr<PVGroup> &pvgroup, const pvtui::ArgParser &args);
     ~SmallMotorDisplay() override = default;
     ftxui::Element get_renderer() override;
     ftxui::Component get_container() override;
@@ -28,7 +29,6 @@ class SmallMotorDisplay : public DisplayBase {
     PVWidget<PVEnum> en_dis;
     PVWidget<PVEnum> use_set;
     PVWidget<NoValue> stop;
-    PVWidget<NoValue> test;
 
     // initializes the above PVWidgets
     void init();
@@ -40,7 +40,7 @@ class SmallMotorDisplay : public DisplayBase {
 
 class MediumMotorDisplay : public DisplayBase {
   public:
-    MediumMotorDisplay(pvac::ClientProvider &provider, const pvtui::ArgParser &args);
+    MediumMotorDisplay(const std::shared_ptr<PVGroup> &pvgroup, const pvtui::ArgParser &args);
     ~MediumMotorDisplay() override = default;
     ftxui::Element get_renderer() override;
     ftxui::Component get_container() override;

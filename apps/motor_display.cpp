@@ -6,52 +6,52 @@
 void SmallMotorDisplay::init() {
     using namespace pvtui;
 
-    desc.pv_name = pvgroup.add("$(P)$(M).DESC", args.macros);
-    pvgroup.set_monitor(desc.pv_name, desc.value);
-    desc.set_component(PVInput(pvgroup[desc.pv_name], desc.value, PVPutType::String));
+    desc.pv_name = pvgroup->add("$(P)$(M).DESC", args.macros);
+    pvgroup->set_monitor(desc.pv_name, desc.value);
+    desc.set_component(PVInput(pvgroup->get_pv(desc.pv_name), desc.value, PVPutType::String));
     
-    val.pv_name = pvgroup.add("$(P)$(M).VAL", args.macros);
-    pvgroup.set_monitor(val.pv_name, val.value);
-    val.set_component(PVInput(pvgroup[val.pv_name], val.value, PVPutType::Double));
+    val.pv_name = pvgroup->add("$(P)$(M).VAL", args.macros);
+    pvgroup->set_monitor(val.pv_name, val.value);
+    val.set_component(PVInput(pvgroup->get_pv(val.pv_name), val.value, PVPutType::Double));
 
-    twr.pv_name = pvgroup.add("$(P)$(M).TWR", args.macros);
-    twr.set_component(PVButton(pvgroup[twr.pv_name], " < ", 1));
+    twr.pv_name = pvgroup->add("$(P)$(M).TWR", args.macros);
+    twr.set_component(PVButton(pvgroup->get_pv(twr.pv_name), " < ", 1));
     
-    twv.pv_name = pvgroup.add("$(P)$(M).TWV", args.macros);
-    pvgroup.set_monitor(twv.pv_name, twv.value);
-    twv.set_component(PVInput(pvgroup[twv.pv_name], twv.value, PVPutType::Double));
+    twv.pv_name = pvgroup->add("$(P)$(M).TWV", args.macros);
+    pvgroup->set_monitor(twv.pv_name, twv.value);
+    twv.set_component(PVInput(pvgroup->get_pv(twv.pv_name), twv.value, PVPutType::Double));
 
-    twf.pv_name = pvgroup.add("$(P)$(M).TWF", args.macros);
-    twf.set_component(PVButton(pvgroup[twf.pv_name], " > ", 1));
+    twf.pv_name = pvgroup->add("$(P)$(M).TWF", args.macros);
+    twf.set_component(PVButton(pvgroup->get_pv(twf.pv_name), " > ", 1));
 
-    rbv.pv_name = pvgroup.add("$(P)$(M).RBV", args.macros);
-    pvgroup.set_monitor(rbv.pv_name, rbv.value);
+    rbv.pv_name = pvgroup->add("$(P)$(M).RBV", args.macros);
+    pvgroup->set_monitor(rbv.pv_name, rbv.value);
 
-    egu.pv_name = pvgroup.add("$(P)$(M).EGU", args.macros);
-    pvgroup.set_monitor(egu.pv_name, egu.value);
+    egu.pv_name = pvgroup->add("$(P)$(M).EGU", args.macros);
+    pvgroup->set_monitor(egu.pv_name, egu.value);
 
-    hls.pv_name = pvgroup.add("$(P)$(M).HLS", args.macros);
-    pvgroup.set_monitor(hls.pv_name, hls.value);
+    hls.pv_name = pvgroup->add("$(P)$(M).HLS", args.macros);
+    pvgroup->set_monitor(hls.pv_name, hls.value);
     
-    lls.pv_name = pvgroup.add("$(P)$(M).LLS", args.macros);
-    pvgroup.set_monitor(lls.pv_name, lls.value);
+    lls.pv_name = pvgroup->add("$(P)$(M).LLS", args.macros);
+    pvgroup->set_monitor(lls.pv_name, lls.value);
 
-    en_dis.pv_name = pvgroup.add("$(P)$(M)_able", args.macros);
-    pvgroup.set_monitor(en_dis.pv_name, en_dis.value);
+    en_dis.pv_name = pvgroup->add("$(P)$(M)_able", args.macros);
+    pvgroup->set_monitor(en_dis.pv_name, en_dis.value);
 
-    use_set.pv_name = pvgroup.add("$(P)$(M).SET", args.macros);
-    use_set.set_component(PVChoiceH(pvgroup[use_set.pv_name], use_set.value.choices, use_set.value.index));
-    pvgroup.set_monitor(use_set.pv_name, use_set.value);
+    use_set.pv_name = pvgroup->add("$(P)$(M).SET", args.macros);
+    use_set.set_component(PVChoiceH(pvgroup->get_pv(use_set.pv_name), use_set.value.choices, use_set.value.index));
+    pvgroup->set_monitor(use_set.pv_name, use_set.value);
 
-    dmov.pv_name = pvgroup.add("$(P)$(M).DMOV", args.macros);
-    pvgroup.set_monitor(dmov.pv_name, dmov.value);
+    dmov.pv_name = pvgroup->add("$(P)$(M).DMOV", args.macros);
+    pvgroup->set_monitor(dmov.pv_name, dmov.value);
 
-    stop.pv_name = pvgroup.add("$(P)$(M).STOP", args.macros);
-    stop.set_component(PVButton(pvgroup[stop.pv_name], " STOP ", 1));
+    stop.pv_name = pvgroup->add("$(P)$(M).STOP", args.macros);
+    stop.set_component(PVButton(pvgroup->get_pv(stop.pv_name), " STOP ", 1));
 }
 
-SmallMotorDisplay::SmallMotorDisplay(pvac::ClientProvider &provider, const pvtui::ArgParser &args)
-    : DisplayBase(provider), args(args) {
+SmallMotorDisplay::SmallMotorDisplay(const std::shared_ptr<PVGroup> &pvgroup, const pvtui::ArgParser &args)
+    : DisplayBase(pvgroup), args(args) {
     this->init();
 }
 
@@ -76,7 +76,6 @@ ftxui::Element SmallMotorDisplay::get_renderer() {
     using namespace pvtui;
     Decorator ColorDisabled = bgcolor(Color::RGBA(80,10,4,230)) | color(Color::Black);
     return ftxui::vbox({
-	test.component()->Render(),
 
 	desc.component()->Render() 
 	    | EPICSColor::EDIT
@@ -132,78 +131,78 @@ ftxui::Element SmallMotorDisplay::get_renderer() {
 void MediumMotorDisplay::init() {
     using namespace pvtui;
 
-    desc.pv_name = pvgroup.add("$(P)$(M).DESC", args.macros);
-    pvgroup.set_monitor(desc.pv_name, desc.value);
-    desc.set_component(PVInput(pvgroup[desc.pv_name], desc.value, PVPutType::String));
+    desc.pv_name = pvgroup->add("$(P)$(M).DESC", args.macros);
+    pvgroup->set_monitor(desc.pv_name, desc.value);
+    desc.set_component(PVInput(pvgroup->get_pv(desc.pv_name), desc.value, PVPutType::String));
     
-    val.pv_name = pvgroup.add("$(P)$(M).VAL", args.macros);
-    pvgroup.set_monitor(val.pv_name, val.value);
-    val.set_component(PVInput(pvgroup[val.pv_name], val.value, PVPutType::Double));
+    val.pv_name = pvgroup->add("$(P)$(M).VAL", args.macros);
+    pvgroup->set_monitor(val.pv_name, val.value);
+    val.set_component(PVInput(pvgroup->get_pv(val.pv_name), val.value, PVPutType::Double));
 
-    twr.pv_name = pvgroup.add("$(P)$(M).TWR", args.macros);
-    twr.set_component(PVButton(pvgroup[twr.pv_name], " < ", 1));
+    twr.pv_name = pvgroup->add("$(P)$(M).TWR", args.macros);
+    twr.set_component(PVButton(pvgroup->get_pv(twr.pv_name), " < ", 1));
     
-    twv.pv_name = pvgroup.add("$(P)$(M).TWV", args.macros);
-    pvgroup.set_monitor(twv.pv_name, twv.value);
-    twv.set_component(PVInput(pvgroup[twv.pv_name], twv.value, PVPutType::Double));
+    twv.pv_name = pvgroup->add("$(P)$(M).TWV", args.macros);
+    pvgroup->set_monitor(twv.pv_name, twv.value);
+    twv.set_component(PVInput(pvgroup->get_pv(twv.pv_name), twv.value, PVPutType::Double));
 
-    twf.pv_name = pvgroup.add("$(P)$(M).TWF", args.macros);
-    twf.set_component(PVButton(pvgroup[twf.pv_name], " > ", 1));
+    twf.pv_name = pvgroup->add("$(P)$(M).TWF", args.macros);
+    twf.set_component(PVButton(pvgroup->get_pv(twf.pv_name), " > ", 1));
 
-    rbv.pv_name = pvgroup.add("$(P)$(M).RBV", args.macros);
-    pvgroup.set_monitor(rbv.pv_name, rbv.value);
+    rbv.pv_name = pvgroup->add("$(P)$(M).RBV", args.macros);
+    pvgroup->set_monitor(rbv.pv_name, rbv.value);
 
-    egu.pv_name = pvgroup.add("$(P)$(M).EGU", args.macros);
-    pvgroup.set_monitor(egu.pv_name, egu.value);
+    egu.pv_name = pvgroup->add("$(P)$(M).EGU", args.macros);
+    pvgroup->set_monitor(egu.pv_name, egu.value);
 
-    hls.pv_name = pvgroup.add("$(P)$(M).HLS", args.macros);
-    pvgroup.set_monitor(hls.pv_name, hls.value);
+    hls.pv_name = pvgroup->add("$(P)$(M).HLS", args.macros);
+    pvgroup->set_monitor(hls.pv_name, hls.value);
     
-    lls.pv_name = pvgroup.add("$(P)$(M).LLS", args.macros);
-    pvgroup.set_monitor(lls.pv_name, lls.value);
+    lls.pv_name = pvgroup->add("$(P)$(M).LLS", args.macros);
+    pvgroup->set_monitor(lls.pv_name, lls.value);
 
-    use_set.pv_name = pvgroup.add("$(P)$(M).SET", args.macros);
-    use_set.set_component(PVChoiceH(pvgroup[use_set.pv_name], use_set.value.choices, use_set.value.index));
-    pvgroup.set_monitor(use_set.pv_name, use_set.value);
+    use_set.pv_name = pvgroup->add("$(P)$(M).SET", args.macros);
+    use_set.set_component(PVChoiceH(pvgroup->get_pv(use_set.pv_name), use_set.value.choices, use_set.value.index));
+    pvgroup->set_monitor(use_set.pv_name, use_set.value);
 
-    dmov.pv_name = pvgroup.add("$(P)$(M).DMOV", args.macros);
-    pvgroup.set_monitor(dmov.pv_name, dmov.value);
+    dmov.pv_name = pvgroup->add("$(P)$(M).DMOV", args.macros);
+    pvgroup->set_monitor(dmov.pv_name, dmov.value);
 
-    spmg.pv_name = pvgroup.add("$(P)$(M).SPMG", args.macros);
-    spmg.set_component(PVChoiceV(pvgroup[spmg.pv_name], spmg.value.choices, spmg.value.index));
-    pvgroup.set_monitor(spmg.pv_name, spmg.value);
+    spmg.pv_name = pvgroup->add("$(P)$(M).SPMG", args.macros);
+    spmg.set_component(PVChoiceV(pvgroup->get_pv(spmg.pv_name), spmg.value.choices, spmg.value.index));
+    pvgroup->set_monitor(spmg.pv_name, spmg.value);
 
-    able.pv_name = pvgroup.add("$(P)$(M)_able", args.macros);
-    able.set_component(PVChoiceH(pvgroup[able.pv_name], able.value.choices, able.value.index));
-    pvgroup.set_monitor(able.pv_name, able.value);
+    able.pv_name = pvgroup->add("$(P)$(M)_able", args.macros);
+    able.set_component(PVChoiceH(pvgroup->get_pv(able.pv_name), able.value.choices, able.value.index));
+    pvgroup->set_monitor(able.pv_name, able.value);
 
-    dval.pv_name = pvgroup.add("$(P)$(M).DVAL", args.macros);
-    dval.set_component(PVInput(pvgroup[dval.pv_name], dval.value, PVPutType::Double));
-    pvgroup.set_monitor(dval.pv_name, dval.value);
+    dval.pv_name = pvgroup->add("$(P)$(M).DVAL", args.macros);
+    dval.set_component(PVInput(pvgroup->get_pv(dval.pv_name), dval.value, PVPutType::Double));
+    pvgroup->set_monitor(dval.pv_name, dval.value);
 
-    hlm.pv_name = pvgroup.add("$(P)$(M).HLM", args.macros);
-    hlm.set_component(PVInput(pvgroup[hlm.pv_name], hlm.value, PVPutType::Double));
-    pvgroup.set_monitor(hlm.pv_name, hlm.value);
+    hlm.pv_name = pvgroup->add("$(P)$(M).HLM", args.macros);
+    hlm.set_component(PVInput(pvgroup->get_pv(hlm.pv_name), hlm.value, PVPutType::Double));
+    pvgroup->set_monitor(hlm.pv_name, hlm.value);
     
-    llm.pv_name = pvgroup.add("$(P)$(M).LLM", args.macros);
-    llm.set_component(PVInput(pvgroup[llm.pv_name], llm.value, PVPutType::Double));
-    pvgroup.set_monitor(llm.pv_name, llm.value);
+    llm.pv_name = pvgroup->add("$(P)$(M).LLM", args.macros);
+    llm.set_component(PVInput(pvgroup->get_pv(llm.pv_name), llm.value, PVPutType::Double));
+    pvgroup->set_monitor(llm.pv_name, llm.value);
     
-    dhlm.pv_name = pvgroup.add("$(P)$(M).DHLM", args.macros);
-    dhlm.set_component(PVInput(pvgroup[dhlm.pv_name], dhlm.value, PVPutType::Double));
-    pvgroup.set_monitor(dhlm.pv_name, dhlm.value);
+    dhlm.pv_name = pvgroup->add("$(P)$(M).DHLM", args.macros);
+    dhlm.set_component(PVInput(pvgroup->get_pv(dhlm.pv_name), dhlm.value, PVPutType::Double));
+    pvgroup->set_monitor(dhlm.pv_name, dhlm.value);
     
-    dllm.pv_name = pvgroup.add("$(P)$(M).DLLM", args.macros);
-    dllm.set_component(PVInput(pvgroup[dllm.pv_name], dllm.value, PVPutType::Double));
-    pvgroup.set_monitor(dllm.pv_name, dllm.value);
+    dllm.pv_name = pvgroup->add("$(P)$(M).DLLM", args.macros);
+    dllm.set_component(PVInput(pvgroup->get_pv(dllm.pv_name), dllm.value, PVPutType::Double));
+    pvgroup->set_monitor(dllm.pv_name, dllm.value);
 
-    drbv.pv_name = pvgroup.add("$(P)$(M).DRBV", args.macros);
-    pvgroup.set_monitor(drbv.pv_name, drbv.value);
+    drbv.pv_name = pvgroup->add("$(P)$(M).DRBV", args.macros);
+    pvgroup->set_monitor(drbv.pv_name, drbv.value);
 
 }
 
-MediumMotorDisplay::MediumMotorDisplay(pvac::ClientProvider &provider, const pvtui::ArgParser &args)
-    : DisplayBase(provider), args(args) {
+MediumMotorDisplay::MediumMotorDisplay(const std::shared_ptr<PVGroup> &pvgroup, const pvtui::ArgParser &args)
+    : DisplayBase(pvgroup), args(args) {
     this->init();
 }
 
@@ -241,7 +240,7 @@ ftxui::Element MediumMotorDisplay::get_renderer() {
     using namespace pvtui;
 
     Decorator ColorDisabled = bgcolor(Color::RGBA(80,10,4,230)) | color(Color::Black);
-    auto &desc_pv = pvgroup[desc.pv_name];
+    auto &desc_pv = pvgroup->get_pv(desc.pv_name);
     return ftxui::vbox({
 	(desc_pv.connected() ? text("") : text("Disconnected") | color(Color::Red)) | center,
 

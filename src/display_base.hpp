@@ -6,15 +6,14 @@
 
 class DisplayBase {
   public:
-    DisplayBase(pvac::ClientProvider &provider, const std::vector<std::string> pv_names);
-    DisplayBase(pvac::ClientProvider &provider);
+    DisplayBase(const std::shared_ptr<PVGroup> &pvgroup);
     virtual ~DisplayBase() = default;
     virtual bool pv_update();
     virtual ftxui::Element get_renderer() = 0;
     virtual ftxui::Component get_container() = 0;
 
   protected:
-    PVGroup pvgroup;
+    std::shared_ptr<PVGroup> pvgroup;
 };
 
 struct NoValue {};
