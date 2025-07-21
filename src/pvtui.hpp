@@ -38,14 +38,11 @@ std::string rectangle(int len);
  */
 namespace EPICSColor {
 using namespace ftxui;
-static const Decorator EDIT =
-    bgcolor(Color::RGB(87, 202, 228)) | color(Color::Black); ///< Decorator for editable fields.
-static const Decorator MENU =
-    bgcolor(Color::RGB(16, 105, 25)) | color(Color::White); ///< Decorator for menu items.
+static const Decorator EDIT = bgcolor(Color::RGB(87, 202, 228)) | color(Color::Black); ///< Decorator for editable fields.
+static const Decorator MENU = bgcolor(Color::RGB(16, 105, 25)) | color(Color::White); ///< Decorator for menu items.
 static const Decorator READBACK = color(Color::DarkBlue);   ///< Decorator for read-only display values.
-static const Decorator BACKGROUND = color(Color::RGB(196, 196, 196)); ///< Decorator for background elements.
-static const Decorator LINK =
-    bgcolor(Color::RGB(148, 148, 228)) | color(Color::Black); ///< Decorator for link-like elements.
+static const Decorator BACKGROUND = bgcolor(Color::RGB(196, 196, 196)); ///< Decorator for background elements.
+static const Decorator LINK = bgcolor(Color::RGB(148, 148, 228)) | color(Color::Black); ///< Decorator for link-like elements.
 } // namespace EPICSColor
 
 /**

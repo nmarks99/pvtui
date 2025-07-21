@@ -327,5 +327,7 @@ ftxui::Element MediumMotorDisplay::get_renderer() {
 	    separatorEmpty(),
 	    able.component()->Render() | EPICSColor::EDIT,
 	}) | center,
-    })| center | bgcolor(Color::RGB(196,196,196));
+	separatorEmpty(),
+
+    })| center | EPICSColor::BACKGROUND;
 }
