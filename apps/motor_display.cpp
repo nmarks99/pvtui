@@ -86,7 +86,7 @@ ftxui::Element SmallMotorDisplay::get_renderer() {
 	separatorEmpty(),
 
 	hbox({
-	    filler() | size(WIDTH, EQUAL, egu.value.length()+1),
+	    filler() | size(WIDTH, EQUAL, egu.value.size()+1),
 	    text(lls.value ? unicode::rectangle(1) : "  ") | color(Color::Red),
 	    separatorEmpty(), separatorEmpty(),
 	    text(rbv.value) | (use_set.value.index==0 ? EPICSColor::READBACK : color(Color::Yellow2)),
@@ -120,7 +120,7 @@ ftxui::Element SmallMotorDisplay::get_renderer() {
 	separatorEmpty()
 
     })
-    | size(WIDTH, EQUAL, 25)  
+    | size(WIDTH, EQUAL, 24)
     | border 
     | color(Color::Black) 
     | center 
