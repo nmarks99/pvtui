@@ -81,6 +81,35 @@ set(EPICS_BASE_INCLUDES
 )
 # ------------------------------------------------------------------------------
 
+# --- Doxygen Documentation Generation -----------------------------------------
+if (BUILD_DOCS)
+    find_package(Doxygen REQUIRED)
+
+    if (DOXYGEN_FOUND)
+        message(STATUS "Doxygen found. Version: ${DOXYGEN_VERSION}")
+
+        # Ensure the output directory exists
+        file(MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/doc/doxygen") # <--- ADD THIS LINE
+
+        configure_file(
+            ${CMAKE_CURRENT_SOURCE_DIR}/Doxyfile.in
+            ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile
+            @ONLY
+        )
+
+        add_custom_target(
+            doc
+            COMMAND ${DOXYGEN_EXECUTABLE} ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile
+            WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+            COMMENT "Generating API documentation with Doxygen"
+            VERBATIM
+        )
+    else()
+        message(WARNING "Doxygen not found. Documentation will not be generated even if BUILD_DOCS is ON.")
+    endif()
+endif()
+# ------------------------------------------------------------------------------
+
 # ------------------------------------------------------------------------------
 add_executable(pvtui_motor apps/motor_display.cpp apps/motor.cpp src/pvgroup.cpp src/pvtui.cpp src/display_base.cpp)
 target_include_directories(pvtui_motor PUBLIC src ${EPICS_BASE_INCLUDES})

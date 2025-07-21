@@ -1,100 +1,201 @@
 #pragma once
+
 #include <memory>
+#include <string>
+#include <unordered_map>
+#include <variant>
+#include <vector>
+
 #include <pv/caProvider.h>
 #include <pva/client.h>
 
-#include <unordered_map>
-#include <variant>
-
+/**
+ * @brief Stores any PV as a string. Soon to be deprecated.
+ */
 struct PVAny {
     std::string subfield = "value";
     std::string value = "";
     int prec = 4;
-    
+
     PVAny(const std::string &sfield) : subfield(sfield) {}
     PVAny() : subfield("value"), value(""), prec(4) {}
 
-    operator std::string() const {
-        return value;
-    }
-
+    operator std::string() const { return value; }
 };
-std::string operator+(const PVAny& lhs, const std::string& rhs);
-std::string operator+(const std::string& lhs, const PVAny& rhs);
+std::string operator+(const PVAny &lhs, const std::string &rhs);
+std::string operator+(const std::string &lhs, const PVAny &rhs);
 
-
-// Represents a typical "enum" (mbbo/mbbi) with an integer index and string name
+/**
+ * @brief Represents an EPICS enum (mbbo/mbbi) with an integer index and string choices.
+ */
 struct PVEnum {
-    int index = 0;
-    std::vector<std::string> choices;
-    std::string choice = "";
+    int index = 0;                    ///< Current index of the enum choice.
+    std::vector<std::string> choices; ///< All available string choices.
+    std::string choice = "";          ///< Currently selected string choice.
 };
 
-// Types of variables which can be set to be updated by a monitor
-using MonitorPtr = std::variant<std::monostate, std::string *, int *, double *, std::vector<std::string> *,
-                                std::vector<int> *, std::vector<double> *, PVEnum *, PVAny*>;
+/**
+ * @brief Variant type for pointers to variables monitored by a PV.
+ */
+using MonitorPtr = std::variant<std::monostate,             ///< No variable monitored.
+                                std::string *,              ///< Pointer to a string.
+                                int *,                      ///< Pointer to an integer.
+                                double *,                   ///< Pointer to a double.
+                                std::vector<std::string> *, ///< Pointer to a vector of strings.
+                                std::vector<int> *,         ///< Pointer to a vector of integers.
+                                std::vector<double> *,      ///< Pointer to a vector of doubles.
+                                PVEnum *,                   ///< Pointer to a PVEnum.
+                                PVAny *>;                   ///< Pointer to a PVAny.
 
+/**
+ * @brief Monitors a pvac::ClientChannel's connection status.
+ */
 class ConnectionMonitor : public pvac::ClientChannel::ConnectCallback {
   public:
-    ConnectionMonitor() {}
+    /**
+     * @brief Constructs a ConnectionMonitor.
+     */
+    ConnectionMonitor() = default;
+
+    /**
+     * @brief Destroys the ConnectionMonitor.
+     */
     virtual ~ConnectionMonitor() override = default;
 
+    /**
+     * @brief Callback when connection status changes.
+     * @param event Connection event details.
+     */
     virtual void connectEvent(const pvac::ConnectEvent &event) override final;
 
+    /**
+     * @brief Checks if connected.
+     * @return True if connected, false otherwise.
+     */
     bool connected() const;
 
   private:
-    bool connected_ = false;
+    bool connected_ = false; ///< Connection status flag.
 };
 
+/**
+ * @brief Manages a single EPICS Process Variable (PV).
+ *
+ * Handles connection, monitoring, and value updates for a PV.
+ */
 struct ProcessVariable {
   public:
-    pvac::ClientChannel channel;
-    std::string name;
+    pvac::ClientChannel channel; ///< PVA client channel.
+    std::string name;            ///< Name of the process variable.
 
+    /**
+     * @brief Constructs a ProcessVariable.
+     * @param provider PVA client provider.
+     * @param pv_name Name of the process variable.
+     */
     ProcessVariable(pvac::ClientProvider &provider, const std::string &pv_name);
 
+    /**
+     * @brief Checks if the PV channel is connected.
+     * @return True if connected, false otherwise.
+     */
     bool connected() const;
 
-    // returns true is new data was received, else false
+    /**
+     * @brief Updates the monitored variable with new data from the PV.
+     * @return True if new data was received, false otherwise.
+     */
     bool update();
 
-    template <typename T>
-    void set_monitor(T &var) {
-        monitor_var_ptr_ = &var;
-    }
+    /**
+     * @brief Sets the variable to monitor for PV updates.
+     * @tparam T Type of the variable.
+     * @param var Reference to the variable to be updated.
+     */
+    template <typename T> void set_monitor(T &var) { monitor_var_ptr_ = &var; }
 
   private:
-    pvac::MonitorSync monitor_;
-    MonitorPtr monitor_var_ptr_;
-    std::unique_ptr<ConnectionMonitor> connection_monitor_;
+    pvac::MonitorSync monitor_;                             ///< PVA data monitor.
+    MonitorPtr monitor_var_ptr_;                            ///< Pointer to the user's variable.
+    std::unique_ptr<ConnectionMonitor> connection_monitor_; ///< Monitors connection status.
 
+    /**
+     * @brief Extracts and assigns the PV value to the monitored variable.
+     * @param pfield Pointer to the PVStructure containing new data.
+     */
     void get_monitored_variable(const epics::pvData::PVStructure *pfield);
-
 };
 
+/**
+ * @brief Manages a group of EPICS Process Variables.
+ */
 struct PVGroup {
   public:
+    /**
+     * @brief Constructs a PVGroup with initial PVs.
+     * @param provider PVA client provider.
+     * @param pv_list Names of PVs to add.
+     */
     PVGroup(pvac::ClientProvider &provider, const std::vector<std::string> &pv_list);
+
+    /**
+     * @brief Constructs an empty PVGroup.
+     * @param provider PVA client provider.
+     */
     PVGroup(pvac::ClientProvider &provider);
 
-    std::string add(const std::string &pv_name, const std::unordered_map<std::string, std::string> &macros_dict);
+    /**
+     * @brief Adds a new PV to the group with macro substitutions.
+     * @param pv_name Base name of the PV.
+     * @param macros_dict Map of macro names to substitution values.
+     * @return The fully resolved PV name.
+     * @throw std::runtime_error If resolved PV name already exists.
+     */
+    std::string add(const std::string &pv_name,
+                    const std::unordered_map<std::string, std::string> &macros_dict);
+
+    /**
+     * @brief Adds a new PV to the group without macro substitutions.
+     * @param pv_name Name of the PV.
+     * @throw std::runtime_error If PV name already exists.
+     */
     void add(const std::string &pv_name);
 
+    /**
+     * @brief Sets the variable to monitor for a specific PV in the group.
+     * @tparam T Type of the variable.
+     * @param pv_name Name of the PV.
+     * @param var Reference to the variable.
+     * @throw std::runtime_error If PV not found.
+     */
     template <typename T> void set_monitor(const std::string &pv_name, T &var) {
-        ProcessVariable &pv = this->get_pv(pv_name); // will throw if pv not in map
+        ProcessVariable &pv = this->get_pv(pv_name);
         pv.set_monitor(var);
     }
 
-    ProcessVariable& get_pv(const std::string &pv_name);
+    /**
+     * @brief Retrieves a PV by name.
+     * @param pv_name Name of the PV.
+     * @return Reference to the ProcessVariable object.
+     * @throw std::runtime_error If PV not found.
+     */
+    ProcessVariable &get_pv(const std::string &pv_name);
 
-    // equivalent to PVGroup.get_pv("pv_name")
-    ProcessVariable& operator[](const std::string &pv_name);
+    /**
+     * @brief Accesses a PV by name using array subscript operator.
+     * @param pv_name Name of the PV.
+     * @return Reference to the ProcessVariable object.
+     * @throw std::runtime_error If PV not found.
+     */
+    ProcessVariable &operator[](const std::string &pv_name);
 
-    // returns true is new data was received, else false
+    /**
+     * @brief Updates all monitored PVs in the group.
+     * @return True if any PV received new data, false otherwise.
+     */
     bool update();
 
   private:
-    pvac::ClientProvider &provider_;
-    std::unordered_map<std::string, ProcessVariable> pv_map;
+    pvac::ClientProvider &provider_;                         ///< PVA client provider.
+    std::unordered_map<std::string, ProcessVariable> pv_map; ///< Map of PVs by name.
 };

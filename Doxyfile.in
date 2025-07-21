@@ -1,0 +1,94 @@
+# Doxyfile.in - Doxygen configuration file template for CMake
+
+# Project identification
+PROJECT_NAME           = pvtui
+PROJECT_BRIEF          = "Terminal User Interfaces for EPICS"
+PROJECT_LOGO           =
+OUTPUT_DIRECTORY       = @CMAKE_CURRENT_BINARY_DIR@/doc/doxygen
+CREATE_SUBDIRS         = YES
+
+# Input settings
+INPUT                  = @CMAKE_CURRENT_SOURCE_DIR@/src
+FILE_PATTERNS          = *.h *.hpp *.cpp
+RECURSIVE              = YES
+EXCLUDE_PATTERNS       =
+EXCLUDE_SYMBOLS        =
+
+# Build settings
+GENERATE_HTML          = YES
+GENERATE_LATEX         = NO
+GENERATE_MAN           = NO
+GENERATE_RTF           = NO
+GENERATE_XML           = NO
+GENERATE_DOCBOOK       = NO
+GENERATE_CHI           = NO
+GENERATE_ECLIPSEHELP   = NO
+GENERATE_MIF           = NO
+GENERATE_SQLITE3       = NO
+GENERATE_HTMLHELP      = NO
+GENERATE_QHP           = NO
+GENERATE_PERLMOD       = NO
+GENERATE_TAGFILE       =
+HTML_EXTRA_FILES       =
+LATEX_EXTRA_FILES      =
+
+# Output control
+QUIET                  = YES
+WARNINGS               = YES
+WARN_NO_PARAM          = YES
+WARN_IF_UNDOCUMENTED   = YES
+
+# Documentation style
+JAVADOC_AUTOBRIEF      = NO
+QT_AUTOBRIEF           = NO
+MULTILINE_CPP_IS_BRIEF = NO
+ALPHABETICAL_INDEX     = YES
+COLS_IN_ALPHA_INDEX    = 5
+EXTRACT_ALL            = YES
+EXTRACT_PRIVATE        = NO # Set to YES if you want private members documented
+EXTRACT_STATIC         = YES
+EXTRACT_LOCAL_CLASSES  = YES
+EXTRACT_LOCAL_METHODS  = YES
+HIDE_UNDOC_MEMBERS     = NO
+HIDE_UNDOC_CLASSES     = NO
+HIDE_FRIEND_INFO       = NO
+HIDE_INHERITED_MEMB    = NO
+INTERNAL_DOCS          = NO
+CASE_SENSE_NAMES       = YES
+SHOW_INCLUDE_FILES     = YES
+INLINE_INFO            = YES
+SORT_MEMBER_DOCS       = YES
+SORT_BRIEF_DOCS        = NO
+SORT_GROUP_NAMES       = NO
+SORT_BY_SCOPE_NAME     = NO
+CONVERT_HTML_PARAMS    = NO
+SEPARATE_MEMBER_PAGES  = NO
+TAB_SIZE               = 4
+OPTIMIZE_OUTPUT_FOR_C  = NO
+OPTIMIZE_OUTPUT_JAVA   = NO
+OPTIMIZE_FOR_FORTRAN   = NO
+OPTIMIZE_FOR_VHDL      = NO
+EXTENSION_MAPPING      =
+BUILTIN_STL_HUE        = NO
+CPP_ITERATOR_NAME      =
+SIZE_T_NAME            = size_t
+C_BOOL_NAME            = _Bool
+FT_BOOL_NAME           =
+COLS_IN_ALPHA_INDEX    = 5
+GENERATE_LEGEND        = YES
+ENABLE_MATHJAX         = NO
+MATHJAX_FORMULA_TRANSFORM =
+MATHJAX_CODEFILE       =
+MATHJAX_EXTENSIONS     =
+DOXYLIB_PATH           =
+
+# Graphviz settings (optional, but good for class diagrams)
+HAVE_DOT               = YES
+DOT_IMAGE_FORMAT       = svg # or png
+DOT_FONTNAME           = Helvetica
+DOT_FONTSIZE           = 10
+CLASS_DIAGRAMS         = YES
+HTML_DYNAMIC_SECTIONS  = YES
+COLLABORATION_GRAPH    = YES
+INCLUDE_GRAPH          = YES
+ENABLED_SECTIONS       =
