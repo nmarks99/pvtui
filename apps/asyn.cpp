@@ -14,6 +14,23 @@
 using namespace ftxui;
 using namespace pvtui;
 
+static constexpr std::string_view CLI_HELP_MSG = R"(
+PVTUI asyn - Terminal UI for EPICS asyn record.
+Inspired by the asynOctet.adl and asynRecord.adl screens.
+
+Usage:
+  pvtui_asyn [options] 
+
+Options:
+  -h, --help        Show this help message and exit.
+  -m, --macro       Macros to pass to the UI (required: P, R)        
+
+Examples:
+    pvtui_asyn --macro "P=xxx:,R=asyn1"
+
+For more details, visit: https://github.com/nmarks99/pvtui
+)";
+
 class AsynDisplay : public DisplayBase {
   public:
     AsynDisplay(const std::shared_ptr<PVGroup> &pvgroup, const pvtui::ArgParser &args);
@@ -34,9 +51,13 @@ class AsynDisplay : public DisplayBase {
     PVWidget<std::string> nord;
     PVWidget<std::string> eomr;
     PVWidget<std::string> tmot;
+    PVWidget<PVEnum> tmod;
     PVWidget<std::string> errs;
     PVWidget<std::string> ofmt;
-
+    PVWidget<PVEnum> cnct;
+    PVWidget<PVEnum> enbl;
+    PVWidget<PVEnum> auct;
+    PVWidget<std::string> tfil;
     PVWidget<PVEnum> tb0;
     PVWidget<PVEnum> tb1;
     PVWidget<PVEnum> tb2;
@@ -46,6 +67,10 @@ class AsynDisplay : public DisplayBase {
     PVWidget<PVEnum> tib0;
     PVWidget<PVEnum> tib1;
     PVWidget<PVEnum> tib2;
+    PVWidget<PVEnum> tinb0;
+    PVWidget<PVEnum> tinb1;
+    PVWidget<PVEnum> tinb2;
+    PVWidget<PVEnum> tinb3;
     PVWidget<std::string> tmsk;
     PVWidget<std::string> tiom;
 
@@ -53,10 +78,16 @@ class AsynDisplay : public DisplayBase {
     const pvtui::ArgParser &args;
 };
 
+
 int main(int argc, char *argv[]) {
 
     // Parse command line arguments and macros
     pvtui::ArgParser args(argc, argv);
+
+    if (args.flag("help") or args.flag("h")) {
+	std::cout << CLI_HELP_MSG << std::endl;
+	return EXIT_SUCCESS;
+    }
 
     if (not args.macros_present({"P", "R"})) {
         printf("Missing required macro P, R\n");
@@ -78,7 +109,6 @@ int main(int argc, char *argv[]) {
     auto main_container = display.get_container();
     auto main_renderer = ftxui::Renderer(main_container, [&] {
         return display.get_renderer();
-        // return hbox(display.get_renderer()) | center | pvtui::EPICSColor::BACKGROUND;
     });
 
     constexpr int POLL_PERIOD_MS = 100;
@@ -91,6 +121,7 @@ int main(int argc, char *argv[]) {
         std::this_thread::sleep_for(std::chrono::milliseconds(POLL_PERIOD_MS));
     }
 }
+
 
 AsynDisplay::AsynDisplay(const std::shared_ptr<PVGroup> &pvgroup, const pvtui::ArgParser &args)
     : DisplayBase(pvgroup), args(args) {
@@ -119,6 +150,10 @@ AsynDisplay::AsynDisplay(const std::shared_ptr<PVGroup> &pvgroup, const pvtui::A
     tmot.pv_name = pvgroup->add("$(P)$(R).TMOT", args.macros);
     tmot.set_component(PVInput(pvgroup->get_pv(tmot.pv_name), tmot.value, PVPutType::String));
     pvgroup->set_monitor(tmot.pv_name, tmot.value);
+
+    tmod.pv_name = pvgroup->add("$(P)$(R).TMOD", args.macros);
+    tmod.set_component(PVDropdown(pvgroup->get_pv(tmod.pv_name), tmod.value.choices, tmod.value.index));
+    pvgroup->set_monitor(tmod.pv_name, tmod.value);
 
     tmsk.pv_name = pvgroup->add("$(P)$(R).TMSK", args.macros);
     tmsk.set_component(PVInput(pvgroup->get_pv(tmsk.pv_name), tmsk.value, PVPutType::String));
@@ -156,12 +191,59 @@ AsynDisplay::AsynDisplay(const std::shared_ptr<PVGroup> &pvgroup, const pvtui::A
 
     errs.pv_name = pvgroup->add("$(P)$(R).ERRS", args.macros);
     pvgroup->set_monitor(errs.pv_name, errs.value);
+
+    tib0.pv_name = pvgroup->add("$(P)$(R).TIB0", args.macros);
+    tib0.set_component(PVChoiceH(pvgroup->get_pv(tib0.pv_name), tib0.value.choices, tib0.value.index));
+    pvgroup->set_monitor(tib0.pv_name, tib0.value);
+
+    tib1.pv_name = pvgroup->add("$(P)$(R).TIB1", args.macros);
+    tib1.set_component(PVChoiceH(pvgroup->get_pv(tib1.pv_name), tib1.value.choices, tib1.value.index));
+    pvgroup->set_monitor(tib1.pv_name, tib1.value);
+
+    tib2.pv_name = pvgroup->add("$(P)$(R).TIB2", args.macros);
+    tib2.set_component(PVChoiceH(pvgroup->get_pv(tib2.pv_name), tib2.value.choices, tib2.value.index));
+    pvgroup->set_monitor(tib2.pv_name, tib2.value);
+    
+    tinb0.pv_name = pvgroup->add("$(P)$(R).TINB0", args.macros);
+    tinb0.set_component(PVChoiceH(pvgroup->get_pv(tinb0.pv_name), tinb0.value.choices, tinb0.value.index));
+    pvgroup->set_monitor(tinb0.pv_name, tinb0.value);
+
+    tinb1.pv_name = pvgroup->add("$(P)$(R).TINB1", args.macros);
+    tinb1.set_component(PVChoiceH(pvgroup->get_pv(tinb1.pv_name), tinb1.value.choices, tinb1.value.index));
+    pvgroup->set_monitor(tinb1.pv_name, tinb1.value);
+
+    tinb2.pv_name = pvgroup->add("$(P)$(R).TINB2", args.macros);
+    tinb2.set_component(PVChoiceH(pvgroup->get_pv(tinb2.pv_name), tinb2.value.choices, tinb2.value.index));
+    pvgroup->set_monitor(tinb2.pv_name, tinb2.value);
+    
+    tinb3.pv_name = pvgroup->add("$(P)$(R).TINB3", args.macros);
+    tinb3.set_component(PVChoiceH(pvgroup->get_pv(tinb3.pv_name), tinb3.value.choices, tinb3.value.index));
+    pvgroup->set_monitor(tinb3.pv_name, tinb3.value);
+
+    cnct.pv_name = pvgroup->add("$(P)$(R).CNCT", args.macros);
+    cnct.set_component(PVDropdown(pvgroup->get_pv(cnct.pv_name), cnct.value.choices, cnct.value.index));
+    pvgroup->set_monitor(cnct.pv_name, cnct.value);
+
+    enbl.pv_name = pvgroup->add("$(P)$(R).ENBL", args.macros);
+    enbl.set_component(PVDropdown(pvgroup->get_pv(enbl.pv_name), enbl.value.choices, enbl.value.index));
+    pvgroup->set_monitor(enbl.pv_name, enbl.value);
+    
+    auct.pv_name = pvgroup->add("$(P)$(R).AUCT", args.macros);
+    auct.set_component(PVDropdown(pvgroup->get_pv(auct.pv_name), auct.value.choices, auct.value.index));
+    pvgroup->set_monitor(auct.pv_name, auct.value);
+
+    tfil.pv_name = pvgroup->add("$(P)$(R).TFIL", args.macros);
+    tfil.set_component(PVInput(pvgroup->get_pv(tfil.pv_name), tfil.value, PVPutType::String));
+    pvgroup->set_monitor(tfil.pv_name, tfil.value);
 }
 
 ftxui::Component AsynDisplay::get_container() {
 
     return ftxui::Container::Vertical({
-        tmot.component(),
+        ftxui::Container::Horizontal({
+            tmot.component(),
+            tmod.component(),
+        }),
         
         ftxui::Container::Horizontal({
             aout.component(),
@@ -169,15 +251,33 @@ ftxui::Component AsynDisplay::get_container() {
         }),
         ieos.component(),
 
-        tmsk.component(),
-        tb0.component(),
-        tb1.component(),
-        tb2.component(),
-        tb3.component(),
-        tb4.component(),
-        tb5.component(),
-    });
+        ftxui::Container::Horizontal({
+            cnct.component(),
+            enbl.component(),
+            auct.component()
+        }),
 
+        ftxui::Container::Horizontal({
+            ftxui::Container::Vertical({
+                tb0.component(),
+                tb1.component(),
+                tb2.component(),
+                tb3.component(),
+                tb4.component(),
+                tb5.component(),
+            }),
+            ftxui::Container::Vertical({
+                tib0.component(),
+                tib1.component(),
+                tib2.component(),
+                tinb0.component(),
+                tinb1.component(),
+                tinb2.component(),
+                tinb3.component(),
+            })
+        }),
+        tfil.component(),
+    });
 }
 
 ftxui::Element AsynDisplay::get_renderer() {
@@ -191,8 +291,11 @@ ftxui::Element AsynDisplay::get_renderer() {
         hbox({
             text("Timeout(sec): ") | color(Color::Black),
             tmot.component()->Render() | EPICSColor::EDIT | size(WIDTH, EQUAL, 6),
+            filler(),
+            text("Transfer: ") | color(Color::Black),
+            tmod.component()->Render() | EPICSColor::EDIT | size(WIDTH, LESS_THAN, 12),
         }),
-        separator() | color(Color::Black),
+        separator(),
         hbox({
             text("Out: ") | color(Color::Black),
             aout.component()->Render() | EPICSColor::EDIT | xflex,
@@ -210,11 +313,20 @@ ftxui::Element AsynDisplay::get_renderer() {
             separatorEmpty(),
             text(nord.value) | color(Color::Black) | size(WIDTH, EQUAL, 3),
         }),
-        separatorEmpty(),
+        separator(),
         hbox({
             text("Err: ") | color(Color::Black),
-            text(errs.value) | bgcolor(Color::RGB(220,220,220)) | xflex,
+            paragraph(errs.value) | bgcolor(Color::RGB(220,220,220)) | xflex,
         }),
+        separatorEmpty(),
+        hbox({
+            cnct.component()->Render() | EPICSColor::EDIT,
+            filler(),
+            enbl.component()->Render() | EPICSColor::EDIT,
+            filler(),
+            auct.component()->Render() | EPICSColor::EDIT
+        }),
+        separatorEmpty(),
         hbox({
             text("I/O Status: ") | color(Color::Black),
             text(stat.value.choice) | EPICSColor::READBACK,
@@ -223,56 +335,131 @@ ftxui::Element AsynDisplay::get_renderer() {
             text(sevr.value.choice) | EPICSColor::READBACK
         }),
 
-        separator() | color(Color::Black),
-        text("Trace Mask")
-            | bold
-            | underlined
-            | size(WIDTH, EQUAL, 8)
-            | color(Color::Black),
+        // separator() | color(Color::Black),
+        separator(),
 
+        // trace mask toggles
         hbox({
-            tb0.component()->Render()
-                | EPICSColor::EDIT
-                | size(WIDTH, EQUAL, 7),
-            separatorEmpty(),
-            text("traceError") | color(Color::Black)
-        }),
-        hbox({
-            tb1.component()->Render()
-                | EPICSColor::EDIT
-                | size(WIDTH, EQUAL, 7),
-            separatorEmpty(),
-            text("traceIODevice") | color(Color::Black)
-        }),
-        hbox({
-            tb2.component()->Render()
-                | EPICSColor::EDIT
-                | size(WIDTH, EQUAL, 7),
-            separatorEmpty(),
-            text("traceIOFilter") | color(Color::Black)
-        }),
-        hbox({
-            tb3.component()->Render()
-                | EPICSColor::EDIT
-                | size(WIDTH, EQUAL, 7),
-            separatorEmpty(),
-            text("traceIODriver") | color(Color::Black)
-        }),
-        hbox({
-            tb4.component()->Render()
-                | EPICSColor::EDIT
-                | size(WIDTH, EQUAL, 7),
-            separatorEmpty(),
-            text("traceFlow") | color(Color::Black)
-        }),
-        hbox({
-            tb5.component()->Render()
-                | EPICSColor::EDIT
-                | size(WIDTH, EQUAL, 7),
-            separatorEmpty(),
-            text("traceWarning") | color(Color::Black)
+            vbox({
+                text("traceMask")
+                    | bold
+                    | underlined
+                    | size(WIDTH, EQUAL, 7)
+                    | color(Color::Black),
+                hbox({
+                    tb0.component()->Render()
+                        | EPICSColor::EDIT
+                        | size(WIDTH, EQUAL, 7),
+                    separatorEmpty(),
+                    text("traceError") | color(Color::Black)
+                }),
+                hbox({
+                    tb1.component()->Render()
+                        | EPICSColor::EDIT
+                        | size(WIDTH, EQUAL, 7),
+                    separatorEmpty(),
+                    text("traceIODevice") | color(Color::Black)
+                }),
+                hbox({
+                    tb2.component()->Render()
+                        | EPICSColor::EDIT
+                        | size(WIDTH, EQUAL, 7),
+                    separatorEmpty(),
+                    text("traceIOFilter") | color(Color::Black)
+                }),
+                hbox({
+                    tb3.component()->Render()
+                        | EPICSColor::EDIT
+                        | size(WIDTH, EQUAL, 7),
+                    separatorEmpty(),
+                    text("traceIODriver") | color(Color::Black)
+                }),
+                hbox({
+                    tb4.component()->Render()
+                        | EPICSColor::EDIT
+                        | size(WIDTH, EQUAL, 7),
+                    separatorEmpty(),
+                    text("traceFlow") | color(Color::Black)
+                }),
+                hbox({
+                    tb5.component()->Render()
+                        | EPICSColor::EDIT
+                        | size(WIDTH, EQUAL, 7),
+                    separatorEmpty(),
+                    text("traceWarning") | color(Color::Black)
+                }),
+            }),
+            filler(),
+            vbox({
+                text("traceIOMask")
+                    | bold
+                    | underlined
+                    | size(WIDTH, EQUAL, 9)
+                    | color(Color::Black),
+                hbox({
+                    tib0.component()->Render()
+                        | EPICSColor::EDIT
+                        | size(WIDTH, EQUAL, 7),
+                    separatorEmpty(),
+                    text("traceIOASCII") | color(Color::Black)
+                }),
+                hbox({
+                    tib1.component()->Render()
+                        | EPICSColor::EDIT
+                        | size(WIDTH, EQUAL, 7),
+                    separatorEmpty(),
+                    text("traceIOEscape") | color(Color::Black)
+                }),
+                hbox({
+                    tib2.component()->Render()
+                        | EPICSColor::EDIT
+                        | size(WIDTH, EQUAL, 7),
+                    separatorEmpty(),
+                    text("traceIOHex") | color(Color::Black)
+                }),
+
+                separatorEmpty(),
+
+                text("traceInfoMask")
+                    | bold
+                    | underlined
+                    | size(WIDTH, EQUAL, 11)
+                    | color(Color::Black),
+                hbox({
+                    tinb0.component()->Render()
+                        | EPICSColor::EDIT
+                        | size(WIDTH, EQUAL, 7),
+                    separatorEmpty(),
+                    text("traceInfoTime") | color(Color::Black)
+                }),
+                hbox({
+                    tinb1.component()->Render()
+                        | EPICSColor::EDIT
+                        | size(WIDTH, EQUAL, 7),
+                    separatorEmpty(),
+                    text("traceInfoPort") | color(Color::Black)
+                }),
+                hbox({
+                    tinb2.component()->Render()
+                        | EPICSColor::EDIT
+                        | size(WIDTH, EQUAL, 7),
+                    separatorEmpty(),
+                    text("traceInfoSource") | color(Color::Black)
+                }),
+                hbox({
+                    tinb3.component()->Render()
+                        | EPICSColor::EDIT
+                        | size(WIDTH, EQUAL, 7),
+                    separatorEmpty(),
+                    text("traceInfoThread") | color(Color::Black)
+                }),
+            }),
         }),
         separatorEmpty(),
-        
-    }) | border | color(Color::Black) | size(WIDTH, EQUAL, 48) | center | EPICSColor::BACKGROUND;
+        hbox({
+            text("Trace file: ") | color(Color::Black),
+            tfil.component()->Render() | EPICSColor::EDIT,
+        }),
+        separatorEmpty(),
+    }) | border | color(Color::Black) | size(WIDTH, EQUAL, 52) | center | EPICSColor::BACKGROUND;
 }

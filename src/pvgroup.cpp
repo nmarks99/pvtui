@@ -5,13 +5,9 @@
 
 constexpr int DEFAULT_PRECISION = 4;
 
-std::string operator+(const PVAny& lhs, const std::string& rhs) {
-    return lhs.value + rhs;
-}
+std::string operator+(const PVAny &lhs, const std::string &rhs) { return lhs.value + rhs; }
 
-std::string operator+(const std::string& lhs, const PVAny& rhs) {
-    return lhs + rhs.value;
-}
+std::string operator+(const std::string &lhs, const PVAny &rhs) { return lhs + rhs.value; }
 
 void ConnectionMonitor::connectEvent(const pvac::ConnectEvent &event) {
     if (event.connected) {
@@ -57,6 +53,13 @@ void ProcessVariable::get_monitored_variable(const epics::pvData::PVStructure *p
                         if (auto val_field = pfield->getSubField<pvd::PVString>("value")) {
                             *ptr = val_field->getAs<std::string>();
                         }
+                    } else if (type_str == "byte[]") {
+                        pvd::shared_vector<const signed char> vals =
+                            pfield->getSubFieldT<pvd::PVByteArray>("value")->view();
+                        auto last_ind =
+                            std::find_if(vals.rbegin(), vals.rend(),
+                                         [](const signed char c) { return std::isalnum(static_cast<unsigned char>(c)); });
+                        *ptr = std::string(vals.begin(), last_ind.base());
                     } else {
                         std::ostringstream oss;
                         oss << std::fixed << std::setprecision(DEFAULT_PRECISION);
@@ -91,7 +94,8 @@ void ProcessVariable::get_monitored_variable(const epics::pvData::PVStructure *p
                 }
             } else if constexpr (std::is_same_v<PtrType, std::vector<int> *>) {
                 if (ptr) {
-                    pvd::shared_vector<const int> vals = pfield->getSubFieldT<pvd::PVIntArray>("value")->view();
+                    pvd::shared_vector<const int> vals =
+                        pfield->getSubFieldT<pvd::PVIntArray>("value")->view();
                     if (ptr->size() != vals.size()) {
                         ptr->resize(vals.size());
                     }
@@ -106,7 +110,7 @@ void ProcessVariable::get_monitored_variable(const epics::pvData::PVStructure *p
                     }
                     std::copy(vals.begin(), vals.end(), ptr->begin());
                 }
-            } else if constexpr (std::is_same_v<PtrType, PVAny*>) {
+            } else if constexpr (std::is_same_v<PtrType, PVAny *>) {
                 if (ptr) {
                     std::ostringstream oss;
                     oss << std::fixed << std::setprecision(ptr->prec);
@@ -147,7 +151,8 @@ bool ProcessVariable::update() {
     return new_data;
 }
 
-PVGroup::PVGroup(pvac::ClientProvider &provider, const std::vector<std::string> &pv_names) : provider_(provider) {
+PVGroup::PVGroup(pvac::ClientProvider &provider, const std::vector<std::string> &pv_names)
+    : provider_(provider) {
     for (const auto &name : pv_names) {
         this->add(name);
     }
@@ -155,14 +160,15 @@ PVGroup::PVGroup(pvac::ClientProvider &provider, const std::vector<std::string> 
 
 PVGroup::PVGroup(pvac::ClientProvider &provider) : provider_(provider) {}
 
-std::string fill_macros(const std::string &instr, const std::unordered_map<std::string,std::string> &macros_dict) {
+std::string fill_macros(const std::string &instr,
+                        const std::unordered_map<std::string, std::string> &macros_dict) {
     std::string out = instr;
     size_t ind = 0;
     for (auto &[k, v] : macros_dict) {
-	std::string pholder = "$(" + k + ")";
-	while ((ind = out.find(pholder)) != std::string::npos) {
-	    out.replace(ind, 4, v);
-	}
+        std::string pholder = "$(" + k + ")";
+        while ((ind = out.find(pholder)) != std::string::npos) {
+            out.replace(ind, 4, v);
+        }
     }
     return out;
 }
@@ -175,7 +181,8 @@ void PVGroup::add(const std::string &pv_name) {
     }
 }
 
-std::string PVGroup::add(const std::string &pv_name, const std::unordered_map<std::string, std::string> &macros_dict) {
+std::string PVGroup::add(const std::string &pv_name,
+                         const std::unordered_map<std::string, std::string> &macros_dict) {
     auto name = fill_macros(pv_name, macros_dict);
     this->add(name);
     return name;
@@ -188,9 +195,7 @@ ProcessVariable &PVGroup::get_pv(const std::string &pv_name) {
     return pv_map.at(pv_name);
 }
 
-ProcessVariable& PVGroup::operator[](const std::string &pv_name) {
-    return this->get_pv(pv_name);
-}
+ProcessVariable &PVGroup::operator[](const std::string &pv_name) { return this->get_pv(pv_name); }
 
 bool PVGroup::update() {
     bool new_data = false;
