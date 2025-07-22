@@ -123,6 +123,18 @@ target_link_libraries(pvtui_motor
 # ------------------------------------------------------------------------------
 
 # ------------------------------------------------------------------------------
+add_executable(pvtui_asyn apps/asyn.cpp src/pvgroup.cpp src/pvtui.cpp src/display_base.cpp)
+target_include_directories(pvtui_asyn PUBLIC src ${EPICS_BASE_INCLUDES})
+
+target_link_libraries(pvtui_asyn
+  PUBLIC ${EPICS_BASE_LIBRARIES}
+  PRIVATE ftxui::screen
+  PRIVATE ftxui::dom
+  PRIVATE ftxui::component
+)
+# ------------------------------------------------------------------------------
+
+# ------------------------------------------------------------------------------
 add_executable(pvtui_calcout apps/calcout.cpp src/pvtui.cpp src/pvgroup.cpp)
 target_include_directories(pvtui_calcout PUBLIC src ${EPICS_BASE_INCLUDES})
 

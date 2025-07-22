@@ -42,3 +42,11 @@ record(aao, "xxx:string_array") {
 
 record(calcout, "xxx:calcout1") {
 }
+
+record(asyn,"xxx:asyn1") {
+    field(DTYP,"asynRecordDevice")
+    field(PORT,"dummy")
+    field(ADDR,"0")
+    field(OMAX,"256")
+    field(IMAX,"256")
+}
