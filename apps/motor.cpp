@@ -18,7 +18,7 @@ using namespace pvtui;
 enum class MotorDisplayType {
     Small,
     Medium,
-    Setup,
+    All,
     Multi,
 };
 
@@ -38,8 +38,8 @@ int main(int argc, char *argv[]) {
         display_type = MotorDisplayType::Small;
     } else if (args.flag("medium")) {
         display_type = MotorDisplayType::Medium;
-    } else if (args.flag("setup")) {
-        display_type = MotorDisplayType::Setup;
+    } else if (args.flag("all")) {
+        display_type = MotorDisplayType::All;
     } else if (args.flag("multi")) {
         display_type = MotorDisplayType::Multi;
     }
@@ -101,8 +101,8 @@ int main(int argc, char *argv[]) {
         displays.emplace_back(std::make_unique<MediumMotorDisplay>(pvgroup, args));
         break;
 
-    case MotorDisplayType::Setup:
-        displays.emplace_back(std::make_unique<SetupMotorDisplay>(pvgroup, args));
+    case MotorDisplayType::All:
+        displays.emplace_back(std::make_unique<AllMotorDisplay>(pvgroup, args));
         break;
     }
 

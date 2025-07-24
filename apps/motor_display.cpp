@@ -2,6 +2,8 @@
 #include "ftxui/component/component.hpp"
 #include "pvtui.hpp"
 #include <ftxui/dom/elements.hpp>
+    
+ftxui::Decorator ColorDisabled = bgcolor(ftxui::Color::RGBA(80,10,4,230)) | color(ftxui::Color::Black);
 
 void SmallMotorDisplay::init() {
     using namespace pvtui;
@@ -64,7 +66,6 @@ ftxui::Component SmallMotorDisplay::get_container() {
 ftxui::Element SmallMotorDisplay::get_renderer() {
     using namespace ftxui;
     using namespace pvtui;
-    Decorator ColorDisabled = bgcolor(Color::RGBA(80,10,4,230)) | color(Color::Black);
     return ftxui::vbox({
 
 	desc.component()->Render() 
@@ -211,7 +212,6 @@ ftxui::Element MediumMotorDisplay::get_renderer() {
     using namespace ftxui;
     using namespace pvtui;
 
-    Decorator ColorDisabled = bgcolor(Color::RGBA(80,10,4,230)) | color(Color::Black);
     auto &desc_pv = pvgroup->get_pv(desc.pv_name);
     return ftxui::vbox({
 	(desc_pv.connected() ? text("") : text("Disconnected") | color(Color::Red)) | center,
@@ -305,7 +305,7 @@ ftxui::Element MediumMotorDisplay::get_renderer() {
 }
 
 
-void SetupMotorDisplay::init() {
+void AllMotorDisplay::init() {
 
     using namespace pvtui;
 
@@ -357,6 +357,9 @@ void SetupMotorDisplay::init() {
     connect_pv(spmg, args.replace("$(P)$(M).SPMG"), MonitorOn);
     spmg.set_component(PVChoiceV(pvgroup->get_pv(spmg.pv_name), spmg.value.choices, spmg.value.index));
     
+    connect_pv(foff, args.replace("$(P)$(M).FOFF"), MonitorOn);
+    foff.set_component(PVDropdown(pvgroup->get_pv(foff.pv_name), foff.value.choices, foff.value.index));
+    
     connect_pv(off, args.replace("$(P)$(M).OFF"), MonitorOn);
     off.set_component(PVInput(pvgroup->get_pv(off.pv_name), off.value, PVPutType::Double));
 
@@ -400,28 +403,49 @@ void SetupMotorDisplay::init() {
 
     connect_pv(twf, args.replace("$(P)$(M).TWF"), MonitorOff);
     twf.set_component(PVButton(pvgroup->get_pv(twf.pv_name), " > ", 1));
+
+    connect_pv(rlv, args.replace("$(P)$(M).RLV"), MonitorOn);
+    rlv.set_component(PVInput(pvgroup->get_pv(rlv.pv_name), rlv.value, PVPutType::Double));
+
+    connect_pv(egu, args.replace("$(P)$(M).EGU"), MonitorOn);
+    egu.set_component(PVInput(pvgroup->get_pv(egu.pv_name), egu.value, PVPutType::String));
+    
+    connect_pv(hls, args.replace("$(P)$(M).HLS"), MonitorOn);
+
+    connect_pv(lls, args.replace("$(P)$(M).LLS"), MonitorOn);
 }
 
-SetupMotorDisplay::SetupMotorDisplay(const std::shared_ptr<PVGroup> &pvgroup, const pvtui::ArgParser &args)
+AllMotorDisplay::AllMotorDisplay(const std::shared_ptr<PVGroup> &pvgroup, const pvtui::ArgParser &args)
     : DisplayBase(pvgroup), args(args) {
     this->init();
 }
 
-ftxui::Component SetupMotorDisplay::get_container() {
+ftxui::Component AllMotorDisplay::get_container() {
     using namespace ftxui;
     return Container::Vertical({
 	desc.component(),
 
-	hlm.component(),
-	dhlm.component(),
-	llm.component(),
-	dllm.component(),
-	val.component(),
-	dval.component(),
-	able.component(),
-	spmg.component(),
-	rval.component(),
-
+	Container::Horizontal({
+	    Container::Vertical({
+		hlm.component(),
+		val.component(),
+		llm.component(),
+		rlv.component(),
+	    }),
+	    Container::Vertical({
+		dhlm.component(),
+		dval.component(),
+		dllm.component(),
+	    }),
+	    rval.component(),
+	    able.component(),
+	    spmg.component(),
+	}),
+	Container::Horizontal({
+	    twr.component(),
+	    twv.component(),
+	    twf.component(),
+	}),
 	Container::Horizontal({
 	    Container::Vertical({
 		vmax.component(),
@@ -430,9 +454,11 @@ ftxui::Component SetupMotorDisplay::get_container() {
 		accl.component(),
 	    }),
 	    Container::Vertical({
+		foff.component(),
 		use_set.component(),
 		off.component(),
 		dir.component(),
+		egu.component(),
 	    })
 	}),
 	Container::Horizontal({
@@ -453,11 +479,12 @@ ftxui::Component SetupMotorDisplay::get_container() {
 
 }
 
-ftxui::Element SetupMotorDisplay::get_renderer() {
+ftxui::Element AllMotorDisplay::get_renderer() {
     using namespace ftxui;
     using namespace pvtui;
 
-    Decorator ColorDisabled = bgcolor(Color::RGBA(80,10,4,230)) | color(Color::Black);
+    // use DESC pv to check connection status
+    auto &conn_pv = pvgroup->get_pv(desc.pv_name);
 
     auto drive = vbox({
 	hbox({
@@ -465,8 +492,9 @@ ftxui::Element SetupMotorDisplay::get_renderer() {
 		separatorEmpty(), 	
 		text("Hi Limit: "),
 		text("Readback: "),
-		text("Move Abs: "),
+		text("Absolute: "),
 		text("Lo Limit: "),
+		text("Relative: "),
 	    }) | color(Color::Black),
 	    vbox({
 		text("User") | center | color(Color::Black),
@@ -482,6 +510,9 @@ ftxui::Element SetupMotorDisplay::get_renderer() {
 		    | (able.value.index==0 ? EPICSColor::EDIT : ColorDisabled)
 		    | size(WIDTH, EQUAL, 10),
 		llm.component()->Render()
+		    | EPICSColor::EDIT
+		    | size(WIDTH, EQUAL, 10),
+		rlv.component()->Render()
 		    | EPICSColor::EDIT
 		    | size(WIDTH, EQUAL, 10),
 	    }),
@@ -502,16 +533,22 @@ ftxui::Element SetupMotorDisplay::get_renderer() {
 		dllm.component()->Render()
 		    | EPICSColor::EDIT
 		    | size(WIDTH, EQUAL, 10),
+		filler() | size(WIDTH, EQUAL, 10),
 	    }),
 	    separatorEmpty(),
 	    vbox({
 		text("Raw") | center | color(Color::Black),
-		separatorEmpty(),
+		hls.value == 1 ? text(unicode::rectangle(2)) | color(Color::Red) : text(""),
 		text(rrbv.value) | EPICSColor::READBACK,
 		rval.component()->Render() | EPICSColor::EDIT | size(WIDTH, EQUAL, 6),
+		lls.value == 1 ? text(unicode::rectangle(2)) | color(Color::Red) : text(""),
 	    }),
 	    separatorEmpty(),
 	    vbox({
+		dmov.value==0 ? text("Moving")
+		    | color(Color::Green)
+		    | bgcolor(Color::Black)
+		    | bold | italic : text(""),
 		filler(),
 		able.component()->Render() | EPICSColor::EDIT | size(WIDTH, EQUAL, 7)
 	    }),
@@ -522,7 +559,7 @@ ftxui::Element SetupMotorDisplay::get_renderer() {
 	    }),
 	}),
 	hbox({
-	    filler() | size(WIDTH, EQUAL, 4),
+	    text("Twk:") | color(Color::Black),
 	    twr.component()->Render() | color(Color::Black),
 	    separatorEmpty(),
 	    twv.component()->Render() | EPICSColor::EDIT | size(WIDTH, EQUAL, 10),
@@ -561,6 +598,8 @@ ftxui::Element SetupMotorDisplay::get_renderer() {
 	hbox({
 	    text("Off: ") | color(Color::Black),
 	    off.component()->Render() | EPICSColor::EDIT | size(WIDTH, GREATER_THAN, 7),
+	    separatorEmpty(),
+	    foff.component()->Render() | EPICSColor::EDIT | size(WIDTH, GREATER_THAN, 7),
 	}),
 	hbox({
 	    text("Cal: ") | color(Color::Black),
@@ -570,7 +609,10 @@ ftxui::Element SetupMotorDisplay::get_renderer() {
 	    text("Dir: ") | color(Color::Black),
 	    dir.component()->Render() | EPICSColor::EDIT | size(WIDTH, EQUAL, 7),
 	}),
-	separatorEmpty()
+	hbox({
+	    text("EGU: ") | color(Color::Black),
+	    egu.component()->Render() | EPICSColor::EDIT | size(WIDTH, EQUAL, 7),
+	}),
     }) | size(WIDTH, EQUAL, 26);
 
     auto res_left = vbox({
@@ -612,8 +654,17 @@ ftxui::Element SetupMotorDisplay::get_renderer() {
 	}),
     }) | size(WIDTH, EQUAL, 26) | color(Color::Black);
 
+    auto title = hbox({
+	desc.component()->Render() | EPICSColor::EDIT | size(WIDTH, EQUAL, 26),
+	filler(),
+	text("(" + args.macros.at("P") + args.macros.at("M") + ")")
+	    | color(Color::Black)
+	    | bold
+	    | xflex,
+    });
+
     return vbox({
-	desc.component()->Render() | EPICSColor::EDIT | size(WIDTH, GREATER_THAN, 5),
+	title,
 	separator() | color(Color::Black),
 	drive,
 	separator() | color(Color::Black),
@@ -628,5 +679,7 @@ ftxui::Element SetupMotorDisplay::get_renderer() {
 	    separator() | color(Color::Black),
 	    res_right
 	}),
+	separatorEmpty(),
+	!conn_pv.connected() ? text("Disconnected") | color(Color::Red) | bold | center : text(""),
     }) | size(WIDTH, EQUAL, 52);
 }

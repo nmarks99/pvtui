@@ -73,10 +73,10 @@ class MediumMotorDisplay : public DisplayBase {
     const pvtui::ArgParser &args;
 };
 
-class SetupMotorDisplay : public DisplayBase {
+class AllMotorDisplay : public DisplayBase {
   public:
-    SetupMotorDisplay(const std::shared_ptr<PVGroup> &pvgroup, const pvtui::ArgParser &args);
-    ~SetupMotorDisplay() override = default;
+    AllMotorDisplay(const std::shared_ptr<PVGroup> &pvgroup, const pvtui::ArgParser &args);
+    ~AllMotorDisplay() override = default;
     ftxui::Element get_renderer() override;
     ftxui::Component get_container() override;
 
@@ -115,6 +115,10 @@ class SetupMotorDisplay : public DisplayBase {
     PVWidget<std::string> twv;
     PVWidget<NoValue> twf;
     PVWidget<NoValue> twr;
+    PVWidget<std::string> rlv;
+    PVWidget<int> hls;
+    PVWidget<int> lls;
+    PVWidget<std::string> egu;
 
     // initializes the above PVWidgets
     void init();
