@@ -94,29 +94,71 @@ int main(int argc, char *argv[]) {
         break;
 
     case MotorDisplayType::Small:
-        displays.emplace_back(std::make_unique<SmallMotorDisplay>(pvgroup, args));
+        // displays.emplace_back(std::make_unique<SmallMotorDisplay>(pvgroup, args));
         break;
 
     case MotorDisplayType::Medium:
-        displays.emplace_back(std::make_unique<MediumMotorDisplay>(pvgroup, args));
+        // displays.emplace_back(std::make_unique<MediumMotorDisplay>(pvgroup, args));
         break;
 
     case MotorDisplayType::All:
-        displays.emplace_back(std::make_unique<AllMotorDisplay>(pvgroup, args));
+        // displays.emplace_back(std::make_unique<AllMotorDisplay>(pvgroup, args));
         break;
     }
 
-    auto main_container = ftxui::Container::Horizontal({});
-    for (auto &d : displays) {
-        main_container->Add(d->get_container());
-    }
+    displays.emplace_back(std::make_unique<SmallMotorDisplay>(pvgroup, args));
+    displays.emplace_back(std::make_unique<MediumMotorDisplay>(pvgroup, args));
+    displays.emplace_back(std::make_unique<AllMotorDisplay>(pvgroup, args));
+
+    int selected = 0;
+    std::vector<std::string> labels = {"Small", "Medium", "All"};
+    auto dropdown_op = ftxui::DropdownOption({
+        .radiobox = {
+            .entries = &labels,
+            .selected = &selected
+        },
+        .transform =
+            [](bool open, ftxui::Element checkbox, ftxui::Element radiobox) {
+                if (open) {
+                    return ftxui::vbox({
+                        checkbox | inverted,
+                        radiobox | vscroll_indicator | frame | size(HEIGHT, LESS_THAN, 10),
+                        filler(),
+                    });
+                }
+                return vbox({
+                    checkbox,
+                    filler(),
+                });
+            },
+
+    });
+
+    auto view_select = ftxui::Dropdown(dropdown_op);
+
+    auto main_container = ftxui::Container::Vertical({
+        ftxui::Container::Tab({
+            {
+                displays.at(0)->get_container(),
+                displays.at(1)->get_container(),
+                displays.at(2)->get_container(),
+            }
+        }, &selected),
+        view_select
+    });
 
     auto main_renderer = ftxui::Renderer(main_container, [&] {
         Elements elements_vec;
-        for (auto &d : displays) {
-            elements_vec.push_back(d->get_renderer());
-        }
-        return hbox({elements_vec}) | center | pvtui::EPICSColor::BACKGROUND;
+        elements_vec.push_back(displays.at(selected)->get_renderer());
+        elements_vec.push_back(
+            view_select->Render()
+                | color(Color::White)
+                | bgcolor(Color::DarkGreen)
+                | size(WIDTH, EQUAL, 6)
+        );
+        return vbox({
+            elements_vec,
+        }) | center | pvtui::EPICSColor::BACKGROUND;
     });
 
     constexpr int POLL_PERIOD_MS = 100;
