@@ -108,15 +108,15 @@ struct ProcessVariable {
     bool update();
 
     /**
-     * @brief Sets the variable to monitor for PV updates.
+     * @brief Adds the variable to list of variables which are updated by monitor
      * @tparam T Type of the variable.
      * @param var Reference to the variable to be updated.
      */
-    template <typename T> void set_monitor(T &var) { monitor_var_ptr_ = &var; }
+    template <typename T> void set_monitor(T &var) { monitor_var_ptrs_.push_back(&var); }
 
   private:
     pvac::MonitorSync monitor_;                             ///< PVA data monitor.
-    MonitorPtr monitor_var_ptr_;                            ///< Pointer to the user's variable.
+    std::vector<MonitorPtr> monitor_var_ptrs_;              ///< Pointers to the user's variable.
     std::unique_ptr<ConnectionMonitor> connection_monitor_; ///< Monitors connection status.
 
     /**
