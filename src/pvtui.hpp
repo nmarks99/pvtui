@@ -109,7 +109,7 @@ ftxui::Component PVDropdown(ProcessVariable &pv, const std::vector<std::string> 
  *
  * Handles macro definitions similar to MEDM, and any additional flags
  */
-struct ArgParser {
+class ArgParser {
   public:
     /**
      * @brief Constructs an ArgParser from command-line arguments.
@@ -139,6 +139,13 @@ struct ArgParser {
      * @return True if the flag is present, false otherwise.
      */
     bool flag(const std::string &f) const;
+
+    /**
+     * @brief Replaces macros in the given string and returns the result.
+     * @param str A string with macros like $(P), $(R), etc.
+     * @return A string with the macros replaced by the values in the macros dict
+     */
+    std::string replace(const std::string &str) const;
 
     std::unordered_map<std::string, std::string> macros; ///< Parsed macros (e.g., "P=VAL").
     std::string provider = "ca";                         ///< The EPICS provider type (e.g., "ca", "pva").

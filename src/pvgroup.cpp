@@ -57,8 +57,9 @@ void ProcessVariable::get_monitored_variable(const epics::pvData::PVStructure *p
                         pvd::shared_vector<const signed char> vals =
                             pfield->getSubFieldT<pvd::PVByteArray>("value")->view();
                         auto last_ind =
-                            std::find_if(vals.rbegin(), vals.rend(),
-                                         [](const signed char c) { return std::isalnum(static_cast<unsigned char>(c)); });
+                            std::find_if(vals.rbegin(), vals.rend(), [](const signed char c) {
+                                return std::isalnum(static_cast<unsigned char>(c));
+                            });
                         *ptr = std::string(vals.begin(), last_ind.base());
                     } else {
                         std::ostringstream oss;
@@ -160,32 +161,12 @@ PVGroup::PVGroup(pvac::ClientProvider &provider, const std::vector<std::string> 
 
 PVGroup::PVGroup(pvac::ClientProvider &provider) : provider_(provider) {}
 
-std::string fill_macros(const std::string &instr,
-                        const std::unordered_map<std::string, std::string> &macros_dict) {
-    std::string out = instr;
-    size_t ind = 0;
-    for (auto &[k, v] : macros_dict) {
-        std::string pholder = "$(" + k + ")";
-        while ((ind = out.find(pholder)) != std::string::npos) {
-            out.replace(ind, 4, v);
-        }
-    }
-    return out;
-}
-
 void PVGroup::add(const std::string &pv_name) {
     if (pv_map.count(pv_name)) {
         throw std::runtime_error("PV " + pv_name + " already registered in PVGroup");
     } else {
         pv_map.emplace(pv_name, ProcessVariable(provider_, pv_name));
     }
-}
-
-std::string PVGroup::add(const std::string &pv_name,
-                         const std::unordered_map<std::string, std::string> &macros_dict) {
-    auto name = fill_macros(pv_name, macros_dict);
-    this->add(name);
-    return name;
 }
 
 ProcessVariable &PVGroup::get_pv(const std::string &pv_name) {

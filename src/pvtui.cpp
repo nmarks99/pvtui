@@ -151,6 +151,18 @@ bool ArgParser::macros_present(const std::vector<std::string> &macro_list) const
     return true;
 };
 
+std::string ArgParser::replace(const std::string &str) const {
+    std::string out = str;
+    size_t ind = 0;
+    for (auto &[k, v] : this->macros) {
+        std::string pholder = "$(" + k + ")";
+        while ((ind = out.find(pholder)) != std::string::npos) {
+            out.replace(ind, 4, v);
+        }
+    }
+    return out;
+}
+
 bool ArgParser::flag(const std::string &f) const { return cmdl_[f]; }
 
 std::vector<std::string> ArgParser::split_string(const std::string &input, char delimiter) {

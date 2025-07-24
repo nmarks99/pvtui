@@ -79,162 +79,89 @@ class AsynDisplay : public DisplayBase {
 };
 
 
-int main(int argc, char *argv[]) {
-
-    // Parse command line arguments and macros
-    pvtui::ArgParser args(argc, argv);
-
-    if (args.flag("help") or args.flag("h")) {
-	std::cout << CLI_HELP_MSG << std::endl;
-	return EXIT_SUCCESS;
-    }
-
-    if (not args.macros_present({"P", "R"})) {
-        printf("Missing required macro P, R\n");
-        return EXIT_FAILURE;
-    }
-
-    // Create the FTXUI screen. Interactive and uses the full terminal screen
-    auto screen = ScreenInteractive::Fullscreen();
-
-    // Instantiate EPICS PVA client and CAClientFactory to see CA only PVs
-    epics::pvAccess::ca::CAClientFactory::start();
-    pvac::ClientProvider provider(args.provider);
-
-    // shared_ptr to PVGroup to manage all PVs for displays
-    std::shared_ptr<PVGroup> pvgroup = std::make_shared<PVGroup>(provider);
-
-    AsynDisplay display(pvgroup, args);
-
-    auto main_container = display.get_container();
-    auto main_renderer = ftxui::Renderer(main_container, [&] {
-        return display.get_renderer();
-    });
-
-    constexpr int POLL_PERIOD_MS = 100;
-    Loop loop(&screen, main_renderer);
-    while (!loop.HasQuitted()) {
-        if (display.pv_update()) {
-            screen.PostEvent(Event::Custom);
-        }
-        loop.RunOnce();
-        std::this_thread::sleep_for(std::chrono::milliseconds(POLL_PERIOD_MS));
-    }
-}
-
-
 AsynDisplay::AsynDisplay(const std::shared_ptr<PVGroup> &pvgroup, const pvtui::ArgParser &args)
     : DisplayBase(pvgroup), args(args) {
 
-    aout.pv_name = pvgroup->add("$(P)$(R).AOUT", args.macros);
+    connect_pv(aout, args.replace("$(P)$(R).AOUT"), MonitorOn);
     aout.set_component(PVInput(pvgroup->get_pv(aout.pv_name), aout.value, PVPutType::String));
-    pvgroup->set_monitor(aout.pv_name, aout.value);
 
-    oeos.pv_name = pvgroup->add("$(P)$(R).OEOS", args.macros);
+    connect_pv(oeos, args.replace("$(P)$(R).OEOS"), MonitorOn);
     oeos.set_component(PVInput(pvgroup->get_pv(oeos.pv_name), oeos.value, PVPutType::String));
-    pvgroup->set_monitor(oeos.pv_name, oeos.value);
     
-    ieos.pv_name = pvgroup->add("$(P)$(R).IEOS", args.macros);
+    connect_pv(ieos, args.replace("$(P)$(R).IEOS"), MonitorOn);
     ieos.set_component(PVInput(pvgroup->get_pv(ieos.pv_name), ieos.value, PVPutType::String));
-    pvgroup->set_monitor(ieos.pv_name, ieos.value);
 
-    tinp.pv_name = pvgroup->add("$(P)$(R).TINP", args.macros);
-    pvgroup->set_monitor(tinp.pv_name, tinp.value);
+    connect_pv(tinp, args.replace("$(P)$(R).TINP"), MonitorOn);
 
-    nawt.pv_name = pvgroup->add("$(P)$(R).NAWT", args.macros);
-    pvgroup->set_monitor(nawt.pv_name, nawt.value);
-    
-    nord.pv_name = pvgroup->add("$(P)$(R).NORD", args.macros);
-    pvgroup->set_monitor(nord.pv_name, nord.value);
-    
-    tmot.pv_name = pvgroup->add("$(P)$(R).TMOT", args.macros);
+    connect_pv(nawt, args.replace("$(P)$(R).NAWT"), MonitorOn);
+
+    connect_pv(nord, args.replace("$(P)$(R).NORD"), MonitorOn);
+   
+    connect_pv(tmot, args.replace("$(P)$(R).TMOT"), MonitorOn);
     tmot.set_component(PVInput(pvgroup->get_pv(tmot.pv_name), tmot.value, PVPutType::String));
-    pvgroup->set_monitor(tmot.pv_name, tmot.value);
 
-    tmod.pv_name = pvgroup->add("$(P)$(R).TMOD", args.macros);
+    connect_pv(tmod, args.replace("$(P)$(R).TMOD"), MonitorOn);
     tmod.set_component(PVDropdown(pvgroup->get_pv(tmod.pv_name), tmod.value.choices, tmod.value.index));
-    pvgroup->set_monitor(tmod.pv_name, tmod.value);
 
-    tmsk.pv_name = pvgroup->add("$(P)$(R).TMSK", args.macros);
+    connect_pv(tmsk, args.replace("$(P)$(R).TMSK"), MonitorOn);
     tmsk.set_component(PVInput(pvgroup->get_pv(tmsk.pv_name), tmsk.value, PVPutType::String));
-    pvgroup->set_monitor(tmsk.pv_name, tmsk.value);
 
-    tb0.pv_name = pvgroup->add("$(P)$(R).TB0", args.macros);
+    connect_pv(tb0, args.replace("$(P)$(R).TB0"), MonitorOn);
     tb0.set_component(PVChoiceH(pvgroup->get_pv(tb0.pv_name), tb0.value.choices, tb0.value.index));
-    pvgroup->set_monitor(tb0.pv_name, tb0.value);
 
-    tb1.pv_name = pvgroup->add("$(P)$(R).TB1", args.macros);
+    connect_pv(tb1, args.replace("$(P)$(R).TB1"), MonitorOn);
     tb1.set_component(PVChoiceH(pvgroup->get_pv(tb1.pv_name), tb1.value.choices, tb1.value.index));
-    pvgroup->set_monitor(tb1.pv_name, tb1.value);
-    
-    tb2.pv_name = pvgroup->add("$(P)$(R).TB2", args.macros);
+
+    connect_pv(tb2, args.replace("$(P)$(R).TB2"), MonitorOn);
     tb2.set_component(PVChoiceH(pvgroup->get_pv(tb2.pv_name), tb2.value.choices, tb2.value.index));
-    pvgroup->set_monitor(tb2.pv_name, tb2.value);
-    
-    tb3.pv_name = pvgroup->add("$(P)$(R).TB3", args.macros);
+
+    connect_pv(tb3, args.replace("$(P)$(R).TB3"), MonitorOn);
     tb3.set_component(PVChoiceH(pvgroup->get_pv(tb3.pv_name), tb3.value.choices, tb3.value.index));
-    pvgroup->set_monitor(tb3.pv_name, tb3.value);
-    
-    tb4.pv_name = pvgroup->add("$(P)$(R).TB4", args.macros);
+
+    connect_pv(tb4, args.replace("$(P)$(R).TB4"), MonitorOn);
     tb4.set_component(PVChoiceH(pvgroup->get_pv(tb4.pv_name), tb4.value.choices, tb4.value.index));
-    pvgroup->set_monitor(tb4.pv_name, tb4.value);
-    
-    tb5.pv_name = pvgroup->add("$(P)$(R).TB5", args.macros);
+
+    connect_pv(tb5, args.replace("$(P)$(R).TB5"), MonitorOn);
     tb5.set_component(PVChoiceH(pvgroup->get_pv(tb5.pv_name), tb5.value.choices, tb5.value.index));
-    pvgroup->set_monitor(tb5.pv_name, tb5.value);
 
-    stat.pv_name = pvgroup->add("$(P)$(R).STAT", args.macros);
-    pvgroup->set_monitor(stat.pv_name, stat.value);
+    connect_pv(stat, args.replace("$(P)$(R).STAT"), MonitorOn);
 
-    sevr.pv_name = pvgroup->add("$(P)$(R).SEVR", args.macros);
-    pvgroup->set_monitor(sevr.pv_name, sevr.value);
+    connect_pv(sevr, args.replace("$(P)$(R).SEVR"), MonitorOn);
 
-    errs.pv_name = pvgroup->add("$(P)$(R).ERRS", args.macros);
-    pvgroup->set_monitor(errs.pv_name, errs.value);
+    connect_pv(errs, args.replace("$(P)$(R).ERRS"), MonitorOn);
 
-    tib0.pv_name = pvgroup->add("$(P)$(R).TIB0", args.macros);
+    connect_pv(tib0, args.replace("$(P)$(R).TIB0"), MonitorOn);
     tib0.set_component(PVChoiceH(pvgroup->get_pv(tib0.pv_name), tib0.value.choices, tib0.value.index));
-    pvgroup->set_monitor(tib0.pv_name, tib0.value);
 
-    tib1.pv_name = pvgroup->add("$(P)$(R).TIB1", args.macros);
+    connect_pv(tib1, args.replace("$(P)$(R).TIB1"), MonitorOn);
     tib1.set_component(PVChoiceH(pvgroup->get_pv(tib1.pv_name), tib1.value.choices, tib1.value.index));
-    pvgroup->set_monitor(tib1.pv_name, tib1.value);
 
-    tib2.pv_name = pvgroup->add("$(P)$(R).TIB2", args.macros);
+    connect_pv(tib2, args.replace("$(P)$(R).TIB2"), MonitorOn);
     tib2.set_component(PVChoiceH(pvgroup->get_pv(tib2.pv_name), tib2.value.choices, tib2.value.index));
-    pvgroup->set_monitor(tib2.pv_name, tib2.value);
-    
-    tinb0.pv_name = pvgroup->add("$(P)$(R).TINB0", args.macros);
+
+    connect_pv(tinb0, args.replace("$(P)$(R).TINB0"), MonitorOn);
     tinb0.set_component(PVChoiceH(pvgroup->get_pv(tinb0.pv_name), tinb0.value.choices, tinb0.value.index));
-    pvgroup->set_monitor(tinb0.pv_name, tinb0.value);
 
-    tinb1.pv_name = pvgroup->add("$(P)$(R).TINB1", args.macros);
+    connect_pv(tinb1, args.replace("$(P)$(R).TINB1"), MonitorOn);
     tinb1.set_component(PVChoiceH(pvgroup->get_pv(tinb1.pv_name), tinb1.value.choices, tinb1.value.index));
-    pvgroup->set_monitor(tinb1.pv_name, tinb1.value);
 
-    tinb2.pv_name = pvgroup->add("$(P)$(R).TINB2", args.macros);
+    connect_pv(tinb2, args.replace("$(P)$(R).TINB2"), MonitorOn);
     tinb2.set_component(PVChoiceH(pvgroup->get_pv(tinb2.pv_name), tinb2.value.choices, tinb2.value.index));
-    pvgroup->set_monitor(tinb2.pv_name, tinb2.value);
-    
-    tinb3.pv_name = pvgroup->add("$(P)$(R).TINB3", args.macros);
+
+    connect_pv(tinb3, args.replace("$(P)$(R).TINB3"), MonitorOn);
     tinb3.set_component(PVChoiceH(pvgroup->get_pv(tinb3.pv_name), tinb3.value.choices, tinb3.value.index));
-    pvgroup->set_monitor(tinb3.pv_name, tinb3.value);
 
-    cnct.pv_name = pvgroup->add("$(P)$(R).CNCT", args.macros);
+    connect_pv(cnct, args.replace("$(P)$(R).CNCT"), MonitorOn);
     cnct.set_component(PVDropdown(pvgroup->get_pv(cnct.pv_name), cnct.value.choices, cnct.value.index));
-    pvgroup->set_monitor(cnct.pv_name, cnct.value);
 
-    enbl.pv_name = pvgroup->add("$(P)$(R).ENBL", args.macros);
+    connect_pv(enbl, args.replace("$(P)$(R).ENBL"), MonitorOn);
     enbl.set_component(PVDropdown(pvgroup->get_pv(enbl.pv_name), enbl.value.choices, enbl.value.index));
-    pvgroup->set_monitor(enbl.pv_name, enbl.value);
-    
-    auct.pv_name = pvgroup->add("$(P)$(R).AUCT", args.macros);
-    auct.set_component(PVDropdown(pvgroup->get_pv(auct.pv_name), auct.value.choices, auct.value.index));
-    pvgroup->set_monitor(auct.pv_name, auct.value);
 
-    tfil.pv_name = pvgroup->add("$(P)$(R).TFIL", args.macros);
+    connect_pv(auct, args.replace("$(P)$(R).AUCT"), MonitorOn);
+    auct.set_component(PVDropdown(pvgroup->get_pv(auct.pv_name), auct.value.choices, auct.value.index));
+
+    connect_pv(tfil, args.replace("$(P)$(R).TFIL"), MonitorOn);
     tfil.set_component(PVInput(pvgroup->get_pv(tfil.pv_name), tfil.value, PVPutType::String));
-    pvgroup->set_monitor(tfil.pv_name, tfil.value);
 }
 
 ftxui::Component AsynDisplay::get_container() {
@@ -462,4 +389,50 @@ ftxui::Element AsynDisplay::get_renderer() {
         }),
         separatorEmpty(),
     }) | border | color(Color::Black) | size(WIDTH, EQUAL, 52) | center | EPICSColor::BACKGROUND;
+}
+
+
+
+int main(int argc, char *argv[]) {
+
+    // Parse command line arguments and macros
+    pvtui::ArgParser args(argc, argv);
+
+    if (args.flag("help") or args.flag("h")) {
+	std::cout << CLI_HELP_MSG << std::endl;
+	return EXIT_SUCCESS;
+    }
+
+    if (not args.macros_present({"P", "R"})) {
+        printf("Missing required macro P, R\n");
+        return EXIT_FAILURE;
+    }
+
+    // Create the FTXUI screen. Interactive and uses the full terminal screen
+    auto screen = ScreenInteractive::Fullscreen();
+
+    // Instantiate EPICS PVA client
+    // Start CAClientFactory so we can see CA only PVs
+    epics::pvAccess::ca::CAClientFactory::start();
+    pvac::ClientProvider provider(args.provider);
+
+    // shared_ptr to PVGroup to manage all PVs for displays
+    std::shared_ptr<PVGroup> pvgroup = std::make_shared<PVGroup>(provider);
+
+    AsynDisplay display(pvgroup, args);
+
+    auto main_container = display.get_container();
+    auto main_renderer = ftxui::Renderer(main_container, [&] {
+        return display.get_renderer();
+    });
+
+    constexpr int POLL_PERIOD_MS = 100;
+    Loop loop(&screen, main_renderer);
+    while (!loop.HasQuitted()) {
+        if (display.pv_update()) {
+            screen.PostEvent(Event::Custom);
+        }
+        loop.RunOnce();
+        std::this_thread::sleep_for(std::chrono::milliseconds(POLL_PERIOD_MS));
+    }
 }

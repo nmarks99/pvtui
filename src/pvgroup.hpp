@@ -145,16 +145,6 @@ struct PVGroup {
     PVGroup(pvac::ClientProvider &provider);
 
     /**
-     * @brief Adds a new PV to the group with macro substitutions.
-     * @param pv_name Base name of the PV.
-     * @param macros_dict Map of macro names to substitution values.
-     * @return The fully resolved PV name.
-     * @throw std::runtime_error If resolved PV name already exists.
-     */
-    std::string add(const std::string &pv_name,
-                    const std::unordered_map<std::string, std::string> &macros_dict);
-
-    /**
      * @brief Adds a new PV to the group without macro substitutions.
      * @param pv_name Name of the PV.
      * @throw std::runtime_error If PV name already exists.
