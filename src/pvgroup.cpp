@@ -162,11 +162,14 @@ PVGroup::PVGroup(pvac::ClientProvider &provider, const std::vector<std::string> 
 PVGroup::PVGroup(pvac::ClientProvider &provider) : provider_(provider) {}
 
 void PVGroup::add(const std::string &pv_name) {
-    if (pv_map.count(pv_name)) {
-        throw std::runtime_error("PV " + pv_name + " already registered in PVGroup");
-    } else {
+    if (!pv_map.count(pv_name)) {
         pv_map.emplace(pv_name, ProcessVariable(provider_, pv_name));
     }
+    // if (pv_map.count(pv_name)) {
+        // throw std::runtime_error("PV " + pv_name + " already registered in PVGroup");
+    // } else {
+        // pv_map.emplace(pv_name, ProcessVariable(provider_, pv_name));
+    // }
 }
 
 ProcessVariable &PVGroup::get_pv(const std::string &pv_name) {

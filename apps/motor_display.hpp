@@ -72,3 +72,53 @@ class MediumMotorDisplay : public DisplayBase {
     // Store macro arguments
     const pvtui::ArgParser &args;
 };
+
+class SetupMotorDisplay : public DisplayBase {
+  public:
+    SetupMotorDisplay(const std::shared_ptr<PVGroup> &pvgroup, const pvtui::ArgParser &args);
+    ~SetupMotorDisplay() override = default;
+    ftxui::Element get_renderer() override;
+    ftxui::Component get_container() override;
+
+  private:
+    // Create a PVWidget for each PV aware FTXUI component
+    PVWidget<std::string> desc;
+    PVWidget<std::string> vmax;
+    PVWidget<std::string> velo;
+    PVWidget<std::string> vbas;
+    PVWidget<std::string> accl;
+    PVWidget<std::string> mres;
+    PVWidget<std::string> eres;
+    PVWidget<std::string> rres;
+    PVWidget<std::string> rtry;
+    PVWidget<PVEnum> ueip;
+    PVWidget<PVEnum> urip;
+    PVWidget<PVEnum> use_set;
+    PVWidget<std::string> off;
+    PVWidget<PVEnum> dir;
+    PVWidget<PVEnum> foff;
+    PVWidget<std::string> prec;
+    PVWidget<PVEnum> cnen;
+    PVWidget<std::string> rbv;
+    PVWidget<std::string> drbv;
+    PVWidget<std::string> val;
+    PVWidget<std::string> dval;
+    PVWidget<std::string> hlm;
+    PVWidget<std::string> llm;
+    PVWidget<std::string> dhlm;
+    PVWidget<std::string> dllm;
+    PVWidget<int> dmov;
+    PVWidget<PVEnum> able;
+    PVWidget<PVEnum> spmg;
+    PVWidget<std::string> rval;
+    PVWidget<std::string> rrbv;
+    PVWidget<std::string> twv;
+    PVWidget<NoValue> twf;
+    PVWidget<NoValue> twr;
+
+    // initializes the above PVWidgets
+    void init();
+
+    // Store macro arguments
+    const pvtui::ArgParser &args;
+};

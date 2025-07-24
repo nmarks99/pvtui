@@ -67,7 +67,7 @@ int main(int argc, char *argv[]) {
     std::shared_ptr<PVGroup> pvgroup = std::make_shared<PVGroup>(provider);
 
     // multi display creates a SmallMotorDisplay for each Mn macro where n is an integer.
-    // The resulting screen is similar to motornx.adl
+    // The resulting screen is similar to motorNx.adl
     std::vector<int> motor_num_vec;
     std::vector<ArgParser> args_vec;
     switch (display_type) {
@@ -102,8 +102,7 @@ int main(int argc, char *argv[]) {
         break;
 
     case MotorDisplayType::Setup:
-        std::cout << "Setup not implemented" << std::endl;
-        return EXIT_FAILURE;
+        displays.emplace_back(std::make_unique<SetupMotorDisplay>(pvgroup, args));
         break;
     }
 
