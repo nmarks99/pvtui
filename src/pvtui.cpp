@@ -19,7 +19,7 @@ std::string rectangle(int len) {
 
 } // namespace unicode
 
-ftxui::Component PVButton(ProcessVariable &pv, const std::string &label, int value) {
+ftxui::Component PVButton(PVHandler &pv, const std::string &label, int value) {
     auto op = ftxui::ButtonOption::Ascii();
     op.label = label;
     op.on_click = [&pv, value]() {
@@ -30,7 +30,7 @@ ftxui::Component PVButton(ProcessVariable &pv, const std::string &label, int val
     return ftxui::Button(op);
 };
 
-ftxui::Component PVInput(ProcessVariable &pv, std::string &disp_str, PVPutType put_type, InputTransform tf) {
+ftxui::Component PVInput(PVHandler &pv, std::string &disp_str, PVPutType put_type, InputTransform tf) {
 
     auto default_input_transform = [](ftxui::InputState s) {
         s.element |= ftxui::color(ftxui::Color::Black);
@@ -67,7 +67,7 @@ ftxui::Component PVInput(ProcessVariable &pv, std::string &disp_str, PVPutType p
     }));
 }
 
-ftxui::Component PVChoiceH(ProcessVariable &pv, const std::vector<std::string> &labels, int &selected) {
+ftxui::Component PVChoiceH(PVHandler &pv, const std::vector<std::string> &labels, int &selected) {
     ftxui::MenuOption op = ftxui::MenuOption::Toggle();
     op.entries = &labels;
     op.selected = &selected;
@@ -79,7 +79,7 @@ ftxui::Component PVChoiceH(ProcessVariable &pv, const std::vector<std::string> &
     return ftxui::Menu(op);
 }
 
-ftxui::Component PVChoiceV(ProcessVariable &pv, const std::vector<std::string> &labels, int &selected) {
+ftxui::Component PVChoiceV(PVHandler &pv, const std::vector<std::string> &labels, int &selected) {
     ftxui::MenuOption op = ftxui::MenuOption::Vertical();
     op.entries = &labels;
     op.selected = &selected;
@@ -104,7 +104,7 @@ ftxui::Component PVChoiceV(ProcessVariable &pv, const std::vector<std::string> &
     return ftxui::Menu(op);
 }
 
-ftxui::Component PVDropdown(ProcessVariable &pv, const std::vector<std::string> &labels, int &selected) {
+ftxui::Component PVDropdown(PVHandler &pv, const std::vector<std::string> &labels, int &selected) {
     using namespace ftxui;
     auto dropdown_op = ftxui::DropdownOption({
         .radiobox = {.entries = &labels,

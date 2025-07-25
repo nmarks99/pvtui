@@ -47,12 +47,12 @@ static const Decorator LINK = bgcolor(Color::RGB(148, 148, 228)) | color(Color::
 
 /**
  * @brief Creates an FTXUI button component that puts an integer value to a PV.
- * @param pv The ProcessVariable to interact with.
+ * @param pv The PVHandler to interact with.
  * @param label The text label for the button.
  * @param value The integer value to put to the PV when the button is clicked.
  * @return An FTXUI Component representing the button.
  */
-ftxui::Component PVButton(ProcessVariable &pv, const std::string &label, int value);
+ftxui::Component PVButton(PVHandler &pv, const std::string &label, int value);
 
 /**
  * @brief Defines the data types for PV put operations.
@@ -68,41 +68,41 @@ using InputTransform =
 
 /**
  * @brief Creates an FTXUI input component for putting values to a PV.
- * @param pv The ProcessVariable to interact with.
+ * @param pv The PVHandler to interact with.
  * @param disp_str The string holding the current display value (and input value).
  * @param put_type The type of value to put (Int, Double, or String).
  * @param transform Optional custom transformation for the input element's appearance.
  * @return An FTXUI Component representing the input field.
  */
-ftxui::Component PVInput(ProcessVariable &pv, std::string &disp_str, PVPutType put_type,
+ftxui::Component PVInput(PVHandler &pv, std::string &disp_str, PVPutType put_type,
                          InputTransform transform = nullptr);
 
 /**
  * @brief Creates an FTXUI horizontal choice component (toggle menu) for PV enum values.
- * @param pv The ProcessVariable (expected to be an enum type).
+ * @param pv The PVHandler (expected to be an enum type).
  * @param labels A vector of string labels for each choice.
  * @param selected The index of the currently selected choice.
  * @return An FTXUI Component for horizontal choices.
  */
-ftxui::Component PVChoiceH(ProcessVariable &pv, const std::vector<std::string> &labels, int &selected);
+ftxui::Component PVChoiceH(PVHandler &pv, const std::vector<std::string> &labels, int &selected);
 
 /**
  * @brief Creates an FTXUI vertical choice component (menu) for PV enum values.
- * @param pv The ProcessVariable (expected to be an enum type).
+ * @param pv The PVHandler (expected to be an enum type).
  * @param labels A vector of string labels for each choice.
  * @param selected The index of the currently selected choice.
  * @return An FTXUI Component for vertical choices.
  */
-ftxui::Component PVChoiceV(ProcessVariable &pv, const std::vector<std::string> &labels, int &selected);
+ftxui::Component PVChoiceV(PVHandler &pv, const std::vector<std::string> &labels, int &selected);
 
 /**
  * @brief Creates an FTXUI dropdown menu component for PV enum values.
- * @param pv The ProcessVariable (expected to be an enum type).
+ * @param pv The PVHandler (expected to be an enum type).
  * @param labels A vector of string labels for each dropdown option.
  * @param selected The index of the currently selected option.
  * @return An FTXUI Component for a dropdown menu.
  */
-ftxui::Component PVDropdown(ProcessVariable &pv, const std::vector<std::string> &labels, int &selected);
+ftxui::Component PVDropdown(PVHandler &pv, const std::vector<std::string> &labels, int &selected);
 
 /**
  * @brief Parses command-line arguments for PVTUI applications.

@@ -83,17 +83,17 @@ class ConnectionMonitor : public pvac::ClientChannel::ConnectCallback {
  *
  * Handles connection, monitoring, and value updates for a PV.
  */
-struct ProcessVariable {
+struct PVHandler {
   public:
     pvac::ClientChannel channel; ///< PVA client channel.
     std::string name;            ///< Name of the process variable.
 
     /**
-     * @brief Constructs a ProcessVariable.
+     * @brief Constructs a PVHandler.
      * @param provider PVA client provider.
      * @param pv_name Name of the process variable.
      */
-    ProcessVariable(pvac::ClientProvider &provider, const std::string &pv_name);
+    PVHandler(pvac::ClientProvider &provider, const std::string &pv_name);
 
     /**
      * @brief Checks if the PV channel is connected.
@@ -159,25 +159,25 @@ struct PVGroup {
      * @throw std::runtime_error If PV not found.
      */
     template <typename T> void set_monitor(const std::string &pv_name, T &var) {
-        ProcessVariable &pv = this->get_pv(pv_name);
+        PVHandler &pv = this->get_pv(pv_name);
         pv.set_monitor(var);
     }
 
     /**
      * @brief Retrieves a PV by name.
      * @param pv_name Name of the PV.
-     * @return Reference to the ProcessVariable object.
+     * @return Reference to the PVHandler object.
      * @throw std::runtime_error If PV not found.
      */
-    ProcessVariable &get_pv(const std::string &pv_name);
+    PVHandler &get_pv(const std::string &pv_name);
 
     /**
      * @brief Accesses a PV by name using array subscript operator.
      * @param pv_name Name of the PV.
-     * @return Reference to the ProcessVariable object.
+     * @return Reference to the PVHandler object.
      * @throw std::runtime_error If PV not found.
      */
-    ProcessVariable &operator[](const std::string &pv_name);
+    PVHandler &operator[](const std::string &pv_name);
 
     /**
      * @brief Updates all monitored PVs in the group.
@@ -187,5 +187,5 @@ struct PVGroup {
 
   private:
     pvac::ClientProvider &provider_;                         ///< PVA client provider.
-    std::unordered_map<std::string, ProcessVariable> pv_map; ///< Map of PVs by name.
+    std::unordered_map<std::string, PVHandler> pv_map; ///< Map of PVs by name.
 };

@@ -19,15 +19,15 @@ void ConnectionMonitor::connectEvent(const pvac::ConnectEvent &event) {
 
 bool ConnectionMonitor::connected() const { return connected_; }
 
-ProcessVariable::ProcessVariable(pvac::ClientProvider &provider, const std::string &pv_name)
+PVHandler::PVHandler(pvac::ClientProvider &provider, const std::string &pv_name)
     : channel(provider.connect(pv_name)), monitor_(channel.monitor()),
       connection_monitor_(std::make_unique<ConnectionMonitor>()), name(pv_name) {
     channel.addConnectListener(connection_monitor_.get());
 }
 
-bool ProcessVariable::connected() const { return connection_monitor_->connected(); }
+bool PVHandler::connected() const { return connection_monitor_->connected(); }
 
-void ProcessVariable::get_monitored_variable(const epics::pvData::PVStructure *pfield) {
+void PVHandler::get_monitored_variable(const epics::pvData::PVStructure *pfield) {
     namespace pvd = epics::pvData;
     for (auto mon_ptr : monitor_var_ptrs_) {
         std::visit(
@@ -127,7 +127,7 @@ void ProcessVariable::get_monitored_variable(const epics::pvData::PVStructure *p
     }
 }
 
-bool ProcessVariable::update() {
+bool PVHandler::update() {
     bool new_data = false;
     for (auto mon_ptr : monitor_var_ptrs_) {
         if (std::holds_alternative<std::monostate>(mon_ptr)) {
@@ -167,18 +167,18 @@ PVGroup::PVGroup(pvac::ClientProvider &provider) : provider_(provider) {}
 
 void PVGroup::add(const std::string &pv_name) {
     if (!pv_map.count(pv_name)) {
-        pv_map.emplace(pv_name, ProcessVariable(provider_, pv_name));
+        pv_map.emplace(pv_name, PVHandler(provider_, pv_name));
     }
 }
 
-ProcessVariable &PVGroup::get_pv(const std::string &pv_name) {
+PVHandler &PVGroup::get_pv(const std::string &pv_name) {
     if (!pv_map.count(pv_name)) {
         throw std::runtime_error(pv_name + " not registered in PVGroup");
     }
     return pv_map.at(pv_name);
 }
 
-ProcessVariable &PVGroup::operator[](const std::string &pv_name) { return this->get_pv(pv_name); }
+PVHandler &PVGroup::operator[](const std::string &pv_name) { return this->get_pv(pv_name); }
 
 bool PVGroup::update() {
     bool new_data = false;
