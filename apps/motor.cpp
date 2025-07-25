@@ -32,22 +32,13 @@ int main(int argc, char *argv[]) {
         return EXIT_FAILURE;
     }
 
-    // Flags to set display type
-    MotorDisplayType display_type = MotorDisplayType::Small;
-    if (args.flag("small")) {
-        display_type = MotorDisplayType::Small;
-    } else if (args.flag("medium")) {
-        display_type = MotorDisplayType::Medium;
-    } else if (args.flag("all")) {
-        display_type = MotorDisplayType::All;
-    } else if (args.flag("multi")) {
-        display_type = MotorDisplayType::Multi;
-    }
+    bool display_multi = false;
 
     // If M1 macro present, assume Mutli display type
     // otherwise assume single and M macro must be present
     if (args.macros_present({"M1"})) {
-        display_type = MotorDisplayType::Multi;
+        // display_type = MotorDisplayType::Multi;
+        display_multi = true;
     } else if (not args.macros_present({"M"})) {
         printf("Missing required macro M or (M1,M2,...)\n");
         return EXIT_FAILURE;
@@ -70,8 +61,7 @@ int main(int argc, char *argv[]) {
     // The resulting screen is similar to motorNx.adl
     std::vector<int> motor_num_vec;
     std::vector<ArgParser> args_vec;
-    switch (display_type) {
-    case MotorDisplayType::Multi:
+    if (display_multi) {
         for (const auto &[k, v] : args.macros) {
             const size_t ind = k.find("M");
             if (ind != std::string::npos) {
@@ -91,24 +81,11 @@ int main(int argc, char *argv[]) {
             args_vec.push_back(args_n);
             displays.emplace_back(std::make_unique<SmallMotorDisplay>(pvgroup, args_n));
         }
-        break;
-
-    case MotorDisplayType::Small:
-        // displays.emplace_back(std::make_unique<SmallMotorDisplay>(pvgroup, args));
-        break;
-
-    case MotorDisplayType::Medium:
-        // displays.emplace_back(std::make_unique<MediumMotorDisplay>(pvgroup, args));
-        break;
-
-    case MotorDisplayType::All:
-        // displays.emplace_back(std::make_unique<AllMotorDisplay>(pvgroup, args));
-        break;
+    } else {
+        displays.emplace_back(std::make_unique<SmallMotorDisplay>(pvgroup, args));
+        displays.emplace_back(std::make_unique<MediumMotorDisplay>(pvgroup, args));
+        displays.emplace_back(std::make_unique<AllMotorDisplay>(pvgroup, args));
     }
-
-    displays.emplace_back(std::make_unique<SmallMotorDisplay>(pvgroup, args));
-    displays.emplace_back(std::make_unique<MediumMotorDisplay>(pvgroup, args));
-    displays.emplace_back(std::make_unique<AllMotorDisplay>(pvgroup, args));
 
     int selected = 0;
     std::vector<std::string> labels = {"Small", "Medium", "All"};
@@ -134,32 +111,50 @@ int main(int argc, char *argv[]) {
 
     });
 
-    auto view_select = ftxui::Dropdown(dropdown_op);
+    ftxui::Component main_container;
+    ftxui::Component main_renderer;
 
-    auto main_container = ftxui::Container::Vertical({
-        ftxui::Container::Tab({
-            {
-                displays.at(0)->get_container(),
-                displays.at(1)->get_container(),
-                displays.at(2)->get_container(),
+    if (display_multi) {
+        main_container = ftxui::Container::Horizontal({});
+        for (auto &display : displays) {
+            main_container->Add(display->get_container());
+        }
+        main_renderer = ftxui::Renderer(main_container, [&] {
+            Elements elements;
+            for (auto &display : displays) {
+                elements.push_back(display->get_renderer());
             }
-        }, &selected),
-        view_select
-    });
+            return hbox({elements}) | center | EPICSColor::BACKGROUND;
+        });
 
-    auto main_renderer = ftxui::Renderer(main_container, [&] {
-        Elements elements_vec;
-        elements_vec.push_back(displays.at(selected)->get_renderer());
-        elements_vec.push_back(
-            view_select->Render()
-                | color(Color::White)
-                | bgcolor(Color::DarkGreen)
-                | size(WIDTH, EQUAL, 6)
-        );
-        return vbox({
-            elements_vec,
-        }) | center | pvtui::EPICSColor::BACKGROUND;
-    });
+    } else {
+        auto view_select = ftxui::Dropdown(dropdown_op);
+        ftxui::Components tabs;
+        for (auto &display : displays) {
+            tabs.push_back(display->get_container());
+        }
+        main_container = ftxui::Container::Vertical({
+            ftxui::Container::Tab({
+                tabs
+            }, &selected),
+            view_select
+        });
+
+        main_renderer = ftxui::Renderer(main_container, [&] {
+            Elements elements;
+            elements.push_back(displays.at(selected)->get_renderer());
+            elements.push_back(
+                view_select->Render()
+                    | color(Color::White)
+                    | bgcolor(Color::DarkGreen)
+                    | size(WIDTH, EQUAL, 6)
+            );
+            return vbox({
+                elements,
+            }) | center | pvtui::EPICSColor::BACKGROUND;
+        });
+    }
+
 
     constexpr int POLL_PERIOD_MS = 100;
     Loop loop(&screen, main_renderer);
