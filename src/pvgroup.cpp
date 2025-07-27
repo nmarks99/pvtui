@@ -2,6 +2,7 @@
 #include <iostream>
 #include <memory>
 #include <variant>
+#include <regex>
 
 constexpr int DEFAULT_PRECISION = 4;
 
@@ -29,6 +30,22 @@ bool PVHandler::connected() const { return connection_monitor_->connected(); }
 
 void PVHandler::get_monitored_variable(const epics::pvData::PVStructure *pfield) {
     namespace pvd = epics::pvData;
+
+    // get the display precision
+    int precision = DEFAULT_PRECISION;
+    auto display_struct = pfield->getSubField<pvd::PVStructure>("display");
+    if (display_struct) {
+        auto format_field = display_struct->getSubField<pvd::PVString>("format");
+        if (format_field) {
+            std::string prec_str = format_field->get();
+            std::regex fmt_regex(R"(F\d+\.(\d+))");
+            std::smatch match;
+            if (std::regex_match(prec_str, match, fmt_regex) && match.size() == 2) {
+                precision = std::stoi(match[1]);
+            }
+        }
+    }
+
     for (auto mon_ptr : monitor_var_ptrs_) {
         std::visit(
             [&](auto ptr) {
@@ -64,7 +81,7 @@ void PVHandler::get_monitored_variable(const epics::pvData::PVStructure *pfield)
                             *ptr = std::string(vals.begin(), last_ind.base());
                         } else {
                             std::ostringstream oss;
-                            oss << std::fixed << std::setprecision(DEFAULT_PRECISION);
+                            oss << std::fixed << std::setprecision(precision);
                             if (auto val_field = pfield->getSubField("value")) {
                                 val_field->dumpValue(oss);
                                 *ptr = oss.str();

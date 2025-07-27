@@ -61,6 +61,13 @@ ftxui::Component PVInput(PVHandler &pv, std::string &disp_str, PVPutType put_typ
                         }
                     } else if (put_type == PVPutType::String) {
                         pv.channel.put().set("value", disp_str).exec();
+                    } else if (put_type == PVPutType::Int) {
+                        int val_int;
+                        auto res =
+                            std::from_chars(disp_str.data(), disp_str.data() + disp_str.size(), val_int);
+                        if (res.ec == std::errc()) {
+                            pv.channel.put().set("value", val_int).exec();
+                        }
                     }
                 }
             },
