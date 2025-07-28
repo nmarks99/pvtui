@@ -2,15 +2,15 @@
 #include <stdexcept>
 #include <vector>
 
-#include "motor_display.hpp"
-#include "pvtui.hpp"
-
 #include "ftxui/component/component.hpp"
 #include "ftxui/component/component_base.hpp"
 #include "ftxui/component/loop.hpp"
 #include "ftxui/component/screen_interactive.hpp"
 #include <ftxui/component/event.hpp>
 #include <ftxui/dom/node.hpp>
+
+#include "motor_display.hpp"
+#include "pvtui.hpp"
 
 using namespace ftxui;
 using namespace pvtui;
