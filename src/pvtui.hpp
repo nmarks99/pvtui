@@ -180,7 +180,7 @@ class WidgetBase {
     ftxui::Component component() const;
 
   protected:
-    WidgetBase(const std::shared_ptr<PVGroup> &pvgroup, const ArgParser &args,
+    WidgetBase(PVGroup &pvgroup, const ArgParser &args,
                const std::string &pv_name);
     ~WidgetBase() = default;
     std::string pv_name_;
@@ -189,7 +189,7 @@ class WidgetBase {
 
 class InputWidget : public WidgetBase {
   public:
-    InputWidget(const std::shared_ptr<PVGroup> &pvgroup, const ArgParser &args,
+    InputWidget(PVGroup &pvgroup, const ArgParser &args,
                 const std::string &pv_name, PVPutType put_type);
     std::string value() const;
 
@@ -199,16 +199,16 @@ class InputWidget : public WidgetBase {
 
 class ButtonWidget : public WidgetBase {
   public:
-    ButtonWidget(const std::shared_ptr<PVGroup> &pvgroup, const ArgParser &args,
+    ButtonWidget(PVGroup &pvgroup, const ArgParser &args,
                  const std::string &pv_name, const std::string &label, int press_val = 1);
 };
 
 template <typename T> class VarWidget : public WidgetBase {
   public:
-    VarWidget(const std::shared_ptr<PVGroup> &pvgroup, const ArgParser &args,
+    VarWidget(PVGroup &pvgroup, const ArgParser &args,
               const std::string &pv_name)
         : WidgetBase(pvgroup, args, pv_name) {
-        pvgroup->set_monitor(pv_name_, value_);
+        pvgroup.set_monitor(pv_name_, value_);
     }
 
     T value() const { return value_; };

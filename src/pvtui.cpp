@@ -199,10 +199,10 @@ std::unordered_map<std::string, std::string> ArgParser::get_macro_dict(std::stri
     return map_out;
 }
 
-WidgetBase::WidgetBase(const std::shared_ptr<PVGroup> &pvgroup, const ArgParser &args,
+WidgetBase::WidgetBase(PVGroup &pvgroup, const ArgParser &args,
                        const std::string &pv_name)
     : pv_name_(args.replace(pv_name)) {
-    pvgroup->add(pv_name_);
+    pvgroup.add(pv_name_);
 };
 
 std::string WidgetBase::pv_name() const { return pv_name_; }
@@ -215,19 +215,19 @@ ftxui::Component WidgetBase::component() const {
     }
 }
 
-InputWidget::InputWidget(const std::shared_ptr<PVGroup> &pvgroup, const ArgParser &args,
+InputWidget::InputWidget(PVGroup &pvgroup, const ArgParser &args,
                          const std::string &pv_name, PVPutType put_type)
     : WidgetBase(pvgroup, args, pv_name) {
-    pvgroup->set_monitor(pv_name_, value_);
-    component_ = PVInput(pvgroup->get_pv(pv_name_), value_, put_type);
+    pvgroup.set_monitor(pv_name_, value_);
+    component_ = PVInput(pvgroup.get_pv(pv_name_), value_, put_type);
 }
 
 std::string InputWidget::value() const { return value_; }
 
-ButtonWidget::ButtonWidget(const std::shared_ptr<PVGroup> &pvgroup, const ArgParser &args,
+ButtonWidget::ButtonWidget(PVGroup &pvgroup, const ArgParser &args,
                            const std::string &pv_name, const std::string &label, int press_val)
     : WidgetBase(pvgroup, args, pv_name) {
-    component_ = PVButton(pvgroup->get_pv(pv_name_), label, press_val);
+    component_ = PVButton(pvgroup.get_pv(pv_name_), label, press_val);
 }
 
 } // namespace pvtui
