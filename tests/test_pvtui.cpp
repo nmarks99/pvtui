@@ -53,7 +53,7 @@ ftxui::Component TestDisplay::get_container() {
 ftxui::Element TestDisplay::get_renderer() {
     return vbox({
 	desc.component()->Render() | EPICSColor::EDIT | size(WIDTH, EQUAL, 30),
-        text(rbv.value) | EPICSColor::READBACK,
+        text(rbv.value()) | center | EPICSColor::READBACK,
         hbox({
             twr.component()->Render() | color(Color::Black),
             twv.component()->Render() | EPICSColor::EDIT | size(WIDTH, EQUAL, 10),

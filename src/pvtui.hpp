@@ -174,71 +174,49 @@ class ArgParser {
     std::unordered_map<std::string, std::string> get_macro_dict(std::string all_macros);
 };
 
-struct InputWidget {
+class WidgetBase {
+  public:
+    std::string pv_name() const;
+    ftxui::Component component() const;
+
+  protected:
+    WidgetBase(const std::shared_ptr<PVGroup> &pvgroup, const ArgParser &args,
+               const std::string &pv_name);
+    ~WidgetBase() = default;
+    std::string pv_name_;
+    ftxui::Component component_;
+};
+
+class InputWidget : public WidgetBase {
   public:
     InputWidget(const std::shared_ptr<PVGroup> &pvgroup, const ArgParser &args,
-                const std::string &pv_name, PVPutType put_type)
-        : pv_name_(args.replace(pv_name)) {
-        pvgroup->add(pv_name_);
-        pvgroup->set_monitor(pv_name_, value);
-        component_ = PVInput(pvgroup->get_pv(pv_name_), value, put_type);
-    };
-
-    std::string value = "";
-
-    ftxui::Component component() {
-        if (component_) {
-            return component_;
-        } else {
-            throw std::runtime_error("No component defined for " + pv_name_);
-        }
-    };
+                const std::string &pv_name, PVPutType put_type);
+    std::string value() const;
 
   private:
-    std::string pv_name_ = "";
-    ftxui::Component component_ = nullptr;
+    std::string value_;
 };
 
-struct ButtonWidget {
+class ButtonWidget : public WidgetBase {
   public:
     ButtonWidget(const std::shared_ptr<PVGroup> &pvgroup, const ArgParser &args,
-                 const std::string &pv_name, const std::string &label, int value = 1)
-        : pv_name_(args.replace(pv_name)) {
-        pvgroup->add(pv_name_);
-        component_ = PVButton(pvgroup->get_pv(pv_name_), label, value);
-    };
-
-    std::string pv_name() { return pv_name_; }
-
-    ftxui::Component component() {
-        if (component_) {
-            return component_;
-        } else {
-            throw std::runtime_error("No component defined for " + pv_name_);
-        }
-    };
-
-  private:
-    std::string pv_name_ = "";
-    ftxui::Component component_ = nullptr;
+                 const std::string &pv_name, const std::string &label, int press_val = 1);
 };
 
-template <typename T> struct VarWidget {
+template <typename T> class VarWidget : public WidgetBase {
   public:
-    VarWidget(const std::shared_ptr<PVGroup> &pvgroup, const ArgParser &args, const std::string &pv_name)
-        : pv_name_(args.replace(pv_name)) {
-        args.replace(pv_name_);
-        pvgroup->add(pv_name_);
-        pvgroup->set_monitor(pv_name_, value);
-        value = "";
+    VarWidget(const std::shared_ptr<PVGroup> &pvgroup, const ArgParser &args,
+              const std::string &pv_name)
+        : WidgetBase(pvgroup, args, pv_name) {
+        pvgroup->set_monitor(pv_name_, value_);
     }
 
-    std::string pv_name() { return pv_name_; }
+    T value() const { return value_; };
 
-    T value;
+    ftxui::Component component() const = delete;
 
   private:
-    std::string pv_name_ = "";
+    T value_;
 };
 
 } // namespace pvtui
