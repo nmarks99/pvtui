@@ -111,7 +111,7 @@ endif()
 # ------------------------------------------------------------------------------
 
 # ------------------------------------------------------------------------------
-add_executable(pvtui_motor apps/motor_display.cpp apps/motor.cpp src/pvgroup.cpp src/pvtui.cpp src/display_base.cpp)
+add_executable(pvtui_motor apps/motor_display.cpp apps/motor.cpp src/pvgroup.cpp src/pvtui.cpp)
 target_include_directories(pvtui_motor PUBLIC src ${EPICS_BASE_INCLUDES})
 
 target_link_libraries(pvtui_motor
@@ -123,7 +123,7 @@ target_link_libraries(pvtui_motor
 # ------------------------------------------------------------------------------
 
 # ------------------------------------------------------------------------------
-add_executable(pvtui_asyn apps/asyn.cpp src/pvgroup.cpp src/pvtui.cpp src/display_base.cpp)
+add_executable(pvtui_asyn apps/asyn.cpp src/pvgroup.cpp src/pvtui.cpp)
 target_include_directories(pvtui_asyn PUBLIC src ${EPICS_BASE_INCLUDES})
 
 target_link_libraries(pvtui_asyn
@@ -171,7 +171,7 @@ target_link_libraries(test_pvgroup
 # ------------------------------------------------------------------------------
 
 # ------------------------------------------------------------------------------
-add_executable(test_pvtui tests/test_pvtui.cpp src/pvgroup.cpp src/pvtui.cpp src/display_base.cpp)
+add_executable(test_pvtui tests/test_pvtui.cpp src/pvgroup.cpp src/pvtui.cpp)
 target_include_directories(test_pvtui PUBLIC tests src ${EPICS_BASE_INCLUDES})
 
 target_link_libraries(test_pvtui
