@@ -54,8 +54,8 @@ int main(int argc, char *argv[]) {
     // unique_ptr's to DisplayBase for each screen
     std::vector<std::unique_ptr<DisplayBase>> displays;
 
-    // shared_ptr to PVGroup to manage all PVs for displays
-    std::shared_ptr<PVGroup> pvgroup = std::make_shared<PVGroup>(provider);
+    // PVGroup to manage all PVs for displays
+    PVGroup pvgroup(provider);
 
     // multi display creates a SmallMotorDisplay for each Mn macro where n is an integer.
     // The resulting screen is similar to motorNx.adl

@@ -219,4 +219,28 @@ template <typename T> class VarWidget : public WidgetBase {
     T value_;
 };
 
+class ChoiceVWidget : public WidgetBase {
+  public:
+    ChoiceVWidget(PVGroup &pvgroup, const ArgParser &args, const std::string &pv_name);
+    PVEnum value() const;
+  private:
+    PVEnum value_;
+};
+
+class ChoiceHWidget : public WidgetBase {
+  public:
+    ChoiceHWidget(PVGroup &pvgroup, const ArgParser &args, const std::string &pv_name);
+    PVEnum value() const;
+  private:
+    PVEnum value_;
+};
+
+class DropdownWidget : public WidgetBase {
+  public:
+    DropdownWidget(PVGroup &pvgroup, const ArgParser &args, const std::string &pv_name);
+    PVEnum value() const;
+  private:
+    PVEnum value_;
+};
+
 } // namespace pvtui

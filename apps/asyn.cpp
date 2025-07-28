@@ -33,7 +33,7 @@ For more details, visit: https://github.com/nmarks99/pvtui
 
 class AsynDisplay : public DisplayBase {
   public:
-    AsynDisplay(const std::shared_ptr<PVGroup> &pvgroup, const pvtui::ArgParser &args);
+    AsynDisplay(PVGroup &pvgroup, const pvtui::ArgParser &args);
     ~AsynDisplay() override = default;
     ftxui::Element get_renderer() override;
     ftxui::Component get_container() override;
@@ -79,17 +79,17 @@ class AsynDisplay : public DisplayBase {
 };
 
 
-AsynDisplay::AsynDisplay(const std::shared_ptr<PVGroup> &pvgroup, const pvtui::ArgParser &args)
+AsynDisplay::AsynDisplay(PVGroup &pvgroup, const pvtui::ArgParser &args)
     : DisplayBase(pvgroup), args(args) {
 
     connect_pv(aout, args.replace("$(P)$(R).AOUT"), MonitorOn);
-    aout.set_component(PVInput(pvgroup->get_pv(aout.pv_name), aout.value, PVPutType::String));
+    aout.set_component(PVInput(pvgroup.get_pv(aout.pv_name), aout.value, PVPutType::String));
 
     connect_pv(oeos, args.replace("$(P)$(R).OEOS"), MonitorOn);
-    oeos.set_component(PVInput(pvgroup->get_pv(oeos.pv_name), oeos.value, PVPutType::String));
+    oeos.set_component(PVInput(pvgroup.get_pv(oeos.pv_name), oeos.value, PVPutType::String));
     
     connect_pv(ieos, args.replace("$(P)$(R).IEOS"), MonitorOn);
-    ieos.set_component(PVInput(pvgroup->get_pv(ieos.pv_name), ieos.value, PVPutType::String));
+    ieos.set_component(PVInput(pvgroup.get_pv(ieos.pv_name), ieos.value, PVPutType::String));
 
     connect_pv(tinp, args.replace("$(P)$(R).TINP"), MonitorOn);
 
@@ -98,31 +98,31 @@ AsynDisplay::AsynDisplay(const std::shared_ptr<PVGroup> &pvgroup, const pvtui::A
     connect_pv(nord, args.replace("$(P)$(R).NORD"), MonitorOn);
    
     connect_pv(tmot, args.replace("$(P)$(R).TMOT"), MonitorOn);
-    tmot.set_component(PVInput(pvgroup->get_pv(tmot.pv_name), tmot.value, PVPutType::String));
+    tmot.set_component(PVInput(pvgroup.get_pv(tmot.pv_name), tmot.value, PVPutType::String));
 
     connect_pv(tmod, args.replace("$(P)$(R).TMOD"), MonitorOn);
-    tmod.set_component(PVDropdown(pvgroup->get_pv(tmod.pv_name), tmod.value.choices, tmod.value.index));
+    tmod.set_component(PVDropdown(pvgroup.get_pv(tmod.pv_name), tmod.value.choices, tmod.value.index));
 
     connect_pv(tmsk, args.replace("$(P)$(R).TMSK"), MonitorOn);
-    tmsk.set_component(PVInput(pvgroup->get_pv(tmsk.pv_name), tmsk.value, PVPutType::String));
+    tmsk.set_component(PVInput(pvgroup.get_pv(tmsk.pv_name), tmsk.value, PVPutType::String));
 
     connect_pv(tb0, args.replace("$(P)$(R).TB0"), MonitorOn);
-    tb0.set_component(PVChoiceH(pvgroup->get_pv(tb0.pv_name), tb0.value.choices, tb0.value.index));
+    tb0.set_component(PVChoiceH(pvgroup.get_pv(tb0.pv_name), tb0.value.choices, tb0.value.index));
 
     connect_pv(tb1, args.replace("$(P)$(R).TB1"), MonitorOn);
-    tb1.set_component(PVChoiceH(pvgroup->get_pv(tb1.pv_name), tb1.value.choices, tb1.value.index));
+    tb1.set_component(PVChoiceH(pvgroup.get_pv(tb1.pv_name), tb1.value.choices, tb1.value.index));
 
     connect_pv(tb2, args.replace("$(P)$(R).TB2"), MonitorOn);
-    tb2.set_component(PVChoiceH(pvgroup->get_pv(tb2.pv_name), tb2.value.choices, tb2.value.index));
+    tb2.set_component(PVChoiceH(pvgroup.get_pv(tb2.pv_name), tb2.value.choices, tb2.value.index));
 
     connect_pv(tb3, args.replace("$(P)$(R).TB3"), MonitorOn);
-    tb3.set_component(PVChoiceH(pvgroup->get_pv(tb3.pv_name), tb3.value.choices, tb3.value.index));
+    tb3.set_component(PVChoiceH(pvgroup.get_pv(tb3.pv_name), tb3.value.choices, tb3.value.index));
 
     connect_pv(tb4, args.replace("$(P)$(R).TB4"), MonitorOn);
-    tb4.set_component(PVChoiceH(pvgroup->get_pv(tb4.pv_name), tb4.value.choices, tb4.value.index));
+    tb4.set_component(PVChoiceH(pvgroup.get_pv(tb4.pv_name), tb4.value.choices, tb4.value.index));
 
     connect_pv(tb5, args.replace("$(P)$(R).TB5"), MonitorOn);
-    tb5.set_component(PVChoiceH(pvgroup->get_pv(tb5.pv_name), tb5.value.choices, tb5.value.index));
+    tb5.set_component(PVChoiceH(pvgroup.get_pv(tb5.pv_name), tb5.value.choices, tb5.value.index));
 
     connect_pv(stat, args.replace("$(P)$(R).STAT"), MonitorOn);
 
@@ -131,37 +131,37 @@ AsynDisplay::AsynDisplay(const std::shared_ptr<PVGroup> &pvgroup, const pvtui::A
     connect_pv(errs, args.replace("$(P)$(R).ERRS"), MonitorOn);
 
     connect_pv(tib0, args.replace("$(P)$(R).TIB0"), MonitorOn);
-    tib0.set_component(PVChoiceH(pvgroup->get_pv(tib0.pv_name), tib0.value.choices, tib0.value.index));
+    tib0.set_component(PVChoiceH(pvgroup.get_pv(tib0.pv_name), tib0.value.choices, tib0.value.index));
 
     connect_pv(tib1, args.replace("$(P)$(R).TIB1"), MonitorOn);
-    tib1.set_component(PVChoiceH(pvgroup->get_pv(tib1.pv_name), tib1.value.choices, tib1.value.index));
+    tib1.set_component(PVChoiceH(pvgroup.get_pv(tib1.pv_name), tib1.value.choices, tib1.value.index));
 
     connect_pv(tib2, args.replace("$(P)$(R).TIB2"), MonitorOn);
-    tib2.set_component(PVChoiceH(pvgroup->get_pv(tib2.pv_name), tib2.value.choices, tib2.value.index));
+    tib2.set_component(PVChoiceH(pvgroup.get_pv(tib2.pv_name), tib2.value.choices, tib2.value.index));
 
     connect_pv(tinb0, args.replace("$(P)$(R).TINB0"), MonitorOn);
-    tinb0.set_component(PVChoiceH(pvgroup->get_pv(tinb0.pv_name), tinb0.value.choices, tinb0.value.index));
+    tinb0.set_component(PVChoiceH(pvgroup.get_pv(tinb0.pv_name), tinb0.value.choices, tinb0.value.index));
 
     connect_pv(tinb1, args.replace("$(P)$(R).TINB1"), MonitorOn);
-    tinb1.set_component(PVChoiceH(pvgroup->get_pv(tinb1.pv_name), tinb1.value.choices, tinb1.value.index));
+    tinb1.set_component(PVChoiceH(pvgroup.get_pv(tinb1.pv_name), tinb1.value.choices, tinb1.value.index));
 
     connect_pv(tinb2, args.replace("$(P)$(R).TINB2"), MonitorOn);
-    tinb2.set_component(PVChoiceH(pvgroup->get_pv(tinb2.pv_name), tinb2.value.choices, tinb2.value.index));
+    tinb2.set_component(PVChoiceH(pvgroup.get_pv(tinb2.pv_name), tinb2.value.choices, tinb2.value.index));
 
     connect_pv(tinb3, args.replace("$(P)$(R).TINB3"), MonitorOn);
-    tinb3.set_component(PVChoiceH(pvgroup->get_pv(tinb3.pv_name), tinb3.value.choices, tinb3.value.index));
+    tinb3.set_component(PVChoiceH(pvgroup.get_pv(tinb3.pv_name), tinb3.value.choices, tinb3.value.index));
 
     connect_pv(cnct, args.replace("$(P)$(R).CNCT"), MonitorOn);
-    cnct.set_component(PVDropdown(pvgroup->get_pv(cnct.pv_name), cnct.value.choices, cnct.value.index));
+    cnct.set_component(PVDropdown(pvgroup.get_pv(cnct.pv_name), cnct.value.choices, cnct.value.index));
 
     connect_pv(enbl, args.replace("$(P)$(R).ENBL"), MonitorOn);
-    enbl.set_component(PVDropdown(pvgroup->get_pv(enbl.pv_name), enbl.value.choices, enbl.value.index));
+    enbl.set_component(PVDropdown(pvgroup.get_pv(enbl.pv_name), enbl.value.choices, enbl.value.index));
 
     connect_pv(auct, args.replace("$(P)$(R).AUCT"), MonitorOn);
-    auct.set_component(PVDropdown(pvgroup->get_pv(auct.pv_name), auct.value.choices, auct.value.index));
+    auct.set_component(PVDropdown(pvgroup.get_pv(auct.pv_name), auct.value.choices, auct.value.index));
 
     connect_pv(tfil, args.replace("$(P)$(R).TFIL"), MonitorOn);
-    tfil.set_component(PVInput(pvgroup->get_pv(tfil.pv_name), tfil.value, PVPutType::String));
+    tfil.set_component(PVInput(pvgroup.get_pv(tfil.pv_name), tfil.value, PVPutType::String));
 }
 
 ftxui::Component AsynDisplay::get_container() {
@@ -417,7 +417,8 @@ int main(int argc, char *argv[]) {
     pvac::ClientProvider provider(args.provider);
 
     // shared_ptr to PVGroup to manage all PVs for displays
-    std::shared_ptr<PVGroup> pvgroup = std::make_shared<PVGroup>(provider);
+    // std::shared_ptr<PVGroup> pvgroup = std::make_shared<PVGroup>(provider);
+    PVGroup pvgroup(provider);
 
     AsynDisplay display(pvgroup, args);
 

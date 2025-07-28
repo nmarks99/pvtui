@@ -53,7 +53,8 @@ class DisplayBase {
      * @brief Constructs a DisplayBase object.
      * @param pvgroup A shared pointer to the PVGroup managing the PVs for this display.
      */
-    DisplayBase(const std::shared_ptr<PVGroup> &pvgroup);
+    // DisplayBase(const std::shared_ptr<PVGroup> &pvgroup);
+    DisplayBase(PVGroup &pvgroup);
 
     /**
      * @brief Destroys the DisplayBase object.
@@ -80,18 +81,18 @@ class DisplayBase {
     virtual ftxui::Component get_container() = 0;
 
   protected:
-    std::shared_ptr<PVGroup> pvgroup;         ///< Shared pointer to the PVGroup instance.
+    PVGroup &pvgroup;         ///< Shared pointer to the PVGroup instance.
     static constexpr bool MonitorOn = true;   ///< for clarity when calling connect_pv
     static constexpr bool MonitorOff = false; ///< for clarity when calling connect_pv
 
     template <typename T>
     void connect_pv(PVWidget<T> &widget, const std::string &pv_name, bool monitor) {
         widget.pv_name = pv_name;
-        pvgroup->add(pv_name);
+        pvgroup.add(pv_name);
         if constexpr (std::is_constructible_v<MonitorPtr, T *>) {
             // This block is only compiled if T* can be held by MonitorPtr
             if (monitor) {
-                pvgroup->set_monitor(pv_name, widget.value);
+                pvgroup.set_monitor(pv_name, widget.value);
             }
         } else {
             if (monitor) {

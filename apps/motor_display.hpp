@@ -8,7 +8,7 @@
 
 class SmallMotorDisplay : public DisplayBase {
   public:
-    SmallMotorDisplay(const std::shared_ptr<PVGroup> &pvgroup, const pvtui::ArgParser &args);
+    SmallMotorDisplay(PVGroup &pvgroup, const pvtui::ArgParser &args);
     ~SmallMotorDisplay() override = default;
     ftxui::Element get_renderer() override;
     ftxui::Component get_container() override;
@@ -39,7 +39,7 @@ class SmallMotorDisplay : public DisplayBase {
 
 class MediumMotorDisplay : public DisplayBase {
   public:
-    MediumMotorDisplay(const std::shared_ptr<PVGroup> &pvgroup, const pvtui::ArgParser &args);
+    MediumMotorDisplay(PVGroup &pvgroup, const pvtui::ArgParser &args);
     ~MediumMotorDisplay() override = default;
     ftxui::Element get_renderer() override;
     ftxui::Component get_container() override;
@@ -75,7 +75,7 @@ class MediumMotorDisplay : public DisplayBase {
 
 class AllMotorDisplay : public DisplayBase {
   public:
-    AllMotorDisplay(const std::shared_ptr<PVGroup> &pvgroup, const pvtui::ArgParser &args);
+    AllMotorDisplay(PVGroup &pvgroup, const pvtui::ArgParser &args);
     ~AllMotorDisplay() override = default;
     ftxui::Element get_renderer() override;
     ftxui::Component get_container() override;

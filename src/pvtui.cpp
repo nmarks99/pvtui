@@ -224,6 +224,30 @@ InputWidget::InputWidget(PVGroup &pvgroup, const ArgParser &args,
 
 std::string InputWidget::value() const { return value_; }
 
+ChoiceVWidget::ChoiceVWidget(PVGroup &pvgroup, const ArgParser &args, const std::string &pv_name)
+    : WidgetBase(pvgroup, args, pv_name) {
+    pvgroup.set_monitor(pv_name_, value_);
+    component_ = PVChoiceV(pvgroup.get_pv(pv_name_), value_.choices, value_.index);
+}
+
+PVEnum ChoiceVWidget::value() const { return value_; }
+
+ChoiceHWidget::ChoiceHWidget(PVGroup &pvgroup, const ArgParser &args, const std::string &pv_name)
+    : WidgetBase(pvgroup, args, pv_name) {
+    pvgroup.set_monitor(pv_name_, value_);
+    component_ = PVChoiceH(pvgroup.get_pv(pv_name_), value_.choices, value_.index);
+}
+
+PVEnum ChoiceHWidget::value() const { return value_; }
+
+DropdownWidget::DropdownWidget(PVGroup &pvgroup, const ArgParser &args, const std::string &pv_name)
+    : WidgetBase(pvgroup, args, pv_name) {
+    pvgroup.set_monitor(pv_name_, value_);
+    component_ = PVDropdown(pvgroup.get_pv(pv_name_), value_.choices, value_.index);
+}
+
+PVEnum DropdownWidget::value() const { return value_; }
+
 ButtonWidget::ButtonWidget(PVGroup &pvgroup, const ArgParser &args,
                            const std::string &pv_name, const std::string &label, int press_val)
     : WidgetBase(pvgroup, args, pv_name) {
