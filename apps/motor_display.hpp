@@ -23,8 +23,8 @@ class SmallMotorDisplay : public DisplayBase {
     pvtui::VarWidget<int> lls;
     pvtui::VarWidget<int> hls;
     pvtui::VarWidget<std::string> egu;
-    pvtui::ChoiceHWidget en_dis;
-    pvtui::ChoiceHWidget use_set;
+    pvtui::ChoiceWidget en_dis;
+    pvtui::ChoiceWidget use_set;
     pvtui::ButtonWidget stop;
 
     const pvtui::ArgParser &args;
@@ -49,16 +49,15 @@ class MediumMotorDisplay : public DisplayBase {
     pvtui::VarWidget<int> lls;
     pvtui::VarWidget<int> hls;
     pvtui::VarWidget<std::string> egu;
-    pvtui::ChoiceHWidget en_dis;
-    pvtui::ChoiceHWidget use_set;
+    pvtui::ChoiceWidget use_set;
     pvtui::VarWidget<std::string> drbv;
     pvtui::InputWidget dval;
     pvtui::InputWidget hlm;
     pvtui::InputWidget dhlm;
     pvtui::InputWidget llm;
     pvtui::InputWidget dllm;
-    pvtui::ChoiceVWidget spmg;
-    pvtui::ChoiceHWidget able;
+    pvtui::ChoiceWidget spmg;
+    pvtui::ChoiceWidget able;
 
     const pvtui::ArgParser &args;
 };
@@ -81,16 +80,15 @@ class AllMotorDisplay : public DisplayBase {
     pvtui::VarWidget<int> lls;
     pvtui::VarWidget<int> hls;
     pvtui::InputWidget egu;
-    pvtui::ChoiceHWidget en_dis;
-    pvtui::ChoiceHWidget use_set;
+    pvtui::ChoiceWidget use_set;
     pvtui::VarWidget<std::string> drbv;
     pvtui::InputWidget dval;
     pvtui::InputWidget hlm;
     pvtui::InputWidget dhlm;
     pvtui::InputWidget llm;
     pvtui::InputWidget dllm;
-    pvtui::ChoiceVWidget spmg;
-    pvtui::ChoiceHWidget able;
+    pvtui::ChoiceWidget spmg;
+    pvtui::ChoiceWidget able;
     pvtui::InputWidget vmax;
     pvtui::InputWidget velo;
     pvtui::InputWidget vbas;
@@ -103,11 +101,11 @@ class AllMotorDisplay : public DisplayBase {
     pvtui::InputWidget prec;
     pvtui::InputWidget rlv;
     pvtui::InputWidget rval;
-    pvtui::ChoiceHWidget ueip;
-    pvtui::ChoiceHWidget urip;
-    pvtui::ChoiceHWidget dir;
-    pvtui::ChoiceHWidget cnen;
-    pvtui::DropdownWidget foff;
+    pvtui::ChoiceWidget ueip;
+    pvtui::ChoiceWidget urip;
+    pvtui::ChoiceWidget dir;
+    pvtui::ChoiceWidget cnen;
+    pvtui::ChoiceWidget foff;
     pvtui::VarWidget<std::string> rrbv;
 
     const pvtui::ArgParser &args;

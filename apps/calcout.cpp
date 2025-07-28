@@ -61,7 +61,7 @@ int main(int argc, char *argv[]) {
     // PVGroup to manage all PVs in the display
     PVGroup pvgroup(provider);
 
-    DropdownWidget scan(pvgroup, args, "$(P)$(C).SCAN");
+    ChoiceWidget scan(pvgroup, args, "$(P)$(C).SCAN", ChoiceStyle::Dropdown);
     InputWidget desc(pvgroup, args, "$(P)$(C).DESC", PVPutType::String);
     InputWidget inpa(pvgroup, args, "$(P)$(C).INPA", PVPutType::String);
     InputWidget a_val(pvgroup, args, "$(P)$(C).A", PVPutType::Double);
@@ -77,9 +77,9 @@ int main(int argc, char *argv[]) {
     InputWidget flnk(pvgroup, args, "$(P)$(C).FLNK", PVPutType::String);
     VarWidget<std::string> val(pvgroup, args, "$(P)$(C).VAL");
     VarWidget<std::string> oval(pvgroup, args, "$(P)$(C).OVAL");
-    DropdownWidget dopt(pvgroup, args, "$(P)$(C).DOPT");
-    DropdownWidget ivoa(pvgroup, args, "$(P)$(C).IVOA");
-    DropdownWidget oopt(pvgroup, args, "$(P)$(C).OOPT");
+    ChoiceWidget dopt(pvgroup, args, "$(P)$(C).DOPT", ChoiceStyle::Dropdown);
+    ChoiceWidget ivoa(pvgroup, args, "$(P)$(C).IVOA", ChoiceStyle::Dropdown);
+    ChoiceWidget oopt(pvgroup, args, "$(P)$(C).OOPT", ChoiceStyle::Dropdown);
     InputWidget odly(pvgroup, args, "$(P)$(C).ODLY", PVPutType::Double);
     InputWidget ivov(pvgroup, args, "$(P)$(C).IVOV", PVPutType::Double);
 

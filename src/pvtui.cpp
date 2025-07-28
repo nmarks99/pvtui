@@ -19,7 +19,7 @@ std::string rectangle(int len) {
 
 } // namespace unicode
 
-ftxui::Component PVButton(PVHandler &pv, const std::string &label, int value) {
+ftxui::Component make_button_widget(PVHandler &pv, const std::string &label, int value) {
     auto op = ftxui::ButtonOption::Ascii();
     op.label = label;
     op.on_click = [&pv, value]() {
@@ -30,8 +30,8 @@ ftxui::Component PVButton(PVHandler &pv, const std::string &label, int value) {
     return ftxui::Button(op);
 };
 
-ftxui::Component PVInput(PVHandler &pv, std::string &disp_str, PVPutType put_type,
-                         InputTransform tf) {
+ftxui::Component make_input_widget(PVHandler &pv, std::string &disp_str, PVPutType put_type,
+                                   InputTransform tf = nullptr) {
 
     auto default_input_transform = [](ftxui::InputState s) {
         s.element |= ftxui::color(ftxui::Color::Black);
@@ -75,7 +75,8 @@ ftxui::Component PVInput(PVHandler &pv, std::string &disp_str, PVPutType put_typ
     }));
 }
 
-ftxui::Component PVChoiceH(PVHandler &pv, const std::vector<std::string> &labels, int &selected) {
+ftxui::Component make_choice_h_widget(PVHandler &pv, const std::vector<std::string> &labels,
+                                      int &selected) {
     ftxui::MenuOption op = ftxui::MenuOption::Toggle();
     op.entries = &labels;
     op.selected = &selected;
@@ -87,7 +88,8 @@ ftxui::Component PVChoiceH(PVHandler &pv, const std::vector<std::string> &labels
     return ftxui::Menu(op);
 }
 
-ftxui::Component PVChoiceV(PVHandler &pv, const std::vector<std::string> &labels, int &selected) {
+ftxui::Component make_choice_v_widget(PVHandler &pv, const std::vector<std::string> &labels,
+                                      int &selected) {
     ftxui::MenuOption op = ftxui::MenuOption::Vertical();
     op.entries = &labels;
     op.selected = &selected;
@@ -112,7 +114,8 @@ ftxui::Component PVChoiceV(PVHandler &pv, const std::vector<std::string> &labels
     return ftxui::Menu(op);
 }
 
-ftxui::Component PVDropdown(PVHandler &pv, const std::vector<std::string> &labels, int &selected) {
+ftxui::Component make_dropdown_widget(PVHandler &pv, const std::vector<std::string> &labels,
+                                      int &selected) {
     using namespace ftxui;
     auto dropdown_op = ftxui::DropdownOption({
         .radiobox = {.entries = &labels,
@@ -222,69 +225,52 @@ InputWidget::InputWidget(PVGroup &pvgroup, const ArgParser &args, const std::str
                          PVPutType put_type)
     : WidgetBase(pvgroup, args, pv_name) {
     pvgroup.set_monitor(pv_name_, value_);
-    component_ = PVInput(pvgroup.get_pv(pv_name_), value_, put_type);
+    component_ = make_input_widget(pvgroup.get_pv(pv_name_), value_, put_type);
 }
 
 InputWidget::InputWidget(PVGroup &pvgroup, const std::string &pv_name, PVPutType put_type)
     : WidgetBase(pvgroup, pv_name) {
     pvgroup.set_monitor(pv_name_, value_);
-    component_ = PVInput(pvgroup.get_pv(pv_name_), value_, put_type);
+    component_ = make_input_widget(pvgroup.get_pv(pv_name_), value_, put_type);
 }
 
 std::string InputWidget::value() const { return value_; }
 
-ChoiceVWidget::ChoiceVWidget(PVGroup &pvgroup, const ArgParser &args, const std::string &pv_name)
+ChoiceWidget::ChoiceWidget(PVGroup &pvgroup, const ArgParser &args, const std::string &pv_name,
+                           ChoiceStyle style)
     : WidgetBase(pvgroup, args, pv_name) {
     pvgroup.set_monitor(pv_name_, value_);
-    component_ = PVChoiceV(pvgroup.get_pv(pv_name_), value_.choices, value_.index);
+    switch (style) {
+    case pvtui::ChoiceStyle::Vertical:
+        component_ = make_choice_v_widget(pvgroup.get_pv(pv_name_), value_.choices, value_.index);
+        break;
+    case pvtui::ChoiceStyle::Horizontal:
+        component_ = make_choice_h_widget(pvgroup.get_pv(pv_name_), value_.choices, value_.index);
+        break;
+    case pvtui::ChoiceStyle::Dropdown:
+        component_ = make_dropdown_widget(pvgroup.get_pv(pv_name_), value_.choices, value_.index);
+        break;
+    }
 }
 
-ChoiceVWidget::ChoiceVWidget(PVGroup &pvgroup, const std::string &pv_name)
+ChoiceWidget::ChoiceWidget(PVGroup &pvgroup, const std::string &pv_name, ChoiceStyle style)
     : WidgetBase(pvgroup, pv_name) {
     pvgroup.set_monitor(pv_name_, value_);
-    component_ = PVChoiceV(pvgroup.get_pv(pv_name_), value_.choices, value_.index);
+    component_ = make_choice_v_widget(pvgroup.get_pv(pv_name_), value_.choices, value_.index);
 }
 
-PVEnum ChoiceVWidget::value() const { return value_; }
-
-ChoiceHWidget::ChoiceHWidget(PVGroup &pvgroup, const ArgParser &args, const std::string &pv_name)
-    : WidgetBase(pvgroup, args, pv_name) {
-    pvgroup.set_monitor(pv_name_, value_);
-    component_ = PVChoiceH(pvgroup.get_pv(pv_name_), value_.choices, value_.index);
-}
-
-ChoiceHWidget::ChoiceHWidget(PVGroup &pvgroup, const std::string &pv_name)
-    : WidgetBase(pvgroup, pv_name) {
-    pvgroup.set_monitor(pv_name_, value_);
-    component_ = PVChoiceH(pvgroup.get_pv(pv_name_), value_.choices, value_.index);
-}
-
-PVEnum ChoiceHWidget::value() const { return value_; }
-
-DropdownWidget::DropdownWidget(PVGroup &pvgroup, const ArgParser &args, const std::string &pv_name)
-    : WidgetBase(pvgroup, args, pv_name) {
-    pvgroup.set_monitor(pv_name_, value_);
-    component_ = PVDropdown(pvgroup.get_pv(pv_name_), value_.choices, value_.index);
-}
-
-DropdownWidget::DropdownWidget(PVGroup &pvgroup, const std::string &pv_name)
-    : WidgetBase(pvgroup, pv_name) {
-    pvgroup.set_monitor(pv_name_, value_);
-    component_ = PVDropdown(pvgroup.get_pv(pv_name_), value_.choices, value_.index);
-}
-
-PVEnum DropdownWidget::value() const { return value_; }
+PVEnum ChoiceWidget::value() const { return value_; }
 
 ButtonWidget::ButtonWidget(PVGroup &pvgroup, const ArgParser &args, const std::string &pv_name,
                            const std::string &label, int press_val)
     : WidgetBase(pvgroup, args, pv_name) {
-    component_ = PVButton(pvgroup.get_pv(pv_name_), label, press_val);
+    component_ = make_button_widget(pvgroup.get_pv(pv_name_), label, press_val);
 }
 
 ButtonWidget::ButtonWidget(PVGroup &pvgroup, const std::string &pv_name, const std::string &label,
                            int press_val)
     : WidgetBase(pvgroup, pv_name) {
-    component_ = PVButton(pvgroup.get_pv(pv_name_), label, press_val);
+    component_ = make_button_widget(pvgroup.get_pv(pv_name_), label, press_val);
 }
 
 } // namespace pvtui

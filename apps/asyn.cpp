@@ -51,23 +51,23 @@ class AsynDisplay : public DisplayBase {
     VarWidget<std::string> nawt;
     VarWidget<std::string> nord;
     VarWidget<std::string> errs;
-    DropdownWidget tmod;
-    DropdownWidget cnct;
-    DropdownWidget enbl;
-    DropdownWidget auct;
-    ChoiceHWidget tb0;
-    ChoiceHWidget tb1;
-    ChoiceHWidget tb2;
-    ChoiceHWidget tb3;
-    ChoiceHWidget tb4;
-    ChoiceHWidget tb5;
-    ChoiceHWidget tib0;
-    ChoiceHWidget tib1;
-    ChoiceHWidget tib2;
-    ChoiceHWidget tinb0;
-    ChoiceHWidget tinb1;
-    ChoiceHWidget tinb2;
-    ChoiceHWidget tinb3;
+    ChoiceWidget tmod;
+    ChoiceWidget cnct;
+    ChoiceWidget enbl;
+    ChoiceWidget auct;
+    ChoiceWidget tb0;
+    ChoiceWidget tb1;
+    ChoiceWidget tb2;
+    ChoiceWidget tb3;
+    ChoiceWidget tb4;
+    ChoiceWidget tb5;
+    ChoiceWidget tib0;
+    ChoiceWidget tib1;
+    ChoiceWidget tib2;
+    ChoiceWidget tinb0;
+    ChoiceWidget tinb1;
+    ChoiceWidget tinb2;
+    ChoiceWidget tinb3;
 
     const pvtui::ArgParser &args;
 };
@@ -82,25 +82,25 @@ AsynDisplay::AsynDisplay(PVGroup &pvgroup, const pvtui::ArgParser &args)
     nawt(pvgroup, args, "$(P)$(R).NAWT"),
     nord(pvgroup, args, "$(P)$(R).NORD"),
     tmot(pvgroup, args, "$(P)$(R).TMOT", PVPutType::Double),
-    tmod(pvgroup, args, "$(P)$(R).TMOD"),
-    tb0(pvgroup, args, "$(P)$(R).TB0"),
-    tb1(pvgroup, args, "$(P)$(R).TB1"),
-    tb2(pvgroup, args, "$(P)$(R).TB2"),
-    tb3(pvgroup, args, "$(P)$(R).TB3"),
-    tb4(pvgroup, args, "$(P)$(R).TB4"),
-    tb5(pvgroup, args, "$(P)$(R).TB5"),
+    tmod(pvgroup, args, "$(P)$(R).TMOD", ChoiceStyle::Dropdown),
+    tb0(pvgroup, args, "$(P)$(R).TB0", ChoiceStyle::Horizontal),
+    tb1(pvgroup, args, "$(P)$(R).TB1", ChoiceStyle::Horizontal),
+    tb2(pvgroup, args, "$(P)$(R).TB2", ChoiceStyle::Horizontal),
+    tb3(pvgroup, args, "$(P)$(R).TB3", ChoiceStyle::Horizontal),
+    tb4(pvgroup, args, "$(P)$(R).TB4", ChoiceStyle::Horizontal),
+    tb5(pvgroup, args, "$(P)$(R).TB5", ChoiceStyle::Horizontal),
     stat(pvgroup, args, "$(P)$(R).STAT"),
     sevr(pvgroup, args, "$(P)$(R).SEVR"),
-    tib0(pvgroup, args, "$(P)$(R).TIB0"),
-    tib1(pvgroup, args, "$(P)$(R).TIB1"),
-    tib2(pvgroup, args, "$(P)$(R).TIB2"),
-    tinb0(pvgroup, args, "$(P)$(R).TINB0"),
-    tinb1(pvgroup, args, "$(P)$(R).TINB1"),
-    tinb2(pvgroup, args, "$(P)$(R).TINB2"),
-    tinb3(pvgroup, args, "$(P)$(R).TINB3"),
-    cnct(pvgroup, args, "$(P)$(R).CNCT"),
-    enbl(pvgroup, args, "$(P)$(R).ENBL"),
-    auct(pvgroup, args, "$(P)$(R).AUCT"),
+    tib0(pvgroup, args, "$(P)$(R).TIB0", ChoiceStyle::Horizontal),
+    tib1(pvgroup, args, "$(P)$(R).TIB1", ChoiceStyle::Horizontal),
+    tib2(pvgroup, args, "$(P)$(R).TIB2", ChoiceStyle::Horizontal),
+    tinb0(pvgroup, args, "$(P)$(R).TINB0", ChoiceStyle::Horizontal),
+    tinb1(pvgroup, args, "$(P)$(R).TINB1", ChoiceStyle::Horizontal),
+    tinb2(pvgroup, args, "$(P)$(R).TINB2", ChoiceStyle::Horizontal),
+    tinb3(pvgroup, args, "$(P)$(R).TINB3", ChoiceStyle::Horizontal),
+    cnct(pvgroup, args, "$(P)$(R).CNCT", ChoiceStyle::Dropdown),
+    enbl(pvgroup, args, "$(P)$(R).ENBL", ChoiceStyle::Dropdown),
+    auct(pvgroup, args, "$(P)$(R).AUCT", ChoiceStyle::Dropdown),
     tfil(pvgroup, args, "$(P)$(R).TFIL", PVPutType::String),
     errs(pvgroup, args, "$(P)$(R).ERRS"),
     nowt(pvgroup, args, "$(P)$(R).NOWT", PVPutType::Int)
