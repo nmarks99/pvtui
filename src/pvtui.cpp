@@ -199,9 +199,12 @@ std::unordered_map<std::string, std::string> ArgParser::get_macro_dict(std::stri
     return map_out;
 }
 
-WidgetBase::WidgetBase(PVGroup &pvgroup, const ArgParser &args,
-                       const std::string &pv_name)
+WidgetBase::WidgetBase(PVGroup &pvgroup, const ArgParser &args, const std::string &pv_name)
     : pv_name_(args.replace(pv_name)) {
+    pvgroup.add(pv_name_);
+};
+
+WidgetBase::WidgetBase(PVGroup &pvgroup, const std::string &pv_name) : pv_name_(pv_name) {
     pvgroup.add(pv_name_);
 };
 
@@ -215,9 +218,15 @@ ftxui::Component WidgetBase::component() const {
     }
 }
 
-InputWidget::InputWidget(PVGroup &pvgroup, const ArgParser &args,
-                         const std::string &pv_name, PVPutType put_type)
+InputWidget::InputWidget(PVGroup &pvgroup, const ArgParser &args, const std::string &pv_name,
+                         PVPutType put_type)
     : WidgetBase(pvgroup, args, pv_name) {
+    pvgroup.set_monitor(pv_name_, value_);
+    component_ = PVInput(pvgroup.get_pv(pv_name_), value_, put_type);
+}
+
+InputWidget::InputWidget(PVGroup &pvgroup, const std::string &pv_name, PVPutType put_type)
+    : WidgetBase(pvgroup, pv_name) {
     pvgroup.set_monitor(pv_name_, value_);
     component_ = PVInput(pvgroup.get_pv(pv_name_), value_, put_type);
 }
@@ -230,10 +239,22 @@ ChoiceVWidget::ChoiceVWidget(PVGroup &pvgroup, const ArgParser &args, const std:
     component_ = PVChoiceV(pvgroup.get_pv(pv_name_), value_.choices, value_.index);
 }
 
+ChoiceVWidget::ChoiceVWidget(PVGroup &pvgroup, const std::string &pv_name)
+    : WidgetBase(pvgroup, pv_name) {
+    pvgroup.set_monitor(pv_name_, value_);
+    component_ = PVChoiceV(pvgroup.get_pv(pv_name_), value_.choices, value_.index);
+}
+
 PVEnum ChoiceVWidget::value() const { return value_; }
 
 ChoiceHWidget::ChoiceHWidget(PVGroup &pvgroup, const ArgParser &args, const std::string &pv_name)
     : WidgetBase(pvgroup, args, pv_name) {
+    pvgroup.set_monitor(pv_name_, value_);
+    component_ = PVChoiceH(pvgroup.get_pv(pv_name_), value_.choices, value_.index);
+}
+
+ChoiceHWidget::ChoiceHWidget(PVGroup &pvgroup, const std::string &pv_name)
+    : WidgetBase(pvgroup, pv_name) {
     pvgroup.set_monitor(pv_name_, value_);
     component_ = PVChoiceH(pvgroup.get_pv(pv_name_), value_.choices, value_.index);
 }
@@ -246,11 +267,23 @@ DropdownWidget::DropdownWidget(PVGroup &pvgroup, const ArgParser &args, const st
     component_ = PVDropdown(pvgroup.get_pv(pv_name_), value_.choices, value_.index);
 }
 
+DropdownWidget::DropdownWidget(PVGroup &pvgroup, const std::string &pv_name)
+    : WidgetBase(pvgroup, pv_name) {
+    pvgroup.set_monitor(pv_name_, value_);
+    component_ = PVDropdown(pvgroup.get_pv(pv_name_), value_.choices, value_.index);
+}
+
 PVEnum DropdownWidget::value() const { return value_; }
 
-ButtonWidget::ButtonWidget(PVGroup &pvgroup, const ArgParser &args,
-                           const std::string &pv_name, const std::string &label, int press_val)
+ButtonWidget::ButtonWidget(PVGroup &pvgroup, const ArgParser &args, const std::string &pv_name,
+                           const std::string &label, int press_val)
     : WidgetBase(pvgroup, args, pv_name) {
+    component_ = PVButton(pvgroup.get_pv(pv_name_), label, press_val);
+}
+
+ButtonWidget::ButtonWidget(PVGroup &pvgroup, const std::string &pv_name, const std::string &label,
+                           int press_val)
+    : WidgetBase(pvgroup, pv_name) {
     component_ = PVButton(pvgroup.get_pv(pv_name_), label, press_val);
 }
 

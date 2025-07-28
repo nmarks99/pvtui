@@ -180,8 +180,8 @@ class WidgetBase {
     ftxui::Component component() const;
 
   protected:
-    WidgetBase(PVGroup &pvgroup, const ArgParser &args,
-               const std::string &pv_name);
+    WidgetBase(PVGroup &pvgroup, const ArgParser &args, const std::string &pv_name);
+    WidgetBase(PVGroup &pvgroup, const std::string &pv_name);
     ~WidgetBase() = default;
     std::string pv_name_;
     ftxui::Component component_;
@@ -189,8 +189,8 @@ class WidgetBase {
 
 class InputWidget : public WidgetBase {
   public:
-    InputWidget(PVGroup &pvgroup, const ArgParser &args,
-                const std::string &pv_name, PVPutType put_type);
+    InputWidget(PVGroup &pvgroup, const ArgParser &args, const std::string &pv_name, PVPutType put_type);
+    InputWidget(PVGroup &pvgroup, const std::string &pv_name, PVPutType put_type);
     std::string value() const;
 
   private:
@@ -199,8 +199,8 @@ class InputWidget : public WidgetBase {
 
 class ButtonWidget : public WidgetBase {
   public:
-    ButtonWidget(PVGroup &pvgroup, const ArgParser &args,
-                 const std::string &pv_name, const std::string &label, int press_val = 1);
+    ButtonWidget(PVGroup &pvgroup, const ArgParser &args, const std::string &pv_name, const std::string &label, int press_val = 1);
+    ButtonWidget(PVGroup &pvgroup, const std::string &pv_name, const std::string &label, int press_val = 1);
 };
 
 template <typename T> class VarWidget : public WidgetBase {
@@ -208,6 +208,11 @@ template <typename T> class VarWidget : public WidgetBase {
     VarWidget(PVGroup &pvgroup, const ArgParser &args,
               const std::string &pv_name)
         : WidgetBase(pvgroup, args, pv_name) {
+        pvgroup.set_monitor(pv_name_, value_);
+    }
+
+    VarWidget(PVGroup &pvgroup, const std::string &pv_name)
+        : WidgetBase(pvgroup, pv_name) {
         pvgroup.set_monitor(pv_name_, value_);
     }
 
@@ -222,6 +227,7 @@ template <typename T> class VarWidget : public WidgetBase {
 class ChoiceVWidget : public WidgetBase {
   public:
     ChoiceVWidget(PVGroup &pvgroup, const ArgParser &args, const std::string &pv_name);
+    ChoiceVWidget(PVGroup &pvgroup, const std::string &pv_name);
     PVEnum value() const;
   private:
     PVEnum value_;
@@ -230,6 +236,7 @@ class ChoiceVWidget : public WidgetBase {
 class ChoiceHWidget : public WidgetBase {
   public:
     ChoiceHWidget(PVGroup &pvgroup, const ArgParser &args, const std::string &pv_name);
+    ChoiceHWidget(PVGroup &pvgroup, const std::string &pv_name);
     PVEnum value() const;
   private:
     PVEnum value_;
@@ -238,6 +245,7 @@ class ChoiceHWidget : public WidgetBase {
 class DropdownWidget : public WidgetBase {
   public:
     DropdownWidget(PVGroup &pvgroup, const ArgParser &args, const std::string &pv_name);
+    DropdownWidget(PVGroup &pvgroup, const std::string &pv_name);
     PVEnum value() const;
   private:
     PVEnum value_;
