@@ -53,7 +53,6 @@ class DisplayBase {
      * @brief Constructs a DisplayBase object.
      * @param pvgroup A shared pointer to the PVGroup managing the PVs for this display.
      */
-    // DisplayBase(const std::shared_ptr<PVGroup> &pvgroup);
     DisplayBase(PVGroup &pvgroup);
 
     /**
@@ -81,7 +80,7 @@ class DisplayBase {
     virtual ftxui::Component get_container() = 0;
 
   protected:
-    PVGroup &pvgroup;         ///< Shared pointer to the PVGroup instance.
+    PVGroup &pvgroup;                         ///< Reference to the PVGroup instance.
     static constexpr bool MonitorOn = true;   ///< for clarity when calling connect_pv
     static constexpr bool MonitorOff = false; ///< for clarity when calling connect_pv
 
