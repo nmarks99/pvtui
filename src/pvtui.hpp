@@ -168,4 +168,34 @@ class ArgParser {
      */
     std::unordered_map<std::string, std::string> get_macro_dict(std::string all_macros);
 };
+
+struct InputWidget {
+  public:
+    InputWidget(const std::shared_ptr<PVGroup> &pvgroup,
+                const std::string &pv_name) :
+    pv_name(pv_name),
+    pvgroup_(pvgroup) {
+        pvgroup->add(pv_name);
+        pvgroup->set_monitor(pv_name, value);
+        component_ = PVInput(pvgroup_->get_pv(pv_name), value, PVPutType::String);
+    };
+
+    std::string value = "";
+    std::string pv_name = "";
+
+    ftxui::Component component() {
+        if (component_) {
+            return component_;
+        } else {
+            throw std::runtime_error("No component defined for " + pv_name);
+        }
+    };
+
+  private:
+    std::shared_ptr<PVGroup> pvgroup_;
+    ftxui::Component component_ = nullptr;
+};
+
+
+
 } // namespace pvtui
