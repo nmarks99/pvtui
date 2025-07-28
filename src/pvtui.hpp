@@ -38,24 +38,20 @@ std::string rectangle(int len);
  */
 namespace EPICSColor {
 using namespace ftxui;
-static const Decorator EDIT = bgcolor(Color::RGB(87, 202, 228)) | color(Color::Black); ///< Decorator for editable fields.
-static const Decorator MENU = bgcolor(Color::RGB(16, 105, 25)) | color(Color::White); ///< Decorator for menu items.
-static const Decorator READBACK = color(Color::DarkBlue);   ///< Decorator for read-only display values.
-static const Decorator BACKGROUND = bgcolor(Color::RGB(196, 196, 196)); ///< Decorator for background elements.
-static const Decorator LINK = bgcolor(Color::RGB(148, 148, 228)) | color(Color::Black); ///< Decorator for link-like elements.
+static const Decorator EDIT =
+    bgcolor(Color::RGB(87, 202, 228)) | color(Color::Black); ///< Decorator for editable fields.
+static const Decorator MENU =
+    bgcolor(Color::RGB(16, 105, 25)) | color(Color::White); ///< Decorator for menu items.
+static const Decorator READBACK =
+    color(Color::DarkBlue); ///< Decorator for read-only display values.
+static const Decorator BACKGROUND =
+    bgcolor(Color::RGB(196, 196, 196)); ///< Decorator for background elements.
+static const Decorator LINK =
+    bgcolor(Color::RGB(148, 148, 228)) | color(Color::Black); ///< Decorator for link-like elements.
 } // namespace EPICSColor
 
 /**
- * @brief Creates an FTXUI button component that puts an integer value to a PV.
- * @param pv The PVHandler to interact with.
- * @param label The text label for the button.
- * @param value The integer value to put to the PV when the button is clicked.
- * @return An FTXUI Component representing the button.
- */
-ftxui::Component PVButton(PVHandler &pv, const std::string &label, int value);
-
-/**
- * @brief Defines the data types for PV put operations.
+ * @brief Defines the data types for PV put operations for InputWidget
  */
 enum class PVPutType {
     Int,    ///< Integer type.
@@ -63,46 +59,14 @@ enum class PVPutType {
     String, ///< String type.
 };
 
-using InputTransform =
-    std::function<ftxui::Element(ftxui::InputState)>; ///< Type alias for input transformation function.
+enum class ChoiceStyle {
+    Vertical,
+    Horizontal,
+    Dropdown,
+};
 
-/**
- * @brief Creates an FTXUI input component for putting values to a PV.
- * @param pv The PVHandler to interact with.
- * @param disp_str The string holding the current display value (and input value).
- * @param put_type The type of value to put (Int, Double, or String).
- * @param transform Optional custom transformation for the input element's appearance.
- * @return An FTXUI Component representing the input field.
- */
-ftxui::Component PVInput(PVHandler &pv, std::string &disp_str, PVPutType put_type,
-                         InputTransform transform = nullptr);
-
-/**
- * @brief Creates an FTXUI horizontal choice component (toggle menu) for PV enum values.
- * @param pv The PVHandler (expected to be an enum type).
- * @param labels A vector of string labels for each choice.
- * @param selected The index of the currently selected choice.
- * @return An FTXUI Component for horizontal choices.
- */
-ftxui::Component PVChoiceH(PVHandler &pv, const std::vector<std::string> &labels, int &selected);
-
-/**
- * @brief Creates an FTXUI vertical choice component (menu) for PV enum values.
- * @param pv The PVHandler (expected to be an enum type).
- * @param labels A vector of string labels for each choice.
- * @param selected The index of the currently selected choice.
- * @return An FTXUI Component for vertical choices.
- */
-ftxui::Component PVChoiceV(PVHandler &pv, const std::vector<std::string> &labels, int &selected);
-
-/**
- * @brief Creates an FTXUI dropdown menu component for PV enum values.
- * @param pv The PVHandler (expected to be an enum type).
- * @param labels A vector of string labels for each dropdown option.
- * @param selected The index of the currently selected option.
- * @return An FTXUI Component for a dropdown menu.
- */
-ftxui::Component PVDropdown(PVHandler &pv, const std::vector<std::string> &labels, int &selected);
+///< Type alias for input transformation function.
+using InputTransform = std::function<ftxui::Element(ftxui::InputState)>;
 
 /**
  * @brief Parses command-line arguments for PVTUI applications.
@@ -148,7 +112,7 @@ class ArgParser {
     std::string replace(const std::string &str) const;
 
     std::unordered_map<std::string, std::string> macros; ///< Parsed macros (e.g., "P=VAL").
-    std::string provider = "ca";                         ///< The EPICS provider type (e.g., "ca", "pva").
+    std::string provider = "ca"; ///< The EPICS provider type (e.g., "ca", "pva").
 
   private:
     argh::parser cmdl_; ///< Internal argh parser instance.
@@ -168,4 +132,187 @@ class ArgParser {
      */
     std::unordered_map<std::string, std::string> get_macro_dict(std::string all_macros);
 };
+
+/**
+ * @brief Base class for all widget types used in the PVTUI system.
+ *
+ * Provides a standard interface for accessing PV names and FTXUI components,
+ * while ensuring widgets register themselves with a PVGroup.
+ */
+class WidgetBase {
+  public:
+    /**
+     * @brief Get the PV name associated with the widget.
+     * @return The fully expanded PV name.
+     */
+    std::string pv_name() const;
+
+    /**
+     * @brief Get the FTXUI component associated with the widget.
+     * @return A valid FTXUI component.
+     * @throws std::runtime_error if no component is set.
+     */
+    ftxui::Component component() const;
+
+  protected:
+    /**
+     * @brief Constructs a WidgetBase and registers the PV with a group.
+     * @param pvgroup The PVGroup managing this widget.
+     * @param args Argument parser for macro expansion.
+     * @param pv_name The macro-style PV name (e.g., "$(P)$(R)VAL").
+     */
+    WidgetBase(PVGroup &pvgroup, const ArgParser &args, const std::string &pv_name);
+
+    /**
+     * @brief Constructs a WidgetBase with a raw PV name.
+     * @param pvgroup The PVGroup managing this widget.
+     * @param pv_name A fully-expanded PV name.
+     */
+    WidgetBase(PVGroup &pvgroup, const std::string &pv_name);
+
+    ~WidgetBase() = default;
+
+    std::string pv_name_;        ///< Fully expanded PV name.
+    ftxui::Component component_; ///< Underlying FTXUI component.
+};
+
+/**
+ * @brief An editable input field linked to a PV.
+ *
+ * Supports typed PV put operations (int, double, string).
+ */
+class InputWidget : public WidgetBase {
+  public:
+    /**
+     * @brief Constructs an InputWidget with macro expansion.
+     * @param pvgroup The PVGroup managing this widget.
+     * @param args Argument parser for macro replacement.
+     * @param pv_name Macro-style PV name.
+     * @param put_type Specifies how the input value is written to the PV.
+     */
+    InputWidget(PVGroup &pvgroup, const ArgParser &args, const std::string &pv_name,
+                PVPutType put_type);
+
+    /**
+     * @brief Constructs an InputWidget with an already expanded PV name.
+     * @param pvgroup The PVGroup managing this widget.
+     * @param pv_name Fully expanded PV name.
+     * @param put_type Specifies how the input value is written to the PV.
+     */
+    InputWidget(PVGroup &pvgroup, const std::string &pv_name, PVPutType put_type);
+
+    /**
+     * @brief Get the current value of the input field.
+     * @return The current string value.
+     */
+    std::string value() const;
+
+  private:
+    std::string value_; ///< Internal value monitored from the PV.
+};
+
+/**
+ * @brief A simple button widget that writes a fixed value when pressed.
+ */
+class ButtonWidget : public WidgetBase {
+  public:
+    /**
+     * @brief Constructs a ButtonWidget with macro expansion.
+     * @param pvgroup The PVGroup managing this widget.
+     * @param args Argument parser for macro replacement.
+     * @param pv_name Macro-style PV name.
+     * @param label The text displayed on the button.
+     * @param press_val The value written to the PV on press.
+     */
+    ButtonWidget(PVGroup &pvgroup, const ArgParser &args, const std::string &pv_name,
+                 const std::string &label, int press_val = 1);
+
+    /**
+     * @brief Constructs a ButtonWidget with an expanded PV name.
+     * @param pvgroup The PVGroup managing this widget.
+     * @param pv_name Fully expanded PV name.
+     * @param label The text displayed on the button.
+     * @param press_val The value written to the PV on press.
+     */
+    ButtonWidget(PVGroup &pvgroup, const std::string &pv_name, const std::string &label,
+                 int press_val = 1);
+};
+
+/**
+ * @brief A read-only variable display widget useful for readback values
+ *
+ * @tparam T The C++ type used to store the PV value.
+ */
+template <typename T> class VarWidget : public WidgetBase {
+  public:
+    /**
+     * @brief Constructs a VarWidget with macro expansion.
+     * @param pvgroup The PVGroup managing this widget.
+     * @param args Argument parser for macro replacement.
+     * @param pv_name Macro-style PV name.
+     */
+    VarWidget(PVGroup &pvgroup, const ArgParser &args, const std::string &pv_name)
+        : WidgetBase(pvgroup, args, pv_name) {
+        pvgroup.set_monitor(pv_name_, value_);
+    }
+
+    /**
+     * @brief Constructs a VarWidget with a fully expanded PV name.
+     * @param pvgroup The PVGroup managing this widget.
+     * @param pv_name Fully expanded PV name.
+     */
+    VarWidget(PVGroup &pvgroup, const std::string &pv_name) : WidgetBase(pvgroup, pv_name) {
+        pvgroup.set_monitor(pv_name_, value_);
+    }
+
+    /**
+     * @brief Get the current value of the variable.
+     * @return The current value stored in the widget.
+     */
+    T value() const { return value_; };
+
+    /**
+     * @brief Deleted component method. This widget does not have a UI element.
+     */
+    ftxui::Component component() const = delete;
+
+  private:
+    T value_; ///< Current value from the PV.
+};
+
+/**
+ * @brief A widget for selecting an enum-style PV value from a list.
+ *
+ * Supports vertical, horizontal, or dropdown layout styles.
+ */
+class ChoiceWidget : public WidgetBase {
+  public:
+    /**
+     * @brief Constructs a ChoiceWidget with macro expansion.
+     * @param pvgroup The PVGroup managing this widget.
+     * @param args Argument parser for macro replacement.
+     * @param pv_name Macro-style PV name.
+     * @param style Layout style (vertical, horizontal, dropdown).
+     */
+    ChoiceWidget(PVGroup &pvgroup, const ArgParser &args, const std::string &pv_name,
+                 ChoiceStyle style);
+
+    /**
+     * @brief Constructs a ChoiceWidget with a fully expanded PV name.
+     * @param pvgroup The PVGroup managing this widget.
+     * @param pv_name Fully expanded PV name.
+     * @param style Layout style (vertical, horizontal, dropdown).
+     */
+    ChoiceWidget(PVGroup &pvgroup, const std::string &pv_name, ChoiceStyle style);
+
+    /**
+     * @brief Get the current enum value.
+     * @return The current PVEnum value.
+     */
+    PVEnum value() const;
+
+  private:
+    PVEnum value_; ///< Current enum value from the PV.
+};
+
 } // namespace pvtui

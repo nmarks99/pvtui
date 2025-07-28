@@ -14,12 +14,13 @@
 #include "ftxui/component/screen_interactive.hpp"
 #include "ftxui/dom/elements.hpp"
 #include "ftxui/screen/color.hpp"
-#include <ftxui/component/event.hpp>
-#include <ftxui/dom/node.hpp>
+#include "ftxui/component/event.hpp"
+#include "ftxui/dom/node.hpp"
 
-#include "pvgroup.hpp"
+#include "pvtui.hpp"
 
 using namespace ftxui;
+using namespace pvtui;
 
 std::vector<double> downsample_and_clip(const std::vector<double>& input, int target_size, double curr_min, double curr_max, double height) {
     std::vector<double> result;
@@ -68,93 +69,39 @@ int main(int argc, char *argv[]) {
     epics::pvAccess::ca::CAClientFactory::start();
     pvac::ClientProvider provider("ca");
 
-    PVGroup pvgroup(provider, {
-        "S-DCCT:CurrentM",
-        "S-DCCT:LifetimeM",
-        "S-INJ:InjectionOperationM",
-        "S-INJ:InjectionPeriodCounterM",
-        "S:DesiredMode",
-        "S:ActualMode",
-        "NoOfShuttersOpenA",
-        "S:UserOpsCurrent",
-        "S:OtherCurrent",
-        "RF-ACIS:FePermit:Sect1To35IdM",
-        "OPS:message1",
-        "OPS:message2",
-        "OPS:message3",
-        "OPS:message4",
-        "OPS:message5",
-        "OPS:message6",
-        "OPS:message14",
-        "OPS:message16",
-        "OPS:message17",
-        "OPS:message18",
-        "S:IOC:timeOfDayForm1SI"
-    });
+    // PVGroup to manage all PVs for this display
+    PVGroup pvgroup(provider);
 
-    std::string time_and_date = "";
-    pvgroup.set_monitor("S:IOC:timeOfDayForm1SI", time_and_date);
+    // Widgets for each PV we want on the display
+    // This particular display has no interactive elements
+    VarWidget<std::string> time_and_date(pvgroup, "S:IOC:timeOfDayForm1SI");
+    VarWidget<std::string> current(pvgroup, "S-DCCT:CurrentM");
+    VarWidget<int> lifetime(pvgroup, "S-DCCT:LifetimeM");
+    VarWidget<PVEnum> injection_status(pvgroup, "S-INJ:InjectionOperationM");
+    VarWidget<std::string> injection_period(pvgroup, "S-INJ:InjectionPeriodCounterM");
+    VarWidget<PVEnum> desired_mode(pvgroup, "S:DesiredMode");
+    VarWidget<PVEnum> actual_mode(pvgroup, "S:ActualMode");
+    VarWidget<PVEnum> shutter_status(pvgroup, "RF-ACIS:FePermit:Sect1To35IdM");
+    VarWidget<int> num_shutters_open(pvgroup, "NoOfShuttersOpenA");
+    VarWidget<std::string> operators(pvgroup, "OPS:message1");
+    VarWidget<std::string> floor_coord(pvgroup, "OPS:message2");
+    VarWidget<std::string> fill_patt(pvgroup, "OPS:message3");
+    VarWidget<std::string> dump_reason(pvgroup, "OPS:message5");
+    VarWidget<std::string> dump_reason_cont(pvgroup, "OPS:message16");
+    VarWidget<std::string> prob_info(pvgroup, "OPS:message4");
+    VarWidget<std::string> prob_info_cont(pvgroup, "OPS:message14");
+    VarWidget<std::string> next_fill(pvgroup, "OPS:message6");
+    VarWidget<std::string> next_fill_cont(pvgroup, "OPS:message17");
+    VarWidget<std::string> next_update(pvgroup, "OPS:message18");
 
-    PVAny current;
-    pvgroup.set_monitor("S-DCCT:CurrentM", current);
-    auto &current_PV = pvgroup.get_pv("S-DCCT:CurrentM");
-
-    int lifetime = 0;
-    pvgroup.set_monitor("S-DCCT:LifetimeM", lifetime);
-
-    PVEnum injection_status;
-    pvgroup.set_monitor("S-INJ:InjectionOperationM", injection_status);
-
-    PVAny injection_period; injection_period.prec=1;
-    pvgroup.set_monitor("S-INJ:InjectionPeriodCounterM", injection_period);
-
-    PVEnum desired_mode;
-    pvgroup.set_monitor("S:DesiredMode", desired_mode);
-    
-    PVEnum actual_mode;
-    pvgroup.set_monitor("S:ActualMode", actual_mode);
-
-    PVEnum shutter_status;
-    pvgroup.set_monitor("RF-ACIS:FePermit:Sect1To35IdM", shutter_status);
-
-    int num_shutters_open = 0;
-    pvgroup.set_monitor("NoOfShuttersOpenA", num_shutters_open);
-
+    // VarWidget does not work right here since there isn't a way to preallocate 1440
     std::vector<double> user_ops_current(1440, 0.0);
+    pvgroup.add("S:UserOpsCurrent");
     pvgroup.set_monitor("S:UserOpsCurrent", user_ops_current);
-    
+
     std::vector<double> other_current(1440, 0.0);
+    pvgroup.add("S:OtherCurrent");
     pvgroup.set_monitor("S:OtherCurrent", other_current);
-
-    std::string operators = "";
-    pvgroup.set_monitor("OPS:message1", operators);
-    
-    std::string floor_coord = "";
-    pvgroup.set_monitor("OPS:message2", floor_coord);
-    
-    std::string fill_patt = "";
-    pvgroup.set_monitor("OPS:message3", fill_patt);
-
-    std::string dump_reason = "";
-    pvgroup.set_monitor("OPS:message5", dump_reason);
-
-    std::string dump_reason_cont = "";
-    pvgroup.set_monitor("OPS:message16", dump_reason_cont);
-    
-    std::string prob_info = "";
-    pvgroup.set_monitor("OPS:message4", prob_info);
-
-    std::string prob_info_cont = "";
-    pvgroup.set_monitor("OPS:message14", prob_info_cont);
-
-    std::string next_fill = "";
-    pvgroup.set_monitor("OPS:message6", next_fill);
-
-    std::string next_fill_cont = "";
-    pvgroup.set_monitor("OPS:message17", next_fill_cont);
-
-    std::string next_update = "";
-    pvgroup.set_monitor("OPS:message18", next_update);
 
     auto plot1_renderer = Renderer([&] {
         const double CURR_MAX = 200;
@@ -202,28 +149,28 @@ int main(int argc, char *argv[]) {
     auto main_renderer = Renderer(main_container, [&] {
         return vbox({
             text("Storage Ring Status") | borderLight | bold | size(WIDTH, EQUAL, 19),
-            text(time_and_date),
+            text(time_and_date.value()),
             separatorEmpty(),
 
             hbox({
                 text("Current:  "),
-                text(current.value) | size(WIDTH, EQUAL, 7),
+                text(current.value()) | size(WIDTH, EQUAL, 7),
                 text(" mA")
             }),
             hbox({
                 text("Lifetime: "),
-                text(std::to_string(lifetime)) | size(WIDTH, EQUAL, 7),
+                text(std::to_string(lifetime.value())) | size(WIDTH, EQUAL, 7),
                 text(" min")
             }),
 
             separatorEmpty(),
-            inj_status_text.at(injection_status.index),
-            text("Swapout In: " + injection_period + " sec."),
+            inj_status_text.at(injection_status.value().index),
+            text("Swapout In: " + injection_period.value() + " sec."),
             separatorEmpty(),
-            shutter_status_text.at(shutter_status.index),
-            text("Machine Status: " + desired_mode.choice),
-            text("Operating Mode: " + actual_mode.choice),
-            text("Shutters Open: " + std::to_string(num_shutters_open)),
+            shutter_status_text.at(shutter_status.value().index),
+            text("Machine Status: " + desired_mode.value().choice),
+            text("Operating Mode: " + actual_mode.value().choice),
+            text("Shutters Open: " + std::to_string(num_shutters_open.value())),
 
             separatorEmpty(),
             text("Beam History: ") | bold | italic | underlined | size(WIDTH, EQUAL, 11),
@@ -254,16 +201,16 @@ int main(int argc, char *argv[]) {
             separatorEmpty(),
 
             text("Messages from Operations: ") | bold | italic | underlined | size(WIDTH, EQUAL, 22),
-            text("        Operators: " + operators),
-            text("Floor Coordinator: " + floor_coord),
-            text("     Fill Pattern: " + fill_patt),
-            text(" Dump/Trip Reason: " + dump_reason),
-            text("Trip Reason(cont): " + dump_reason_cont),
-            text("     Problem Info: " + prob_info),
-            text(" Prob Info (cont): " + prob_info_cont),
-            text("        Next Fill: " + next_fill),
-            text("  Next Fill(cont): " + next_fill_cont),
-            text("      Next Update: " + next_update),
+            text("        Operators: " + operators.value()),
+            text("Floor Coordinator: " + floor_coord.value()),
+            text("     Fill Pattern: " + fill_patt.value()),
+            text(" Dump/Trip Reason: " + dump_reason.value()),
+            text("Trip Reason(cont): " + dump_reason_cont.value()),
+            text("     Problem Info: " + prob_info.value()),
+            text(" Prob Info (cont): " + prob_info_cont.value()),
+            text("        Next Fill: " + next_fill.value()),
+            text("  Next Fill(cont): " + next_fill_cont.value()),
+            text("      Next Update: " + next_update.value()),
         });
     });
         

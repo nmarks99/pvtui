@@ -5,47 +5,22 @@
     
 ftxui::Decorator ColorDisabled = bgcolor(ftxui::Color::RGBA(80,10,4,230)) | color(ftxui::Color::Black);
 
-void SmallMotorDisplay::init() {
-    using namespace pvtui;
-
-    connect_pv(desc, args.replace("$(P)$(M).DESC"), MonitorOn);
-    desc.set_component(PVInput(pvgroup->get_pv(desc.pv_name), desc.value, PVPutType::String));
-    
-    connect_pv(val, args.replace("$(P)$(M).VAL"), MonitorOn);
-    val.set_component(PVInput(pvgroup->get_pv(val.pv_name), val.value, PVPutType::Double));
-
-    connect_pv(twr, args.replace("$(P)$(M).TWR"), MonitorOff);
-    twr.set_component(PVButton(pvgroup->get_pv(twr.pv_name), " < ", 1));
-
-    connect_pv(twv, args.replace("$(P)$(M).TWV"), MonitorOn);
-    twv.set_component(PVInput(pvgroup->get_pv(twv.pv_name), twv.value, PVPutType::Double));
-
-    connect_pv(twf, args.replace("$(P)$(M).TWF"), MonitorOff);
-    twf.set_component(PVButton(pvgroup->get_pv(twf.pv_name), " > ", 1));
-
-    connect_pv(rbv, args.replace("$(P)$(M).RBV"), MonitorOn);
-
-    connect_pv(egu, args.replace("$(P)$(M).EGU"), MonitorOn);
-
-    connect_pv(hls, args.replace("$(P)$(M).HLS"), MonitorOn);
-
-    connect_pv(lls, args.replace("$(P)$(M).LLS"), MonitorOn);
-
-    connect_pv(en_dis, args.replace("$(P)$(M)_able"), MonitorOn);
-
-    connect_pv(use_set, args.replace("$(P)$(M).SET"), MonitorOn);
-    use_set.set_component(PVChoiceH(pvgroup->get_pv(use_set.pv_name), use_set.value.choices, use_set.value.index));
-
-    connect_pv(dmov, args.replace("$(P)$(M).DMOV"), MonitorOn);
-
-    connect_pv(stop, args.replace("$(P)$(M).STOP"), MonitorOff);
-    stop.set_component(PVButton(pvgroup->get_pv(stop.pv_name), " STOP ", 1));
-}
-
-SmallMotorDisplay::SmallMotorDisplay(const std::shared_ptr<PVGroup> &pvgroup, const pvtui::ArgParser &args)
-    : DisplayBase(pvgroup), args(args) {
-    this->init();
-}
+SmallMotorDisplay::SmallMotorDisplay(PVGroup &pvgroup, const pvtui::ArgParser &args)
+    : DisplayBase(pvgroup), args(args),
+    desc(pvgroup, args, "$(P)$(M).DESC", pvtui::PVPutType::String),
+    stop(pvgroup, args, "$(P)$(M).STOP", " STOP "),
+    use_set(pvgroup, args, "$(P)$(M).SET", pvtui::ChoiceStyle::Horizontal),
+    en_dis(pvgroup, args, "$(P)$(M)_able", pvtui::ChoiceStyle::Horizontal),
+    egu(pvgroup, args, "$(P)$(M).EGU"),
+    hls(pvgroup, args, "$(P)$(M).HLS"),
+    lls(pvgroup, args, "$(P)$(M).LLS"),
+    dmov(pvgroup, args, "$(P)$(M).DMOV"),
+    rbv(pvgroup, args, "$(P)$(M).RBV"),
+    twf(pvgroup, args, "$(P)$(M).TWF", " > "),
+    twr(pvgroup, args, "$(P)$(M).TWR", " < "),
+    twv(pvgroup, args, "$(P)$(M).TWV", pvtui::PVPutType::Double),
+    val(pvgroup, args, "$(P)$(M).VAL", pvtui::PVPutType::Double)
+{}
 
 ftxui::Component SmallMotorDisplay::get_container() {
     using namespace ftxui;
@@ -77,21 +52,21 @@ ftxui::Element SmallMotorDisplay::get_renderer() {
 	separatorEmpty(),
 
 	hbox({
-	    filler() | size(WIDTH, EQUAL, egu.value.size()+1),
-	    text(lls.value ? unicode::rectangle(1) : "  ") | color(Color::Red),
+	    filler() | size(WIDTH, EQUAL, egu.value().size()+1),
+	    text(lls.value() ? unicode::rectangle(1) : "  ") | color(Color::Red),
 	    separatorEmpty(), separatorEmpty(),
-	    text(rbv.value) | (use_set.value.index==0 ? EPICSColor::READBACK : color(Color::Yellow2)),
+	    text(rbv.value()) | (use_set.value().index==0 ? EPICSColor::READBACK : color(Color::Yellow2)),
 	    separatorEmpty(), separatorEmpty(),
-	    text(hls.value ? unicode::rectangle(1) : "  ") | color(Color::Red),
+	    text(hls.value() ? unicode::rectangle(1) : "  ") | color(Color::Red),
 	    separatorEmpty(),
-	    text(egu.value) | color(Color::Black)
+	    text(egu.value()) | color(Color::Black)
 	}) | center,
 
 	hbox({
 	    val.component()->Render()
-		| (en_dis.value.index==0 ? EPICSColor::EDIT : ColorDisabled)
+		| (en_dis.value().index==0 ? EPICSColor::EDIT : ColorDisabled)
 		| size(WIDTH, EQUAL, 10)
-		| (dmov.value == 0 ? borderHeavy | color(Color::Green) : borderEmpty),
+		| (dmov.value() == 0 ? borderHeavy | color(Color::Green) : borderEmpty),
 	}) | center,
 
 	hbox({
@@ -119,65 +94,28 @@ ftxui::Element SmallMotorDisplay::get_renderer() {
 }
 
 
-void MediumMotorDisplay::init() {
-    using namespace pvtui;
-
-    connect_pv(desc, args.replace("$(P)$(M).DESC"), MonitorOn);
-    desc.set_component(PVInput(pvgroup->get_pv(desc.pv_name), desc.value, PVPutType::String));
-    
-    connect_pv(val, args.replace("$(P)$(M).VAL"), MonitorOn);
-    val.set_component(PVInput(pvgroup->get_pv(val.pv_name), val.value, PVPutType::Double));
-
-    connect_pv(twr, args.replace("$(P)$(M).TWR"), MonitorOff);
-    twr.set_component(PVButton(pvgroup->get_pv(twr.pv_name), " < ", 1));
-    
-    connect_pv(twv, args.replace("$(P)$(M).TWV"), MonitorOn);
-    twv.set_component(PVInput(pvgroup->get_pv(twv.pv_name), twv.value, PVPutType::Double));
-
-    connect_pv(twf, args.replace("$(P)$(M).TWF"), MonitorOff);
-    twf.set_component(PVButton(pvgroup->get_pv(twf.pv_name), " > ", 1));
-
-    connect_pv(rbv, args.replace("$(P)$(M).RBV"), MonitorOn);
-
-    connect_pv(egu, args.replace("$(P)$(M).EGU"), MonitorOn);
-
-    connect_pv(hls, args.replace("$(P)$(M).HLS"), MonitorOn);
-    
-    connect_pv(lls, args.replace("$(P)$(M).LLS"), MonitorOn);
-
-    connect_pv(use_set, args.replace("$(P)$(M).SET"), MonitorOn);
-    use_set.set_component(PVChoiceH(pvgroup->get_pv(use_set.pv_name), use_set.value.choices, use_set.value.index));
-
-    connect_pv(dmov, args.replace("$(P)$(M).DMOV"), MonitorOn);
-
-    connect_pv(spmg, args.replace("$(P)$(M).SPMG"), MonitorOn);
-    spmg.set_component(PVChoiceV(pvgroup->get_pv(spmg.pv_name), spmg.value.choices, spmg.value.index));
-
-    connect_pv(able, args.replace("$(P)$(M)_able"), MonitorOn);
-    able.set_component(PVChoiceH(pvgroup->get_pv(able.pv_name), able.value.choices, able.value.index));
-
-    connect_pv(dval, args.replace("$(P)$(M).DVAL"), MonitorOn);
-    dval.set_component(PVInput(pvgroup->get_pv(dval.pv_name), dval.value, PVPutType::Double));
-
-    connect_pv(hlm, args.replace("$(P)$(M).HLM"), MonitorOn);
-    hlm.set_component(PVInput(pvgroup->get_pv(hlm.pv_name), hlm.value, PVPutType::Double));
-    
-    connect_pv(llm, args.replace("$(P)$(M).LLM"), MonitorOn);
-    llm.set_component(PVInput(pvgroup->get_pv(llm.pv_name), llm.value, PVPutType::Double));
-    
-    connect_pv(dhlm, args.replace("$(P)$(M).DHLM"), MonitorOn);
-    dhlm.set_component(PVInput(pvgroup->get_pv(dhlm.pv_name), dhlm.value, PVPutType::Double));
-    
-    connect_pv(dllm, args.replace("$(P)$(M).DLLM"), MonitorOn);
-    dllm.set_component(PVInput(pvgroup->get_pv(dllm.pv_name), dllm.value, PVPutType::Double));
-
-    connect_pv(drbv, args.replace("$(P)$(M).DRBV"), MonitorOn);
-}
-
-MediumMotorDisplay::MediumMotorDisplay(const std::shared_ptr<PVGroup> &pvgroup, const pvtui::ArgParser &args)
-    : DisplayBase(pvgroup), args(args) {
-    this->init();
-}
+MediumMotorDisplay::MediumMotorDisplay(PVGroup &pvgroup, const pvtui::ArgParser &args)
+    : DisplayBase(pvgroup), args(args),
+    desc(pvgroup, args, "$(P)$(M).DESC", pvtui::PVPutType::String),
+    use_set(pvgroup, args, "$(P)$(M).SET", pvtui::ChoiceStyle::Horizontal),
+    egu(pvgroup, args, "$(P)$(M).EGU"),
+    hls(pvgroup, args, "$(P)$(M).HLS"),
+    lls(pvgroup, args, "$(P)$(M).LLS"),
+    dmov(pvgroup, args, "$(P)$(M).DMOV"),
+    rbv(pvgroup, args, "$(P)$(M).RBV"),
+    drbv(pvgroup, args, "$(P)$(M).DRBV"),
+    twf(pvgroup, args, "$(P)$(M).TWF", " > "),
+    twr(pvgroup, args, "$(P)$(M).TWR", " < "),
+    twv(pvgroup, args, "$(P)$(M).TWV", pvtui::PVPutType::Double),
+    val(pvgroup, args, "$(P)$(M).VAL", pvtui::PVPutType::Double),
+    dval(pvgroup, args, "$(P)$(M).DVAL", pvtui::PVPutType::Double),
+    able(pvgroup, args, "$(P)$(M)_able", pvtui::ChoiceStyle::Horizontal),
+    spmg(pvgroup, args, "$(P)$(M).SPMG", pvtui::ChoiceStyle::Vertical),
+    llm(pvgroup, args, "$(P)$(M).LLM", pvtui::PVPutType::Double),
+    hlm(pvgroup, args, "$(P)$(M).HLM", pvtui::PVPutType::Double),
+    dllm(pvgroup, args, "$(P)$(M).DLLM", pvtui::PVPutType::Double),
+    dhlm(pvgroup, args, "$(P)$(M).DHLM", pvtui::PVPutType::Double)
+{}
 
 ftxui::Component MediumMotorDisplay::get_container() {
     using namespace ftxui;
@@ -212,7 +150,7 @@ ftxui::Element MediumMotorDisplay::get_renderer() {
     using namespace ftxui;
     using namespace pvtui;
 
-    auto &desc_pv = pvgroup->get_pv(desc.pv_name);
+    auto &desc_pv = pvgroup.get_pv(desc.pv_name());
     return ftxui::vbox({
 	(desc_pv.connected() ? text("") : text("Disconnected") | color(Color::Red)) | center,
 
@@ -222,20 +160,20 @@ ftxui::Element MediumMotorDisplay::get_renderer() {
 	// 6 column hbox of vbox's
 	// none | none | user | dial | lims/egu | spmg
 	hbox({
-	    filler() | size(WIDTH, EQUAL, egu.value.length()+8),
+	    filler() | size(WIDTH, EQUAL, egu.value().length()+8),
 	    vbox({
 		text("User") | center,
 		hlm.component()->Render()
 		    | center
 		    | EPICSColor::EDIT
 		    | size(WIDTH, EQUAL, 10),
-		text(rbv.value)
-		    | (use_set.value.index==0 ? EPICSColor::READBACK : color(Color::Yellow2))
-		    | (dmov.value == 0 ? borderHeavy | color(Color::Green) : borderEmpty)
+		text(rbv.value())
+		    | (use_set.value().index==0 ? EPICSColor::READBACK : color(Color::Yellow2))
+		    | (dmov.value() == 0 ? borderHeavy | color(Color::Green) : borderEmpty)
 		    | center,
 		val.component()->Render()
 		    | center
-		    | (able.value.index==0 ? EPICSColor::EDIT : ColorDisabled)
+		    | (able.value().index==0 ? EPICSColor::EDIT : ColorDisabled)
 		    | size(WIDTH, EQUAL, 10) | size(HEIGHT, EQUAL, 2),
 		separatorEmpty(), 	
 		llm.component()->Render()
@@ -249,13 +187,13 @@ ftxui::Element MediumMotorDisplay::get_renderer() {
 		    | center
 		    | EPICSColor::EDIT
 		    | size(WIDTH, EQUAL, 10),
-		text(drbv.value)
-		    | (use_set.value.index==0 ? EPICSColor::READBACK : color(Color::Yellow2))
-		    | (dmov.value == 0 ? borderHeavy | color(Color::Green) : borderEmpty)
+		text(drbv.value())
+		    | (use_set.value().index==0 ? EPICSColor::READBACK : color(Color::Yellow2))
+		    | (dmov.value() == 0 ? borderHeavy | color(Color::Green) : borderEmpty)
 		    | center,
 		dval.component()->Render()
 		    | center
-		    | (able.value.index==0 ? EPICSColor::EDIT : ColorDisabled)
+		    | (able.value().index==0 ? EPICSColor::EDIT : ColorDisabled)
 		    | size(WIDTH, EQUAL, 10)
 		    | size(HEIGHT, EQUAL, 2),
 		separatorEmpty(), 	
@@ -266,12 +204,12 @@ ftxui::Element MediumMotorDisplay::get_renderer() {
 	    separatorEmpty(),
 	    vbox({
 		separatorEmpty(),
-		text(hls.value ? unicode::rectangle(2) : "") | color(Color::Red),
+		text(hls.value() ? unicode::rectangle(2) : "") | color(Color::Red),
 		filler(),
-		text(egu.value) | EPICSColor::READBACK,
+		text(egu.value()) | EPICSColor::READBACK,
 		separatorEmpty(),
-		text(lls.value ? unicode::rectangle(2) : "") | color(Color::Red),
-	    }) | size(WIDTH, EQUAL, egu.value.length()),
+		text(lls.value() ? unicode::rectangle(2) : "") | color(Color::Red),
+	    }) | size(WIDTH, EQUAL, egu.value().length()),
 	    separatorEmpty(),
 	    spmg.component()->Render()
 		| EPICSColor::EDIT
@@ -304,121 +242,46 @@ ftxui::Element MediumMotorDisplay::get_renderer() {
     })| center | EPICSColor::BACKGROUND;
 }
 
-
-void AllMotorDisplay::init() {
-
-    using namespace pvtui;
-
-    connect_pv(desc, args.replace("$(P)$(M).DESC"), MonitorOn);
-    desc.set_component(PVInput(pvgroup->get_pv(desc.pv_name), desc.value, PVPutType::String));
-
-    connect_pv(vmax, args.replace("$(P)$(M).VMAX"), MonitorOn);
-    vmax.set_component(PVInput(pvgroup->get_pv(vmax.pv_name), vmax.value, PVPutType::Double));
-
-    connect_pv(velo, args.replace("$(P)$(M).VELO"), MonitorOn);
-    velo.set_component(PVInput(pvgroup->get_pv(velo.pv_name), velo.value, PVPutType::Double));
-   
-    connect_pv(vbas, args.replace("$(P)$(M).VBAS"), MonitorOn);
-    vbas.set_component(PVInput(pvgroup->get_pv(vbas.pv_name), vbas.value, PVPutType::Double));
-    
-    connect_pv(accl, args.replace("$(P)$(M).ACCL"), MonitorOn);
-    accl.set_component(PVInput(pvgroup->get_pv(accl.pv_name), accl.value, PVPutType::Double));
-    
-    connect_pv(mres, args.replace("$(P)$(M).MRES"), MonitorOn);
-    mres.set_component(PVInput(pvgroup->get_pv(mres.pv_name), mres.value, PVPutType::Double));
-    
-    connect_pv(eres, args.replace("$(P)$(M).ERES"), MonitorOn);
-    eres.set_component(PVInput(pvgroup->get_pv(eres.pv_name), eres.value, PVPutType::Double));
-
-    connect_pv(rres, args.replace("$(P)$(M).RRES"), MonitorOn);
-    rres.set_component(PVInput(pvgroup->get_pv(rres.pv_name), rres.value, PVPutType::Double));
-
-    connect_pv(rtry, args.replace("$(P)$(M).RTRY"), MonitorOn);
-    rtry.set_component(PVInput(pvgroup->get_pv(rtry.pv_name), rtry.value, PVPutType::Int));
-    
-    connect_pv(ueip, args.replace("$(P)$(M).UEIP"), MonitorOn);
-    ueip.set_component(PVChoiceH(pvgroup->get_pv(ueip.pv_name), ueip.value.choices, ueip.value.index));
-    
-    connect_pv(urip, args.replace("$(P)$(M).URIP"), MonitorOn);
-    urip.set_component(PVChoiceH(pvgroup->get_pv(urip.pv_name), urip.value.choices, urip.value.index));
-
-    connect_pv(use_set, args.replace("$(P)$(M).SET"), MonitorOn);
-    use_set.set_component(PVChoiceH(pvgroup->get_pv(use_set.pv_name), use_set.value.choices, use_set.value.index));
-    
-    connect_pv(cnen, args.replace("$(P)$(M).CNEN"), MonitorOn);
-    cnen.set_component(PVChoiceH(pvgroup->get_pv(cnen.pv_name), cnen.value.choices, cnen.value.index));
-    
-    connect_pv(dir, args.replace("$(P)$(M).DIR"), MonitorOn);
-    dir.set_component(PVChoiceH(pvgroup->get_pv(dir.pv_name), dir.value.choices, dir.value.index));
-
-    connect_pv(able, args.replace("$(P)$(M)_able"), MonitorOn);
-    able.set_component(PVChoiceV(pvgroup->get_pv(able.pv_name), able.value.choices, able.value.index));
-    
-    connect_pv(spmg, args.replace("$(P)$(M).SPMG"), MonitorOn);
-    spmg.set_component(PVChoiceV(pvgroup->get_pv(spmg.pv_name), spmg.value.choices, spmg.value.index));
-    
-    connect_pv(foff, args.replace("$(P)$(M).FOFF"), MonitorOn);
-    foff.set_component(PVDropdown(pvgroup->get_pv(foff.pv_name), foff.value.choices, foff.value.index));
-    
-    connect_pv(off, args.replace("$(P)$(M).OFF"), MonitorOn);
-    off.set_component(PVInput(pvgroup->get_pv(off.pv_name), off.value, PVPutType::Double));
-
-    connect_pv(prec, args.replace("$(P)$(M).PREC"), MonitorOn);
-    prec.set_component(PVInput(pvgroup->get_pv(prec.pv_name), prec.value, PVPutType::Int));
-
-    connect_pv(dmov, args.replace("$(P)$(M).DMOV"), MonitorOn);
-
-    connect_pv(rbv, args.replace("$(P)$(M).RBV"), MonitorOn);
-    
-    connect_pv(drbv, args.replace("$(P)$(M).DRBV"), MonitorOn);
-    
-    connect_pv(val, args.replace("$(P)$(M).VAL"), MonitorOn);
-    val.set_component(PVInput(pvgroup->get_pv(val.pv_name), val.value, PVPutType::Double));
-    
-    connect_pv(dval, args.replace("$(P)$(M).DVAL"), MonitorOn);
-    dval.set_component(PVInput(pvgroup->get_pv(dval.pv_name), dval.value, PVPutType::Double));
-    
-    connect_pv(hlm, args.replace("$(P)$(M).HLM"), MonitorOn);
-    hlm.set_component(PVInput(pvgroup->get_pv(hlm.pv_name), hlm.value, PVPutType::Double));
-    
-    connect_pv(llm, args.replace("$(P)$(M).LLM"), MonitorOn);
-    llm.set_component(PVInput(pvgroup->get_pv(llm.pv_name), llm.value, PVPutType::Double));
-
-    connect_pv(dhlm, args.replace("$(P)$(M).DHLM"), MonitorOn);
-    dhlm.set_component(PVInput(pvgroup->get_pv(dhlm.pv_name), dhlm.value, PVPutType::Double));
-    
-    connect_pv(dllm, args.replace("$(P)$(M).DLLM"), MonitorOn);
-    dllm.set_component(PVInput(pvgroup->get_pv(dllm.pv_name), dllm.value, PVPutType::Double));
-   
-    connect_pv(rval, args.replace("$(P)$(M).RVAL"), MonitorOn);
-    rval.set_component(PVInput(pvgroup->get_pv(rval.pv_name), rval.value, PVPutType::Double));
-    
-    connect_pv(rrbv, args.replace("$(P)$(M).RRBV"), MonitorOn);
-
-    connect_pv(twr, args.replace("$(P)$(M).TWR"), MonitorOff);
-    twr.set_component(PVButton(pvgroup->get_pv(twr.pv_name), " < ", 1));
-
-    connect_pv(twv, args.replace("$(P)$(M).TWV"), MonitorOn);
-    twv.set_component(PVInput(pvgroup->get_pv(twv.pv_name), twv.value, PVPutType::Double));
-
-    connect_pv(twf, args.replace("$(P)$(M).TWF"), MonitorOff);
-    twf.set_component(PVButton(pvgroup->get_pv(twf.pv_name), " > ", 1));
-
-    connect_pv(rlv, args.replace("$(P)$(M).RLV"), MonitorOn);
-    rlv.set_component(PVInput(pvgroup->get_pv(rlv.pv_name), rlv.value, PVPutType::Double));
-
-    connect_pv(egu, args.replace("$(P)$(M).EGU"), MonitorOn);
-    egu.set_component(PVInput(pvgroup->get_pv(egu.pv_name), egu.value, PVPutType::String));
-    
-    connect_pv(hls, args.replace("$(P)$(M).HLS"), MonitorOn);
-
-    connect_pv(lls, args.replace("$(P)$(M).LLS"), MonitorOn);
-}
-
-AllMotorDisplay::AllMotorDisplay(const std::shared_ptr<PVGroup> &pvgroup, const pvtui::ArgParser &args)
-    : DisplayBase(pvgroup), args(args) {
-    this->init();
-}
+AllMotorDisplay::AllMotorDisplay(PVGroup &pvgroup, const pvtui::ArgParser &args)
+    : DisplayBase(pvgroup), args(args),
+    desc(pvgroup, args, "$(P)$(M).DESC", pvtui::PVPutType::String),
+    use_set(pvgroup, args, "$(P)$(M).SET", pvtui::ChoiceStyle::Horizontal),
+    egu(pvgroup, args, "$(P)$(M).EGU", pvtui::PVPutType::String),
+    hls(pvgroup, args, "$(P)$(M).HLS"),
+    lls(pvgroup, args, "$(P)$(M).LLS"),
+    dmov(pvgroup, args, "$(P)$(M).DMOV"),
+    rbv(pvgroup, args, "$(P)$(M).RBV"),
+    rrbv(pvgroup, args, "$(P)$(M).RRBV"),
+    drbv(pvgroup, args, "$(P)$(M).DRBV"),
+    twf(pvgroup, args, "$(P)$(M).TWF", " > "),
+    twr(pvgroup, args, "$(P)$(M).TWR", " < "),
+    twv(pvgroup, args, "$(P)$(M).TWV", pvtui::PVPutType::Double),
+    val(pvgroup, args, "$(P)$(M).VAL", pvtui::PVPutType::Double),
+    rval(pvgroup, args, "$(P)$(M).RVAL", pvtui::PVPutType::Double),
+    rlv(pvgroup, args, "$(P)$(M).RLV", pvtui::PVPutType::Double),
+    dval(pvgroup, args, "$(P)$(M).DVAL", pvtui::PVPutType::Double),
+    prec(pvgroup, args, "$(P)$(M).PREC", pvtui::PVPutType::Int),
+    rtry(pvgroup, args, "$(P)$(M).RTRY", pvtui::PVPutType::Int),
+    off(pvgroup, args, "$(P)$(M).OFF", pvtui::PVPutType::Double),
+    vmax(pvgroup, args, "$(P)$(M).VMAX", pvtui::PVPutType::Double),
+    vbas(pvgroup, args, "$(P)$(M).VBAS", pvtui::PVPutType::Double),
+    velo(pvgroup, args, "$(P)$(M).VELO", pvtui::PVPutType::Double),
+    accl(pvgroup, args, "$(P)$(M).ACCL", pvtui::PVPutType::Double),
+    mres(pvgroup, args, "$(P)$(M).MRES", pvtui::PVPutType::Double),
+    eres(pvgroup, args, "$(P)$(M).ERES", pvtui::PVPutType::Double),
+    rres(pvgroup, args, "$(P)$(M).RRES", pvtui::PVPutType::Double),
+    able(pvgroup, args, "$(P)$(M)_able", pvtui::ChoiceStyle::Vertical),
+    spmg(pvgroup, args, "$(P)$(M).SPMG", pvtui::ChoiceStyle::Vertical),
+    foff(pvgroup, args, "$(P)$(M).FOFF", pvtui::ChoiceStyle::Dropdown),
+    cnen(pvgroup, args, "$(P)$(M).CNEN", pvtui::ChoiceStyle::Horizontal),
+    dir(pvgroup, args, "$(P)$(M).DIR", pvtui::ChoiceStyle::Horizontal),
+    urip(pvgroup, args, "$(P)$(M).URIP", pvtui::ChoiceStyle::Horizontal),
+    ueip(pvgroup, args, "$(P)$(M).UEIP", pvtui::ChoiceStyle::Horizontal),
+    llm(pvgroup, args, "$(P)$(M).LLM", pvtui::PVPutType::Double),
+    hlm(pvgroup, args, "$(P)$(M).HLM", pvtui::PVPutType::Double),
+    dllm(pvgroup, args, "$(P)$(M).DLLM", pvtui::PVPutType::Double),
+    dhlm(pvgroup, args, "$(P)$(M).DHLM", pvtui::PVPutType::Double)
+{}
 
 ftxui::Component AllMotorDisplay::get_container() {
     using namespace ftxui;
@@ -484,7 +347,7 @@ ftxui::Element AllMotorDisplay::get_renderer() {
     using namespace pvtui;
 
     // use DESC pv to check connection status
-    auto &conn_pv = pvgroup->get_pv(desc.pv_name);
+    auto &conn_pv = pvgroup.get_pv(desc.pv_name());
 
     auto drive = vbox({
 	hbox({
@@ -502,12 +365,12 @@ ftxui::Element AllMotorDisplay::get_renderer() {
 		    | center
 		    | EPICSColor::EDIT
 		    | size(WIDTH, EQUAL, 10),
-		text(rbv.value)
-		    | (use_set.value.index==0 ? EPICSColor::READBACK : color(Color::Yellow2))
+		text(rbv.value())
+		    | (use_set.value().index==0 ? EPICSColor::READBACK : color(Color::Yellow2))
 		    | center,
 		val.component()->Render()
 		    | center
-		    | (able.value.index==0 ? EPICSColor::EDIT : ColorDisabled)
+		    | (able.value().index==0 ? EPICSColor::EDIT : ColorDisabled)
 		    | size(WIDTH, EQUAL, 10),
 		llm.component()->Render()
 		    | EPICSColor::EDIT
@@ -523,12 +386,12 @@ ftxui::Element AllMotorDisplay::get_renderer() {
 		    | center
 		    | EPICSColor::EDIT
 		    | size(WIDTH, EQUAL, 10),
-		text(drbv.value)
-		    | (use_set.value.index==0 ? EPICSColor::READBACK : color(Color::Yellow2))
+		text(drbv.value())
+		    | (use_set.value().index==0 ? EPICSColor::READBACK : color(Color::Yellow2))
 		    | center,
 		dval.component()->Render()
 		    | center
-		    | (able.value.index==0 ? EPICSColor::EDIT : ColorDisabled)
+		    | (able.value().index==0 ? EPICSColor::EDIT : ColorDisabled)
 		    | size(WIDTH, EQUAL, 10),
 		dllm.component()->Render()
 		    | EPICSColor::EDIT
@@ -538,14 +401,14 @@ ftxui::Element AllMotorDisplay::get_renderer() {
 	    separatorEmpty(),
 	    vbox({
 		text("Raw") | center | color(Color::Black),
-		hls.value == 1 ? text(unicode::rectangle(2)) | color(Color::Red) : text(""),
-		text(rrbv.value) | EPICSColor::READBACK,
+		hls.value() == 1 ? text(unicode::rectangle(2)) | color(Color::Red) : text(""),
+		text(rrbv.value()) | EPICSColor::READBACK,
 		rval.component()->Render() | EPICSColor::EDIT | size(WIDTH, EQUAL, 6),
-		lls.value == 1 ? text(unicode::rectangle(2)) | color(Color::Red) : text(""),
+		lls.value() == 1 ? text(unicode::rectangle(2)) | color(Color::Red) : text(""),
 	    }),
 	    separatorEmpty(),
 	    vbox({
-		dmov.value==0 ? text("Moving")
+		dmov.value()==0 ? text("Moving")
 		    | color(Color::Green)
 		    | bgcolor(Color::Black)
 		    | bold | italic : text(""),

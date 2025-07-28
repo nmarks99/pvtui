@@ -33,136 +33,78 @@ For more details, visit: https://github.com/nmarks99/pvtui
 
 class AsynDisplay : public DisplayBase {
   public:
-    AsynDisplay(const std::shared_ptr<PVGroup> &pvgroup, const pvtui::ArgParser &args);
+    AsynDisplay(PVGroup &pvgroup, const pvtui::ArgParser &args);
     ~AsynDisplay() override = default;
     ftxui::Element get_renderer() override;
     ftxui::Component get_container() override;
 
   private:
-    // Create a PVWidget for each PV aware FTXUI component
-    PVWidget<std::string> aout;
-    PVWidget<std::string> oeos;
-    PVWidget<std::string> ieos;
-    PVWidget<std::string> tinp;
-    PVWidget<PVEnum> stat;
-    PVWidget<PVEnum> sevr;
-    PVWidget<std::string> nowt;
-    PVWidget<std::string> nawt;
-    PVWidget<std::string> nord;
-    PVWidget<std::string> eomr;
-    PVWidget<std::string> tmot;
-    PVWidget<PVEnum> tmod;
-    PVWidget<std::string> errs;
-    PVWidget<std::string> ofmt;
-    PVWidget<PVEnum> cnct;
-    PVWidget<PVEnum> enbl;
-    PVWidget<PVEnum> auct;
-    PVWidget<std::string> tfil;
-    PVWidget<PVEnum> tb0;
-    PVWidget<PVEnum> tb1;
-    PVWidget<PVEnum> tb2;
-    PVWidget<PVEnum> tb3;
-    PVWidget<PVEnum> tb4;
-    PVWidget<PVEnum> tb5;
-    PVWidget<PVEnum> tib0;
-    PVWidget<PVEnum> tib1;
-    PVWidget<PVEnum> tib2;
-    PVWidget<PVEnum> tinb0;
-    PVWidget<PVEnum> tinb1;
-    PVWidget<PVEnum> tinb2;
-    PVWidget<PVEnum> tinb3;
-    PVWidget<std::string> tmsk;
-    PVWidget<std::string> tiom;
+    InputWidget aout;
+    InputWidget oeos;
+    InputWidget ieos;
+    InputWidget nowt;
+    InputWidget tmot;
+    InputWidget tfil;
+    VarWidget<PVEnum> stat;
+    VarWidget<PVEnum> sevr;
+    VarWidget<std::string> tinp;
+    VarWidget<std::string> nawt;
+    VarWidget<std::string> nord;
+    VarWidget<std::string> errs;
+    ChoiceWidget tmod;
+    ChoiceWidget cnct;
+    ChoiceWidget enbl;
+    ChoiceWidget auct;
+    ChoiceWidget tb0;
+    ChoiceWidget tb1;
+    ChoiceWidget tb2;
+    ChoiceWidget tb3;
+    ChoiceWidget tb4;
+    ChoiceWidget tb5;
+    ChoiceWidget tib0;
+    ChoiceWidget tib1;
+    ChoiceWidget tib2;
+    ChoiceWidget tinb0;
+    ChoiceWidget tinb1;
+    ChoiceWidget tinb2;
+    ChoiceWidget tinb3;
 
-    // Store macro arguments
     const pvtui::ArgParser &args;
 };
 
 
-AsynDisplay::AsynDisplay(const std::shared_ptr<PVGroup> &pvgroup, const pvtui::ArgParser &args)
-    : DisplayBase(pvgroup), args(args) {
-
-    connect_pv(aout, args.replace("$(P)$(R).AOUT"), MonitorOn);
-    aout.set_component(PVInput(pvgroup->get_pv(aout.pv_name), aout.value, PVPutType::String));
-
-    connect_pv(oeos, args.replace("$(P)$(R).OEOS"), MonitorOn);
-    oeos.set_component(PVInput(pvgroup->get_pv(oeos.pv_name), oeos.value, PVPutType::String));
-    
-    connect_pv(ieos, args.replace("$(P)$(R).IEOS"), MonitorOn);
-    ieos.set_component(PVInput(pvgroup->get_pv(ieos.pv_name), ieos.value, PVPutType::String));
-
-    connect_pv(tinp, args.replace("$(P)$(R).TINP"), MonitorOn);
-
-    connect_pv(nawt, args.replace("$(P)$(R).NAWT"), MonitorOn);
-
-    connect_pv(nord, args.replace("$(P)$(R).NORD"), MonitorOn);
-   
-    connect_pv(tmot, args.replace("$(P)$(R).TMOT"), MonitorOn);
-    tmot.set_component(PVInput(pvgroup->get_pv(tmot.pv_name), tmot.value, PVPutType::String));
-
-    connect_pv(tmod, args.replace("$(P)$(R).TMOD"), MonitorOn);
-    tmod.set_component(PVDropdown(pvgroup->get_pv(tmod.pv_name), tmod.value.choices, tmod.value.index));
-
-    connect_pv(tmsk, args.replace("$(P)$(R).TMSK"), MonitorOn);
-    tmsk.set_component(PVInput(pvgroup->get_pv(tmsk.pv_name), tmsk.value, PVPutType::String));
-
-    connect_pv(tb0, args.replace("$(P)$(R).TB0"), MonitorOn);
-    tb0.set_component(PVChoiceH(pvgroup->get_pv(tb0.pv_name), tb0.value.choices, tb0.value.index));
-
-    connect_pv(tb1, args.replace("$(P)$(R).TB1"), MonitorOn);
-    tb1.set_component(PVChoiceH(pvgroup->get_pv(tb1.pv_name), tb1.value.choices, tb1.value.index));
-
-    connect_pv(tb2, args.replace("$(P)$(R).TB2"), MonitorOn);
-    tb2.set_component(PVChoiceH(pvgroup->get_pv(tb2.pv_name), tb2.value.choices, tb2.value.index));
-
-    connect_pv(tb3, args.replace("$(P)$(R).TB3"), MonitorOn);
-    tb3.set_component(PVChoiceH(pvgroup->get_pv(tb3.pv_name), tb3.value.choices, tb3.value.index));
-
-    connect_pv(tb4, args.replace("$(P)$(R).TB4"), MonitorOn);
-    tb4.set_component(PVChoiceH(pvgroup->get_pv(tb4.pv_name), tb4.value.choices, tb4.value.index));
-
-    connect_pv(tb5, args.replace("$(P)$(R).TB5"), MonitorOn);
-    tb5.set_component(PVChoiceH(pvgroup->get_pv(tb5.pv_name), tb5.value.choices, tb5.value.index));
-
-    connect_pv(stat, args.replace("$(P)$(R).STAT"), MonitorOn);
-
-    connect_pv(sevr, args.replace("$(P)$(R).SEVR"), MonitorOn);
-
-    connect_pv(errs, args.replace("$(P)$(R).ERRS"), MonitorOn);
-
-    connect_pv(tib0, args.replace("$(P)$(R).TIB0"), MonitorOn);
-    tib0.set_component(PVChoiceH(pvgroup->get_pv(tib0.pv_name), tib0.value.choices, tib0.value.index));
-
-    connect_pv(tib1, args.replace("$(P)$(R).TIB1"), MonitorOn);
-    tib1.set_component(PVChoiceH(pvgroup->get_pv(tib1.pv_name), tib1.value.choices, tib1.value.index));
-
-    connect_pv(tib2, args.replace("$(P)$(R).TIB2"), MonitorOn);
-    tib2.set_component(PVChoiceH(pvgroup->get_pv(tib2.pv_name), tib2.value.choices, tib2.value.index));
-
-    connect_pv(tinb0, args.replace("$(P)$(R).TINB0"), MonitorOn);
-    tinb0.set_component(PVChoiceH(pvgroup->get_pv(tinb0.pv_name), tinb0.value.choices, tinb0.value.index));
-
-    connect_pv(tinb1, args.replace("$(P)$(R).TINB1"), MonitorOn);
-    tinb1.set_component(PVChoiceH(pvgroup->get_pv(tinb1.pv_name), tinb1.value.choices, tinb1.value.index));
-
-    connect_pv(tinb2, args.replace("$(P)$(R).TINB2"), MonitorOn);
-    tinb2.set_component(PVChoiceH(pvgroup->get_pv(tinb2.pv_name), tinb2.value.choices, tinb2.value.index));
-
-    connect_pv(tinb3, args.replace("$(P)$(R).TINB3"), MonitorOn);
-    tinb3.set_component(PVChoiceH(pvgroup->get_pv(tinb3.pv_name), tinb3.value.choices, tinb3.value.index));
-
-    connect_pv(cnct, args.replace("$(P)$(R).CNCT"), MonitorOn);
-    cnct.set_component(PVDropdown(pvgroup->get_pv(cnct.pv_name), cnct.value.choices, cnct.value.index));
-
-    connect_pv(enbl, args.replace("$(P)$(R).ENBL"), MonitorOn);
-    enbl.set_component(PVDropdown(pvgroup->get_pv(enbl.pv_name), enbl.value.choices, enbl.value.index));
-
-    connect_pv(auct, args.replace("$(P)$(R).AUCT"), MonitorOn);
-    auct.set_component(PVDropdown(pvgroup->get_pv(auct.pv_name), auct.value.choices, auct.value.index));
-
-    connect_pv(tfil, args.replace("$(P)$(R).TFIL"), MonitorOn);
-    tfil.set_component(PVInput(pvgroup->get_pv(tfil.pv_name), tfil.value, PVPutType::String));
-}
+AsynDisplay::AsynDisplay(PVGroup &pvgroup, const pvtui::ArgParser &args)
+    : DisplayBase(pvgroup), args(args),
+    aout(pvgroup, args, "$(P)$(R).AOUT", PVPutType::String),
+    oeos(pvgroup, args, "$(P)$(R).OEOS", PVPutType::String),
+    ieos(pvgroup, args, "$(P)$(R).IEOS", PVPutType::String),
+    tinp(pvgroup, args, "$(P)$(R).TINP"),
+    nawt(pvgroup, args, "$(P)$(R).NAWT"),
+    nord(pvgroup, args, "$(P)$(R).NORD"),
+    tmot(pvgroup, args, "$(P)$(R).TMOT", PVPutType::Double),
+    tmod(pvgroup, args, "$(P)$(R).TMOD", ChoiceStyle::Dropdown),
+    tb0(pvgroup, args, "$(P)$(R).TB0", ChoiceStyle::Horizontal),
+    tb1(pvgroup, args, "$(P)$(R).TB1", ChoiceStyle::Horizontal),
+    tb2(pvgroup, args, "$(P)$(R).TB2", ChoiceStyle::Horizontal),
+    tb3(pvgroup, args, "$(P)$(R).TB3", ChoiceStyle::Horizontal),
+    tb4(pvgroup, args, "$(P)$(R).TB4", ChoiceStyle::Horizontal),
+    tb5(pvgroup, args, "$(P)$(R).TB5", ChoiceStyle::Horizontal),
+    stat(pvgroup, args, "$(P)$(R).STAT"),
+    sevr(pvgroup, args, "$(P)$(R).SEVR"),
+    tib0(pvgroup, args, "$(P)$(R).TIB0", ChoiceStyle::Horizontal),
+    tib1(pvgroup, args, "$(P)$(R).TIB1", ChoiceStyle::Horizontal),
+    tib2(pvgroup, args, "$(P)$(R).TIB2", ChoiceStyle::Horizontal),
+    tinb0(pvgroup, args, "$(P)$(R).TINB0", ChoiceStyle::Horizontal),
+    tinb1(pvgroup, args, "$(P)$(R).TINB1", ChoiceStyle::Horizontal),
+    tinb2(pvgroup, args, "$(P)$(R).TINB2", ChoiceStyle::Horizontal),
+    tinb3(pvgroup, args, "$(P)$(R).TINB3", ChoiceStyle::Horizontal),
+    cnct(pvgroup, args, "$(P)$(R).CNCT", ChoiceStyle::Dropdown),
+    enbl(pvgroup, args, "$(P)$(R).ENBL", ChoiceStyle::Dropdown),
+    auct(pvgroup, args, "$(P)$(R).AUCT", ChoiceStyle::Dropdown),
+    tfil(pvgroup, args, "$(P)$(R).TFIL", PVPutType::String),
+    errs(pvgroup, args, "$(P)$(R).ERRS"),
+    nowt(pvgroup, args, "$(P)$(R).NOWT", PVPutType::Int)
+{}
 
 ftxui::Component AsynDisplay::get_container() {
 
@@ -229,21 +171,21 @@ ftxui::Element AsynDisplay::get_renderer() {
             separatorEmpty(),
             oeos.component()->Render() | EPICSColor::EDIT | size(WIDTH, EQUAL, 5),
             separatorEmpty(),
-            text(nawt.value) | color(Color::Black) | size(WIDTH, EQUAL, 3),
+            text(nawt.value()) | color(Color::Black) | size(WIDTH, EQUAL, 3),
         }),
         separatorEmpty(),
         hbox({
             text(" In: ") | color(Color::Black),
-            text(tinp.value) | bgcolor(Color::RGB(220,220,220)) | xflex,
+            text(tinp.value()) | bgcolor(Color::RGB(220,220,220)) | xflex,
             separatorEmpty(),
             ieos.component()->Render() | EPICSColor::EDIT | size(WIDTH, EQUAL, 5),
             separatorEmpty(),
-            text(nord.value) | color(Color::Black) | size(WIDTH, EQUAL, 3),
+            text(nord.value()) | color(Color::Black) | size(WIDTH, EQUAL, 3),
         }),
         separator(),
         hbox({
             text("Err: ") | color(Color::Black),
-            paragraph(errs.value) | bgcolor(Color::RGB(220,220,220)) | xflex,
+            paragraph(errs.value()) | bgcolor(Color::RGB(220,220,220)) | xflex,
         }),
         separatorEmpty(),
         hbox({
@@ -256,10 +198,10 @@ ftxui::Element AsynDisplay::get_renderer() {
         separatorEmpty(),
         hbox({
             text("I/O Status: ") | color(Color::Black),
-            text(stat.value.choice) | EPICSColor::READBACK,
+            text(stat.value().choice) | EPICSColor::READBACK,
             filler(),
             text("I/O Severity: ") | color(Color::Black),
-            text(sevr.value.choice) | EPICSColor::READBACK
+            text(sevr.value().choice) | EPICSColor::READBACK
         }),
 
         // separator() | color(Color::Black),
@@ -417,7 +359,7 @@ int main(int argc, char *argv[]) {
     pvac::ClientProvider provider(args.provider);
 
     // shared_ptr to PVGroup to manage all PVs for displays
-    std::shared_ptr<PVGroup> pvgroup = std::make_shared<PVGroup>(provider);
+    PVGroup pvgroup(provider);
 
     AsynDisplay display(pvgroup, args);
 

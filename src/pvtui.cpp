@@ -19,7 +19,7 @@ std::string rectangle(int len) {
 
 } // namespace unicode
 
-ftxui::Component PVButton(PVHandler &pv, const std::string &label, int value) {
+ftxui::Component make_button_widget(PVHandler &pv, const std::string &label, int value) {
     auto op = ftxui::ButtonOption::Ascii();
     op.label = label;
     op.on_click = [&pv, value]() {
@@ -30,7 +30,8 @@ ftxui::Component PVButton(PVHandler &pv, const std::string &label, int value) {
     return ftxui::Button(op);
 };
 
-ftxui::Component PVInput(PVHandler &pv, std::string &disp_str, PVPutType put_type, InputTransform tf) {
+ftxui::Component make_input_widget(PVHandler &pv, std::string &disp_str, PVPutType put_type,
+                                   InputTransform tf = nullptr) {
 
     auto default_input_transform = [](ftxui::InputState s) {
         s.element |= ftxui::color(ftxui::Color::Black);
@@ -54,8 +55,8 @@ ftxui::Component PVInput(PVHandler &pv, std::string &disp_str, PVPutType put_typ
                 if (pv.connected()) {
                     if (put_type == PVPutType::Double) {
                         double val_double;
-                        auto res =
-                            std::from_chars(disp_str.data(), disp_str.data() + disp_str.size(), val_double);
+                        auto res = std::from_chars(disp_str.data(),
+                                                   disp_str.data() + disp_str.size(), val_double);
                         if (res.ec == std::errc()) {
                             pv.channel.put().set("value", val_double).exec();
                         }
@@ -63,8 +64,8 @@ ftxui::Component PVInput(PVHandler &pv, std::string &disp_str, PVPutType put_typ
                         pv.channel.put().set("value", disp_str).exec();
                     } else if (put_type == PVPutType::Int) {
                         int val_int;
-                        auto res =
-                            std::from_chars(disp_str.data(), disp_str.data() + disp_str.size(), val_int);
+                        auto res = std::from_chars(disp_str.data(),
+                                                   disp_str.data() + disp_str.size(), val_int);
                         if (res.ec == std::errc()) {
                             pv.channel.put().set("value", val_int).exec();
                         }
@@ -74,7 +75,8 @@ ftxui::Component PVInput(PVHandler &pv, std::string &disp_str, PVPutType put_typ
     }));
 }
 
-ftxui::Component PVChoiceH(PVHandler &pv, const std::vector<std::string> &labels, int &selected) {
+ftxui::Component make_choice_h_widget(PVHandler &pv, const std::vector<std::string> &labels,
+                                      int &selected) {
     ftxui::MenuOption op = ftxui::MenuOption::Toggle();
     op.entries = &labels;
     op.selected = &selected;
@@ -86,7 +88,8 @@ ftxui::Component PVChoiceH(PVHandler &pv, const std::vector<std::string> &labels
     return ftxui::Menu(op);
 }
 
-ftxui::Component PVChoiceV(PVHandler &pv, const std::vector<std::string> &labels, int &selected) {
+ftxui::Component make_choice_v_widget(PVHandler &pv, const std::vector<std::string> &labels,
+                                      int &selected) {
     ftxui::MenuOption op = ftxui::MenuOption::Vertical();
     op.entries = &labels;
     op.selected = &selected;
@@ -111,7 +114,8 @@ ftxui::Component PVChoiceV(PVHandler &pv, const std::vector<std::string> &labels
     return ftxui::Menu(op);
 }
 
-ftxui::Component PVDropdown(PVHandler &pv, const std::vector<std::string> &labels, int &selected) {
+ftxui::Component make_dropdown_widget(PVHandler &pv, const std::vector<std::string> &labels,
+                                      int &selected) {
     using namespace ftxui;
     auto dropdown_op = ftxui::DropdownOption({
         .radiobox = {.entries = &labels,
@@ -183,9 +187,9 @@ std::vector<std::string> ArgParser::split_string(const std::string &input, char 
 }
 
 std::unordered_map<std::string, std::string> ArgParser::get_macro_dict(std::string all_macros) {
-    all_macros.erase(
-        std::remove_if(all_macros.begin(), all_macros.end(), [](unsigned char s) { return std::isspace(s); }),
-        all_macros.end());
+    all_macros.erase(std::remove_if(all_macros.begin(), all_macros.end(),
+                                    [](unsigned char s) { return std::isspace(s); }),
+                     all_macros.end());
 
     std::unordered_map<std::string, std::string> map_out;
     for (const auto &m : split_string(all_macros, ',')) {
@@ -196,6 +200,77 @@ std::unordered_map<std::string, std::string> ArgParser::get_macro_dict(std::stri
         map_out.emplace(std::move(pair.at(0)), std::move(pair.at(1)));
     }
     return map_out;
+}
+
+WidgetBase::WidgetBase(PVGroup &pvgroup, const ArgParser &args, const std::string &pv_name)
+    : pv_name_(args.replace(pv_name)) {
+    pvgroup.add(pv_name_);
+};
+
+WidgetBase::WidgetBase(PVGroup &pvgroup, const std::string &pv_name) : pv_name_(pv_name) {
+    pvgroup.add(pv_name_);
+};
+
+std::string WidgetBase::pv_name() const { return pv_name_; }
+
+ftxui::Component WidgetBase::component() const {
+    if (component_) {
+        return component_;
+    } else {
+        throw std::runtime_error("No component defined for " + pv_name_);
+    }
+}
+
+InputWidget::InputWidget(PVGroup &pvgroup, const ArgParser &args, const std::string &pv_name,
+                         PVPutType put_type)
+    : WidgetBase(pvgroup, args, pv_name) {
+    pvgroup.set_monitor(pv_name_, value_);
+    component_ = make_input_widget(pvgroup.get_pv(pv_name_), value_, put_type);
+}
+
+InputWidget::InputWidget(PVGroup &pvgroup, const std::string &pv_name, PVPutType put_type)
+    : WidgetBase(pvgroup, pv_name) {
+    pvgroup.set_monitor(pv_name_, value_);
+    component_ = make_input_widget(pvgroup.get_pv(pv_name_), value_, put_type);
+}
+
+std::string InputWidget::value() const { return value_; }
+
+ChoiceWidget::ChoiceWidget(PVGroup &pvgroup, const ArgParser &args, const std::string &pv_name,
+                           ChoiceStyle style)
+    : WidgetBase(pvgroup, args, pv_name) {
+    pvgroup.set_monitor(pv_name_, value_);
+    switch (style) {
+    case pvtui::ChoiceStyle::Vertical:
+        component_ = make_choice_v_widget(pvgroup.get_pv(pv_name_), value_.choices, value_.index);
+        break;
+    case pvtui::ChoiceStyle::Horizontal:
+        component_ = make_choice_h_widget(pvgroup.get_pv(pv_name_), value_.choices, value_.index);
+        break;
+    case pvtui::ChoiceStyle::Dropdown:
+        component_ = make_dropdown_widget(pvgroup.get_pv(pv_name_), value_.choices, value_.index);
+        break;
+    }
+}
+
+ChoiceWidget::ChoiceWidget(PVGroup &pvgroup, const std::string &pv_name, ChoiceStyle style)
+    : WidgetBase(pvgroup, pv_name) {
+    pvgroup.set_monitor(pv_name_, value_);
+    component_ = make_choice_v_widget(pvgroup.get_pv(pv_name_), value_.choices, value_.index);
+}
+
+PVEnum ChoiceWidget::value() const { return value_; }
+
+ButtonWidget::ButtonWidget(PVGroup &pvgroup, const ArgParser &args, const std::string &pv_name,
+                           const std::string &label, int press_val)
+    : WidgetBase(pvgroup, args, pv_name) {
+    component_ = make_button_widget(pvgroup.get_pv(pv_name_), label, press_val);
+}
+
+ButtonWidget::ButtonWidget(PVGroup &pvgroup, const std::string &pv_name, const std::string &label,
+                           int press_val)
+    : WidgetBase(pvgroup, pv_name) {
+    component_ = make_button_widget(pvgroup.get_pv(pv_name_), label, press_val);
 }
 
 } // namespace pvtui
