@@ -38,11 +38,16 @@ std::string rectangle(int len);
  */
 namespace EPICSColor {
 using namespace ftxui;
-static const Decorator EDIT = bgcolor(Color::RGB(87, 202, 228)) | color(Color::Black); ///< Decorator for editable fields.
-static const Decorator MENU = bgcolor(Color::RGB(16, 105, 25)) | color(Color::White); ///< Decorator for menu items.
-static const Decorator READBACK = color(Color::DarkBlue);   ///< Decorator for read-only display values.
-static const Decorator BACKGROUND = bgcolor(Color::RGB(196, 196, 196)); ///< Decorator for background elements.
-static const Decorator LINK = bgcolor(Color::RGB(148, 148, 228)) | color(Color::Black); ///< Decorator for link-like elements.
+static const Decorator EDIT =
+    bgcolor(Color::RGB(87, 202, 228)) | color(Color::Black); ///< Decorator for editable fields.
+static const Decorator MENU =
+    bgcolor(Color::RGB(16, 105, 25)) | color(Color::White); ///< Decorator for menu items.
+static const Decorator READBACK =
+    color(Color::DarkBlue); ///< Decorator for read-only display values.
+static const Decorator BACKGROUND =
+    bgcolor(Color::RGB(196, 196, 196)); ///< Decorator for background elements.
+static const Decorator LINK =
+    bgcolor(Color::RGB(148, 148, 228)) | color(Color::Black); ///< Decorator for link-like elements.
 } // namespace EPICSColor
 
 /**
@@ -63,8 +68,8 @@ enum class PVPutType {
     String, ///< String type.
 };
 
-using InputTransform =
-    std::function<ftxui::Element(ftxui::InputState)>; ///< Type alias for input transformation function.
+using InputTransform = std::function<ftxui::Element(
+    ftxui::InputState)>; ///< Type alias for input transformation function.
 
 /**
  * @brief Creates an FTXUI input component for putting values to a PV.
@@ -148,7 +153,7 @@ class ArgParser {
     std::string replace(const std::string &str) const;
 
     std::unordered_map<std::string, std::string> macros; ///< Parsed macros (e.g., "P=VAL").
-    std::string provider = "ca";                         ///< The EPICS provider type (e.g., "ca", "pva").
+    std::string provider = "ca"; ///< The EPICS provider type (e.g., "ca", "pva").
 
   private:
     argh::parser cmdl_; ///< Internal argh parser instance.
@@ -171,31 +176,69 @@ class ArgParser {
 
 struct InputWidget {
   public:
-    InputWidget(const std::shared_ptr<PVGroup> &pvgroup,
-                const std::string &pv_name) :
-    pv_name(pv_name),
-    pvgroup_(pvgroup) {
-        pvgroup->add(pv_name);
-        pvgroup->set_monitor(pv_name, value);
-        component_ = PVInput(pvgroup_->get_pv(pv_name), value, PVPutType::String);
+    InputWidget(const std::shared_ptr<PVGroup> &pvgroup, const ArgParser &args,
+                const std::string &pv_name, PVPutType put_type)
+        : pv_name_(args.replace(pv_name)) {
+        pvgroup->add(pv_name_);
+        pvgroup->set_monitor(pv_name_, value);
+        component_ = PVInput(pvgroup->get_pv(pv_name_), value, put_type);
     };
 
     std::string value = "";
-    std::string pv_name = "";
 
     ftxui::Component component() {
         if (component_) {
             return component_;
         } else {
-            throw std::runtime_error("No component defined for " + pv_name);
+            throw std::runtime_error("No component defined for " + pv_name_);
         }
     };
 
   private:
-    std::shared_ptr<PVGroup> pvgroup_;
+    std::string pv_name_ = "";
     ftxui::Component component_ = nullptr;
 };
 
+struct ButtonWidget {
+  public:
+    ButtonWidget(const std::shared_ptr<PVGroup> &pvgroup, const ArgParser &args,
+                 const std::string &pv_name, const std::string &label, int value = 1)
+        : pv_name_(args.replace(pv_name)) {
+        pvgroup->add(pv_name_);
+        component_ = PVButton(pvgroup->get_pv(pv_name_), label, value);
+    };
 
+    std::string pv_name() { return pv_name_; }
+
+    ftxui::Component component() {
+        if (component_) {
+            return component_;
+        } else {
+            throw std::runtime_error("No component defined for " + pv_name_);
+        }
+    };
+
+  private:
+    std::string pv_name_ = "";
+    ftxui::Component component_ = nullptr;
+};
+
+template <typename T> struct VarWidget {
+  public:
+    VarWidget(const std::shared_ptr<PVGroup> &pvgroup, const ArgParser &args, const std::string &pv_name)
+        : pv_name_(args.replace(pv_name)) {
+        args.replace(pv_name_);
+        pvgroup->add(pv_name_);
+        pvgroup->set_monitor(pv_name_, value);
+        value = "";
+    }
+
+    std::string pv_name() { return pv_name_; }
+
+    T value;
+
+  private:
+    std::string pv_name_ = "";
+};
 
 } // namespace pvtui

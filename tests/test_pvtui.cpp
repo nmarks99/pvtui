@@ -23,6 +23,10 @@ class TestDisplay : public DisplayBase {
 
   private:
     InputWidget desc;
+    InputWidget twv;
+    ButtonWidget twr;
+    ButtonWidget twf;
+    VarWidget<std::string> rbv;
 
     const pvtui::ArgParser &args;
 };
@@ -30,19 +34,32 @@ class TestDisplay : public DisplayBase {
 
 TestDisplay::TestDisplay(const std::shared_ptr<PVGroup> &pvgroup, const pvtui::ArgParser &args)
     : DisplayBase(pvgroup), args(args),
-    desc(pvgroup, args.replace("$(P)$(R).DESC"))
+    desc(pvgroup, args, "$(P)$(M).DESC", PVPutType::String),
+    twv(pvgroup, args, "$(P)$(M).TWV", PVPutType::Double),
+    twr(pvgroup, args, "$(P)$(M).TWR", " < ", 1),
+    twf(pvgroup, args, "$(P)$(M).TWF", " > ", 1),
+    rbv(pvgroup, args, "$(P)$(M).RBV")
 {}
 
 ftxui::Component TestDisplay::get_container() {
     return Container::Vertical({
-	desc.component()
+	desc.component(),
+        Container::Vertical({
+            twr.component(), twv.component(), twf.component()
+        })
     });
 }
 
 ftxui::Element TestDisplay::get_renderer() {
     return vbox({
-	desc.component()->Render() | EPICSColor::EDIT | size(WIDTH, EQUAL, 30)
-    });
+	desc.component()->Render() | EPICSColor::EDIT | size(WIDTH, EQUAL, 30),
+        text(rbv.value) | EPICSColor::READBACK,
+        hbox({
+            twr.component()->Render() | color(Color::Black),
+            twv.component()->Render() | EPICSColor::EDIT | size(WIDTH, EQUAL, 10),
+            twf.component()->Render() | color(Color::Black),
+        })
+    }) | center | EPICSColor::BACKGROUND;
 }
 
 
@@ -52,8 +69,8 @@ int main(int argc, char *argv[]) {
     // Parse command line arguments and macros
     pvtui::ArgParser args(argc, argv);
 
-    if (not args.macros_present({"P", "R"})) {
-	printf("Missing required macro P, R\n");
+    if (not args.macros_present({"P", "M"})) {
+	printf("Missing required macro P, M\n");
 	return EXIT_FAILURE;
     }
 
