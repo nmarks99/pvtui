@@ -9,6 +9,22 @@ applications (displays) are included in this respository.
 
 ## Installation
 
-### Prerequisites
-* [FTXUI](https://github.com/ArthurSonzogni/FTXUI): See FTXUI documentation for installation directions
-* **EPICS Base:** EPICS Base 7.0.8 and newer have been tested, though older versions may work.
+Currently PVTUI is only officially supported on Linux. It has been tested on 
+Red Hat Enterprise Linux 9 and Arch Linux.
+
+### Dependencies
+* [FTXUI](https://github.com/ArthurSonzogni/FTXUI)
+* [EPICS Base](https://docs.epics-controls.org/en/latest/getting-started/installation.html)
+
+### Building
+```bash
+mkdir build && cd build
+
+# To clone and build FTXUI with this project (using FetchContent):
+cmake .. -DEPICS_BASE=/path/to/epics/base -DFETCH_FTXUI=ON
+
+# If FTXUI is installed on your system somewhere cmake can find it (with find_package):
+cmake .. -DEPICS_BASE=/path/to/epics/base
+
+make
+```
