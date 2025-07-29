@@ -1,14 +1,10 @@
 #include "pvgroup.hpp"
 #include <iostream>
 #include <memory>
-#include <variant>
 #include <regex>
+#include <variant>
 
 constexpr int DEFAULT_PRECISION = 4;
-
-std::string operator+(const PVAny &lhs, const std::string &rhs) { return lhs.value + rhs; }
-
-std::string operator+(const std::string &lhs, const PVAny &rhs) { return lhs + rhs.value; }
 
 void ConnectionMonitor::connectEvent(const pvac::ConnectEvent &event) {
     if (event.connected) {
@@ -128,15 +124,6 @@ void PVHandler::get_monitored_variable(const epics::pvData::PVStructure *pfield)
                             ptr->resize(vals.size());
                         }
                         std::copy(vals.begin(), vals.end(), ptr->begin());
-                    }
-                } else if constexpr (std::is_same_v<PtrType, PVAny *>) {
-                    if (ptr) {
-                        std::ostringstream oss;
-                        oss << std::fixed << std::setprecision(ptr->prec);
-                        if (auto val_field = pfield->getSubField(ptr->subfield)) {
-                            val_field->dumpValue(oss);
-                            ptr->value = oss.str();
-                        }
                     }
                 }
             },

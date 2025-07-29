@@ -3,27 +3,11 @@
 #include <memory>
 #include <string>
 #include <unordered_map>
-#include <variant>
 #include <vector>
+#include <variant>
 
 #include <pv/caProvider.h>
 #include <pva/client.h>
-
-/**
- * @brief Stores any PV as a string. Soon to be deprecated.
- */
-struct PVAny {
-    std::string subfield = "value";
-    std::string value = "";
-    int prec = 4;
-
-    PVAny(const std::string &sfield) : subfield(sfield) {}
-    PVAny() : subfield("value"), value(""), prec(4) {}
-
-    operator std::string() const { return value; }
-};
-std::string operator+(const PVAny &lhs, const std::string &rhs);
-std::string operator+(const std::string &lhs, const PVAny &rhs);
 
 /**
  * @brief Represents an EPICS enum (mbbo/mbbi) with an integer index and string choices.
@@ -44,8 +28,7 @@ using MonitorPtr = std::variant<std::monostate,             ///< No variable mon
                                 std::vector<std::string> *, ///< Pointer to a vector of strings.
                                 std::vector<int> *,         ///< Pointer to a vector of integers.
                                 std::vector<double> *,      ///< Pointer to a vector of doubles.
-                                PVEnum *,                   ///< Pointer to a PVEnum.
-                                PVAny *>;                   ///< Pointer to a PVAny.
+                                PVEnum *>;                  ///< Pointer to a PVAny.
 
 /**
  * @brief Monitors a pvac::ClientChannel's connection status.

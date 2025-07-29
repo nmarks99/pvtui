@@ -60,8 +60,8 @@ int main() {
     PVEnum spmg;
     pvgroup.set_monitor("xxx:m1.SPMG", spmg);
 
-    // PVAny contains a string respresentation of "any" PV
-    PVAny velo_any;
+    // almost any PV's value can be dumped to a string
+    std::string velo_any;
     pvgroup.set_monitor("xxx:m1.VELO", velo_any);
 
     int long_val;
@@ -86,7 +86,7 @@ int main() {
 
 	std::cout << "xxx:m1.SPMG = " << spmg.choice << std::endl;
 
-	std::cout << "xxx:m1.VELO (PVAny string) = " << velo_any.value << std::endl;
+	std::cout << "xxx:m1.VELO (string) = " << velo_any << std::endl;
 
 	std::cout << "xxx:long = " << long_val << std::endl;
 
