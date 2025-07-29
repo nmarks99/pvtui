@@ -93,19 +93,14 @@ set(EPICS_BASE_INCLUDES
 # --- Doxygen Documentation Generation -----------------------------------------
 if (BUILD_DOCS)
     find_package(Doxygen REQUIRED)
-
     if (DOXYGEN_FOUND)
         message(STATUS "Doxygen found. Version: ${DOXYGEN_VERSION}")
-
-        # Ensure the output directory exists
-        file(MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/doc/doxygen") # <--- ADD THIS LINE
-
+        file(MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/doc/doxygen")
         configure_file(
             ${CMAKE_CURRENT_SOURCE_DIR}/Doxyfile.in
             ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile
             @ONLY
         )
-
         add_custom_target(
             doc
             COMMAND ${DOXYGEN_EXECUTABLE} ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile
@@ -119,74 +114,33 @@ if (BUILD_DOCS)
 endif()
 # ------------------------------------------------------------------------------
 
+# --- PVTUI static library -----------------------------------------------------
+add_library(pvtui STATIC src/pvtui.cpp src/pvgroup.cpp)
+target_include_directories(pvtui PUBLIC src ${EPICS_BASE_INCLUDES})
+target_link_libraries(pvtui
+  PUBLIC ${EPICS_BASE_LIBRARIES}
+  PUBLIC ftxui::screen
+  PUBLIC ftxui::dom
+  PUBLIC ftxui::component
+)
 # ------------------------------------------------------------------------------
+
+# --- Build executables --------------------------------------------------------
 add_executable(pvtui_motor apps/motor_display.cpp apps/motor.cpp src/pvgroup.cpp src/pvtui.cpp)
-target_include_directories(pvtui_motor PUBLIC src ${EPICS_BASE_INCLUDES})
+target_link_libraries(pvtui_motor PRIVATE pvtui)
 
-target_link_libraries(pvtui_motor
-  PUBLIC ${EPICS_BASE_LIBRARIES}
-  PRIVATE ftxui::screen
-  PRIVATE ftxui::dom
-  PRIVATE ftxui::component
-)
-# ------------------------------------------------------------------------------
-
-# ------------------------------------------------------------------------------
 add_executable(pvtui_asyn apps/asyn.cpp src/pvgroup.cpp src/pvtui.cpp)
-target_include_directories(pvtui_asyn PUBLIC src ${EPICS_BASE_INCLUDES})
+target_link_libraries(pvtui_asyn PRIVATE pvtui)
 
-target_link_libraries(pvtui_asyn
-  PUBLIC ${EPICS_BASE_LIBRARIES}
-  PRIVATE ftxui::screen
-  PRIVATE ftxui::dom
-  PRIVATE ftxui::component
-)
-# ------------------------------------------------------------------------------
-
-# ------------------------------------------------------------------------------
 add_executable(pvtui_calcout apps/calcout.cpp src/pvtui.cpp src/pvgroup.cpp)
-target_include_directories(pvtui_calcout PUBLIC src ${EPICS_BASE_INCLUDES})
+target_link_libraries(pvtui_calcout PRIVATE pvtui)
 
-target_link_libraries(pvtui_calcout
-  PUBLIC ${EPICS_BASE_LIBRARIES}
-  PRIVATE ftxui::screen
-  PRIVATE ftxui::dom
-  PRIVATE ftxui::component
-)
-# ------------------------------------------------------------------------------
-
-# ------------------------------------------------------------------------------
 add_executable(pvtui_sr apps/sr.cpp src/pvtui.cpp src/pvgroup.cpp)
-target_include_directories(pvtui_sr PUBLIC src ${EPICS_BASE_INCLUDES})
+target_link_libraries(pvtui_sr PRIVATE pvtui)
 
-target_link_libraries(pvtui_sr
-  PUBLIC ${EPICS_BASE_LIBRARIES}
-  PRIVATE ftxui::screen
-  PRIVATE ftxui::dom
-  PRIVATE ftxui::component
-)
-# ------------------------------------------------------------------------------
-
-# ------------------------------------------------------------------------------
 add_executable(test_pvgroup tests/test_pvgroup.cpp src/pvgroup.cpp)
-target_include_directories(test_pvgroup PUBLIC tests src ${EPICS_BASE_INCLUDES})
+target_link_libraries(test_pvgroup PRIVATE pvtui)
 
-target_link_libraries(test_pvgroup
-  PUBLIC ${EPICS_BASE_LIBRARIES}
-  PRIVATE ftxui::screen
-  PRIVATE ftxui::dom
-  PRIVATE ftxui::component
-)
-# ------------------------------------------------------------------------------
-
-# ------------------------------------------------------------------------------
 add_executable(test_pvtui tests/test_pvtui.cpp src/pvgroup.cpp src/pvtui.cpp)
-target_include_directories(test_pvtui PUBLIC tests src ${EPICS_BASE_INCLUDES})
-
-target_link_libraries(test_pvtui
-  PUBLIC ${EPICS_BASE_LIBRARIES}
-  PRIVATE ftxui::screen
-  PRIVATE ftxui::dom
-  PRIVATE ftxui::component
-)
+target_link_libraries(test_pvtui PRIVATE pvtui)
 # ------------------------------------------------------------------------------
