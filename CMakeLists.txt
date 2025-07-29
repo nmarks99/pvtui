@@ -116,7 +116,13 @@ endif()
 
 # --- PVTUI static library -----------------------------------------------------
 add_library(pvtui STATIC src/pvtui.cpp src/pvgroup.cpp)
-target_include_directories(pvtui PUBLIC src ${EPICS_BASE_INCLUDES})
+# target_include_directories(pvtui PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include ${EPICS_BASE_INCLUDES})
+target_include_directories(pvtui
+  PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>
+    $<INSTALL_INTERFACE:include>
+    ${EPICS_BASE_INCLUDES}
+)
 target_link_libraries(pvtui
   PUBLIC ${EPICS_BASE_LIBRARIES}
   PUBLIC ftxui::screen
@@ -143,4 +149,40 @@ target_link_libraries(test_pvgroup PRIVATE pvtui)
 
 add_executable(test_pvtui tests/test_pvtui.cpp src/pvgroup.cpp src/pvtui.cpp)
 target_link_libraries(test_pvtui PRIVATE pvtui)
+# ------------------------------------------------------------------------------
+
+# --- Installation/CMake config ------------------------------------------------
+# Install library headers
+install(DIRECTORY src/
+        DESTINATION include
+        FILES_MATCHING
+            PATTERN "*.hpp"
+            PATTERN "*.h")
+
+# Install the actual library
+install(TARGETS pvtui
+        EXPORT pvtuiTargets
+        ARCHIVE DESTINATION lib
+        LIBRARY DESTINATION lib
+        RUNTIME DESTINATION bin
+        INCLUDES DESTINATION include)
+
+# Export the targets to a cmake file
+install(EXPORT pvtuiTargets
+        FILE pvtuiTargets.cmake
+        NAMESPACE pvtui::
+        DESTINATION lib/cmake/pvtui)
+
+include(CMakePackageConfigHelpers)
+
+configure_package_config_file(
+  ${CMAKE_CURRENT_SOURCE_DIR}/cmake/pvtuiConfig.cmake.in
+  ${CMAKE_CURRENT_BINARY_DIR}/pvtuiConfig.cmake
+  INSTALL_DESTINATION lib/cmake/pvtui
+  NO_CHECK_REQUIRED_COMPONENTS_MACRO
+)
+
+install(FILES
+  ${CMAKE_CURRENT_BINARY_DIR}/pvtuiConfig.cmake
+  DESTINATION lib/cmake/pvtui)
 # ------------------------------------------------------------------------------
