@@ -62,7 +62,7 @@ ftxui::Component make_input_widget(PVHandler &pv, std::string &disp_str, PVPutTy
                         }
                     } else if (put_type == PVPutType::String) {
                         pv.channel.put().set("value", disp_str).exec();
-                    } else if (put_type == PVPutType::Int) {
+                    } else if (put_type == PVPutType::Integer) {
                         int val_int;
                         auto res = std::from_chars(disp_str.data(),
                                                    disp_str.data() + disp_str.size(), val_int);
@@ -222,10 +222,10 @@ ftxui::Component WidgetBase::component() const {
 }
 
 InputWidget::InputWidget(PVGroup &pvgroup, const ArgParser &args, const std::string &pv_name,
-                         PVPutType put_type)
+                         PVPutType put_type, InputTransform tf)
     : WidgetBase(pvgroup, args, pv_name) {
     pvgroup.set_monitor(pv_name_, value_);
-    component_ = make_input_widget(pvgroup.get_pv(pv_name_), value_, put_type);
+    component_ = make_input_widget(pvgroup.get_pv(pv_name_), value_, put_type, tf);
 }
 
 InputWidget::InputWidget(PVGroup &pvgroup, const std::string &pv_name, PVPutType put_type)

@@ -103,7 +103,7 @@ AsynDisplay::AsynDisplay(PVGroup &pvgroup, const pvtui::ArgParser &args)
     auct(pvgroup, args, "$(P)$(R).AUCT", ChoiceStyle::Dropdown),
     tfil(pvgroup, args, "$(P)$(R).TFIL", PVPutType::String),
     errs(pvgroup, args, "$(P)$(R).ERRS"),
-    nowt(pvgroup, args, "$(P)$(R).NOWT", PVPutType::Int)
+    nowt(pvgroup, args, "$(P)$(R).NOWT", PVPutType::Integer)
 {}
 
 ftxui::Component AsynDisplay::get_container() {

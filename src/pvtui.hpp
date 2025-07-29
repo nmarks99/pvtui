@@ -38,23 +38,18 @@ std::string rectangle(int len);
  */
 namespace EPICSColor {
 using namespace ftxui;
-static const Decorator EDIT =
-    bgcolor(Color::RGB(87, 202, 228)) | color(Color::Black); ///< Decorator for editable fields.
-static const Decorator MENU =
-    bgcolor(Color::RGB(16, 105, 25)) | color(Color::White); ///< Decorator for menu items.
-static const Decorator READBACK =
-    color(Color::DarkBlue); ///< Decorator for read-only display values.
-static const Decorator BACKGROUND =
-    bgcolor(Color::RGB(196, 196, 196)); ///< Decorator for background elements.
-static const Decorator LINK =
-    bgcolor(Color::RGB(148, 148, 228)) | color(Color::Black); ///< Decorator for link-like elements.
+static const Decorator EDIT = bgcolor(Color::RGB(87, 202, 228)) | color(Color::Black);
+static const Decorator MENU = bgcolor(Color::RGB(16, 105, 25)) | color(Color::White);
+static const Decorator READBACK = color(Color::DarkBlue);
+static const Decorator BACKGROUND = bgcolor(Color::RGB(196, 196, 196));
+static const Decorator LINK = bgcolor(Color::RGB(148, 148, 228)) | color(Color::Black);
 } // namespace EPICSColor
 
 /**
  * @brief Defines the data types for PV put operations for InputWidget
  */
 enum class PVPutType {
-    Int,    ///< Integer type.
+    Integer,    ///< Integer type.
     Double, ///< Double-precision floating-point type.
     String, ///< String type.
 };
@@ -157,22 +152,22 @@ class WidgetBase {
   protected:
     /**
      * @brief Constructs a WidgetBase and registers the PV with a group.
-     * @param pvgroup The PVGroup managing this widget.
-     * @param args Argument parser for macro expansion.
+     * @param pvgroup The PVGroup managing the PVs used in this widget.
+     * @param args ArgParser for macro expansion.
      * @param pv_name The macro-style PV name (e.g., "$(P)$(R)VAL").
      */
     WidgetBase(PVGroup &pvgroup, const ArgParser &args, const std::string &pv_name);
 
     /**
      * @brief Constructs a WidgetBase with a raw PV name.
-     * @param pvgroup The PVGroup managing this widget.
+     * @param pvgroup The PVGroup managing the PVs used in this widget.
      * @param pv_name A fully-expanded PV name.
      */
     WidgetBase(PVGroup &pvgroup, const std::string &pv_name);
 
     ~WidgetBase() = default;
 
-    std::string pv_name_;        ///< Fully expanded PV name.
+    std::string pv_name_;        ///< The PV name.
     ftxui::Component component_; ///< Underlying FTXUI component.
 };
 
@@ -185,18 +180,18 @@ class InputWidget : public WidgetBase {
   public:
     /**
      * @brief Constructs an InputWidget with macro expansion.
-     * @param pvgroup The PVGroup managing this widget.
-     * @param args Argument parser for macro replacement.
-     * @param pv_name Macro-style PV name.
+     * @param pvgroup The PVGroup managing the PVs used in this widget.
+     * @param args ArgParser for macro replacement.
+     * @param pv_name The PV name with macros, e.g. "$(P)$(M).VAL".
      * @param put_type Specifies how the input value is written to the PV.
      */
     InputWidget(PVGroup &pvgroup, const ArgParser &args, const std::string &pv_name,
-                PVPutType put_type);
+                PVPutType put_type, InputTransform tf=nullptr);
 
     /**
      * @brief Constructs an InputWidget with an already expanded PV name.
-     * @param pvgroup The PVGroup managing this widget.
-     * @param pv_name Fully expanded PV name.
+     * @param pvgroup The PVGroup managing the PVs used in this widget.
+     * @param pv_name The PV name.
      * @param put_type Specifies how the input value is written to the PV.
      */
     InputWidget(PVGroup &pvgroup, const std::string &pv_name, PVPutType put_type);
@@ -218,9 +213,9 @@ class ButtonWidget : public WidgetBase {
   public:
     /**
      * @brief Constructs a ButtonWidget with macro expansion.
-     * @param pvgroup The PVGroup managing this widget.
-     * @param args Argument parser for macro replacement.
-     * @param pv_name Macro-style PV name.
+     * @param pvgroup The PVGroup managing the PVs used in this widget.
+     * @param args ArgParser for macro replacement.
+     * @param pv_name The PV name with macros, e.g. "$(P)$(M).VAL".
      * @param label The text displayed on the button.
      * @param press_val The value written to the PV on press.
      */
@@ -229,8 +224,8 @@ class ButtonWidget : public WidgetBase {
 
     /**
      * @brief Constructs a ButtonWidget with an expanded PV name.
-     * @param pvgroup The PVGroup managing this widget.
-     * @param pv_name Fully expanded PV name.
+     * @param pvgroup The PVGroup managing the PVs used in this widget.
+     * @param pv_name The PV name.
      * @param label The text displayed on the button.
      * @param press_val The value written to the PV on press.
      */
@@ -247,9 +242,9 @@ template <typename T> class VarWidget : public WidgetBase {
   public:
     /**
      * @brief Constructs a VarWidget with macro expansion.
-     * @param pvgroup The PVGroup managing this widget.
-     * @param args Argument parser for macro replacement.
-     * @param pv_name Macro-style PV name.
+     * @param pvgroup The PVGroup managing the PVs used in this widget.
+     * @param args ArgParser for macro replacement.
+     * @param pv_name The PV name with macros, e.g. "$(P)$(M).VAL".
      */
     VarWidget(PVGroup &pvgroup, const ArgParser &args, const std::string &pv_name)
         : WidgetBase(pvgroup, args, pv_name) {
@@ -258,8 +253,8 @@ template <typename T> class VarWidget : public WidgetBase {
 
     /**
      * @brief Constructs a VarWidget with a fully expanded PV name.
-     * @param pvgroup The PVGroup managing this widget.
-     * @param pv_name Fully expanded PV name.
+     * @param pvgroup The PVGroup managing the PVs used in this widget.
+     * @param pv_name The PV name.
      */
     VarWidget(PVGroup &pvgroup, const std::string &pv_name) : WidgetBase(pvgroup, pv_name) {
         pvgroup.set_monitor(pv_name_, value_);
@@ -289,18 +284,18 @@ class ChoiceWidget : public WidgetBase {
   public:
     /**
      * @brief Constructs a ChoiceWidget with macro expansion.
-     * @param pvgroup The PVGroup managing this widget.
-     * @param args Argument parser for macro replacement.
-     * @param pv_name Macro-style PV name.
+     * @param pvgroup The PVGroup managing the PVs used in this widget.
+     * @param args ArgParser for macro replacement.
+     * @param pv_name The PV name with macros, e.g. "$(P)$(M).VAL".
      * @param style Layout style (vertical, horizontal, dropdown).
      */
     ChoiceWidget(PVGroup &pvgroup, const ArgParser &args, const std::string &pv_name,
                  ChoiceStyle style);
 
     /**
-     * @brief Constructs a ChoiceWidget with a fully expanded PV name.
-     * @param pvgroup The PVGroup managing this widget.
-     * @param pv_name Fully expanded PV name.
+     * @brief Constructs a ChoiceWidget with a PV name without macros.
+     * @param pvgroup The PVGroup managing the PVs used in this widget.
+     * @param pv_name The PV name.
      * @param style Layout style (vertical, horizontal, dropdown).
      */
     ChoiceWidget(PVGroup &pvgroup, const std::string &pv_name, ChoiceStyle style);
