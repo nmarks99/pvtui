@@ -22,25 +22,34 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 
-# --- Fetch FTXUI --------------------------------------------------------------
-find_package(ftxui REQUIRED CONFIG)
-if(ftxui_FOUND)
-    message(STATUS "ftxui found!")
-    message(STATUS "ftxui DIR: ${ftxui_DIR}")
+# --- FTXUI --------------------------------------------------------------------
+option(FETCH_FTXUI "Fetch FTXUI using FetchContent instead of finding it on the system" OFF)
+
+if(FETCH_FTXUI)
+    message(STATUS "Fetching FTXUI using FetchContent.")
+    include(FetchContent)
+
+    set(FETCHCONTENT_UPDATES_DISCONNECTED ON)
+    set(FETCHCONTENT_QUIET OFF)
+
+    FetchContent_Declare(ftxui
+        GIT_REPOSITORY https://github.com/arthursonzogni/ftxui.git
+        GIT_TAG         v6.1.9
+        GIT_PROGRESS    TRUE
+        GIT_SHALLOW     TRUE
+        EXCLUDE_FROM_ALL
+    )
+    FetchContent_MakeAvailable(ftxui)
+
+else()
+    message(STATUS "Attempting to find FTXUI on the system.")
+    find_package(ftxui REQUIRED CONFIG)
+    if(ftxui_FOUND)
+        message(STATUS "ftxui found at: ${ftxui_DIR}")
+    else()
+        message(FATAL_ERROR "ftxui not found on your system. Please install it or enable -DFETCH_FTXUI=ON.")
+    endif()
 endif()
-# include(FetchContent)
-#
-# set(FETCHCONTENT_UPDATES_DISCONNECTED ON)
-# set(FETCHCONTENT_QUIET OFF)
-#
-# FetchContent_Declare(ftxui
-  # GIT_REPOSITORY https://github.com/arthursonzogni/ftxui.git
-  # GIT_TAG        v6.0.2
-  # GIT_PROGRESS   TRUE
-  # GIT_SHALLOW    TRUE
-  # EXCLUDE_FROM_ALL
-# )
-# FetchContent_MakeAvailable(ftxui)
 # ------------------------------------------------------------------------------
 
 
