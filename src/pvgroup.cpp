@@ -1,8 +1,5 @@
 #include "pvgroup.hpp"
-#include <iostream>
-#include <memory>
 #include <regex>
-#include <variant>
 
 constexpr int DEFAULT_PRECISION = 4;
 

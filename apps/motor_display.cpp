@@ -1,7 +1,6 @@
 #include "motor_display.hpp"
-#include "ftxui/component/component.hpp"
 #include "pvtui.hpp"
-#include <ftxui/dom/elements.hpp>
+#include "ftxui/component/component.hpp"
     
 ftxui::Decorator ColorDisabled = bgcolor(ftxui::Color::RGBA(80,10,4,230)) | color(ftxui::Color::Black);
 

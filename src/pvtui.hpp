@@ -1,16 +1,12 @@
 #pragma once
 
-#include <ftxui/component/event.hpp>
-#include <ftxui/dom/node.hpp>
-#include <functional>
 #include <string>
 #include <unordered_map>
 #include <vector>
 
-#include "ftxui/component/component_base.hpp"
+#include "ftxui/screen/color.hpp"
+#include "ftxui/dom/elements.hpp"
 #include "ftxui/component/component_options.hpp"
-#include "ftxui/component/loop.hpp"
-#include "ftxui/component/screen_interactive.hpp"
 
 #include "argh.h"
 #include "pvgroup.hpp"
