@@ -15,7 +15,6 @@
 #include <ftxui/dom/node.hpp>
 
 #include "pvtui.hpp"
-#include "pvgroup.hpp"
 
 using namespace ftxui;
 using namespace pvtui;

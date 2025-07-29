@@ -147,7 +147,7 @@ int main(int argc, char *argv[]) {
                 view_select->Render()
                     | color(Color::White)
                     | bgcolor(Color::DarkGreen)
-                    | size(WIDTH, EQUAL, 6)
+                    | size(WIDTH, EQUAL, 7)
             );
             return vbox({
                 elements,
