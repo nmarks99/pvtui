@@ -56,6 +56,7 @@ int main(int argc, char *argv[]) {
 
     ChoiceWidget scan(pvgroup, args, "$(P)$(C).SCAN", ChoiceStyle::Dropdown);
     InputWidget desc(pvgroup, args, "$(P)$(C).DESC", PVPutType::String);
+    InputWidget prec(pvgroup, args, "$(P)$(C).PREC", PVPutType::Integer);
     InputWidget inpa(pvgroup, args, "$(P)$(C).INPA", PVPutType::String);
     InputWidget a_val(pvgroup, args, "$(P)$(C).A", PVPutType::Double);
     InputWidget inpb(pvgroup, args, "$(P)$(C).INPB", PVPutType::String);
@@ -79,7 +80,10 @@ int main(int argc, char *argv[]) {
     // Main container to define interactivity of components
     auto main_container = Container::Vertical({
 	desc.component(),
-	scan.component(),
+	Container::Horizontal({
+	    scan.component(),
+	    prec.component(),
+	}),
 	Container::Horizontal({
 	    inpa.component(), a_val.component()
 	}),
@@ -112,7 +116,18 @@ int main(int argc, char *argv[]) {
 		text("(" + args.macros.at("P")+args.macros.at("C") + ")") | color(Color::Black)
 	    }),
 	    separatorEmpty(),
-	    scan.component()->Render() | EPICSColor::EDIT | size(WIDTH, EQUAL, 10) | color(Color::Black),
+	    hbox({
+		scan.component()->Render()
+		    | EPICSColor::EDIT
+		    | size(WIDTH, EQUAL, 10)
+		    | color(Color::Black),
+		filler(),
+		text("PREC: ") | color(Color::Black),
+		prec.component()->Render()
+		    | EPICSColor::EDIT
+		    | size(WIDTH, EQUAL, 3),
+		separatorEmpty(), separatorEmpty()
+	    }),
 	    separatorEmpty(),
 
 	    hbox({
