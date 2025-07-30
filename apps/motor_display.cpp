@@ -1,6 +1,6 @@
 #include "motor_display.hpp"
-#include "pvtui.hpp"
-#include "ftxui/component/component.hpp"
+#include <pvtui/pvtui.hpp>
+#include <ftxui/component/component.hpp>
     
 ftxui::Decorator ColorDisabled = bgcolor(ftxui::Color::RGBA(80,10,4,230)) | color(ftxui::Color::Black);
 
@@ -9,10 +9,11 @@ SmallMotorDisplay::SmallMotorDisplay(PVGroup &pvgroup, const pvtui::ArgParser &a
     desc(pvgroup, args, "$(P)$(M).DESC", pvtui::PVPutType::String),
     stop(pvgroup, args, "$(P)$(M).STOP", " STOP "),
     use_set(pvgroup, args, "$(P)$(M).SET", pvtui::ChoiceStyle::Horizontal),
-    en_dis(pvgroup, args, "$(P)$(M)_able", pvtui::ChoiceStyle::Horizontal),
+    able(pvgroup, args, "$(P)$(M)_able", pvtui::ChoiceStyle::Horizontal),
     egu(pvgroup, args, "$(P)$(M).EGU"),
     hls(pvgroup, args, "$(P)$(M).HLS"),
     lls(pvgroup, args, "$(P)$(M).LLS"),
+    lvio(pvgroup, args, "$(P)$(M).LVIO"),
     dmov(pvgroup, args, "$(P)$(M).DMOV"),
     rbv(pvgroup, args, "$(P)$(M).RBV"),
     twf(pvgroup, args, "$(P)$(M).TWF", " > "),
@@ -40,33 +41,42 @@ ftxui::Component SmallMotorDisplay::get_container() {
 ftxui::Element SmallMotorDisplay::get_renderer() {
     using namespace ftxui;
     using namespace pvtui;
-    return ftxui::vbox({
 
+    auto &conn_pv = pvgroup.get_pv(desc.pv_name());
+
+    auto val_bg = able.value().index == 1 ? ColorDisabled :
+		lvio.value() == 1 ? bgcolor(Color::Yellow2) :
+		EPICSColor::EDIT;
+
+    return ftxui::vbox({
 	desc.component()->Render() 
 	    | EPICSColor::EDIT
 	    | size(WIDTH, EQUAL, 20)
 	    | underlined
 	    | center,
 
-	separatorEmpty(),
-
 	hbox({
 	    filler() | size(WIDTH, EQUAL, egu.value().size()+1),
-	    text(lls.value() ? unicode::rectangle(1) : "  ") | color(Color::Red),
-	    separatorEmpty(), separatorEmpty(),
-	    text(rbv.value()) | (use_set.value().index==0 ? EPICSColor::READBACK : color(Color::Yellow2)),
-	    separatorEmpty(), separatorEmpty(),
-	    text(hls.value() ? unicode::rectangle(1) : "  ") | color(Color::Red),
-	    separatorEmpty(),
-	    text(egu.value()) | color(Color::Black)
+	    text(lls.value() ? unicode::rectangle(1) : "  ")
+		| center
+		| color(Color::Red),
+	    text(rbv.value())
+		| (use_set.value().index==0 ? EPICSColor::READBACK : color(Color::Yellow2))
+		| (dmov.value() == 0 ? borderHeavy | color(Color::Green) : borderEmpty),
+	    text(hls.value() ? unicode::rectangle(1) : "  ")
+		| center
+		| color(Color::Red),
+	    text(egu.value())
+		| center
+		| color(Color::Black)
 	}) | center,
 
 	hbox({
 	    val.component()->Render()
-		| (en_dis.value().index==0 ? EPICSColor::EDIT : ColorDisabled)
+		| val_bg
 		| size(WIDTH, EQUAL, 10)
-		| (dmov.value() == 0 ? borderHeavy | color(Color::Green) : borderEmpty),
 	}) | center,
+	separatorEmpty(),
 
 	hbox({
 	    twr.component()->Render() | color(Color::Black),
@@ -82,7 +92,7 @@ ftxui::Element SmallMotorDisplay::get_renderer() {
 	    separatorEmpty(),
 	    stop.component()->Render() | color(Color::Red) | bold,
 	}) | center,
-	separatorEmpty()
+	!conn_pv.connected() ? text("Disconnected") | color(Color::Red) | bold | center : text(""),
 
     })
     | size(WIDTH, EQUAL, 24)
@@ -100,6 +110,7 @@ MediumMotorDisplay::MediumMotorDisplay(PVGroup &pvgroup, const pvtui::ArgParser 
     egu(pvgroup, args, "$(P)$(M).EGU"),
     hls(pvgroup, args, "$(P)$(M).HLS"),
     lls(pvgroup, args, "$(P)$(M).LLS"),
+    lvio(pvgroup, args, "$(P)$(M).LVIO"),
     dmov(pvgroup, args, "$(P)$(M).DMOV"),
     rbv(pvgroup, args, "$(P)$(M).RBV"),
     drbv(pvgroup, args, "$(P)$(M).DRBV"),
@@ -150,6 +161,11 @@ ftxui::Element MediumMotorDisplay::get_renderer() {
     using namespace pvtui;
 
     auto &desc_pv = pvgroup.get_pv(desc.pv_name());
+    
+    auto val_bg = able.value().index == 1 ? ColorDisabled :
+		lvio.value() == 1 ? bgcolor(Color::Yellow2) :
+		EPICSColor::EDIT;
+
     return ftxui::vbox({
 	(desc_pv.connected() ? text("") : text("Disconnected") | color(Color::Red)) | center,
 
@@ -172,8 +188,8 @@ ftxui::Element MediumMotorDisplay::get_renderer() {
 		    | center,
 		val.component()->Render()
 		    | center
-		    | (able.value().index==0 ? EPICSColor::EDIT : ColorDisabled)
-		    | size(WIDTH, EQUAL, 10) | size(HEIGHT, EQUAL, 2),
+		    | val_bg
+		    | size(WIDTH, EQUAL, 10),
 		separatorEmpty(), 	
 		llm.component()->Render()
 		    | EPICSColor::EDIT
@@ -192,9 +208,8 @@ ftxui::Element MediumMotorDisplay::get_renderer() {
 		    | center,
 		dval.component()->Render()
 		    | center
-		    | (able.value().index==0 ? EPICSColor::EDIT : ColorDisabled)
-		    | size(WIDTH, EQUAL, 10)
-		    | size(HEIGHT, EQUAL, 2),
+		    | val_bg
+		    | size(WIDTH, EQUAL, 10),
 		separatorEmpty(), 	
 		dllm.component()->Render()
 		    | EPICSColor::EDIT
@@ -248,6 +263,7 @@ AllMotorDisplay::AllMotorDisplay(PVGroup &pvgroup, const pvtui::ArgParser &args)
     egu(pvgroup, args, "$(P)$(M).EGU", pvtui::PVPutType::String),
     hls(pvgroup, args, "$(P)$(M).HLS"),
     lls(pvgroup, args, "$(P)$(M).LLS"),
+    lvio(pvgroup, args, "$(P)$(M).LVIO"),
     dmov(pvgroup, args, "$(P)$(M).DMOV"),
     rbv(pvgroup, args, "$(P)$(M).RBV"),
     rrbv(pvgroup, args, "$(P)$(M).RRBV"),
@@ -347,6 +363,10 @@ ftxui::Element AllMotorDisplay::get_renderer() {
 
     // use DESC pv to check connection status
     auto &conn_pv = pvgroup.get_pv(desc.pv_name());
+    
+    auto val_bg = able.value().index == 1 ? ColorDisabled :
+		lvio.value() == 1 ? bgcolor(Color::Yellow2) :
+		EPICSColor::EDIT;
 
     auto drive = vbox({
 	hbox({
@@ -369,7 +389,8 @@ ftxui::Element AllMotorDisplay::get_renderer() {
 		    | center,
 		val.component()->Render()
 		    | center
-		    | (able.value().index==0 ? EPICSColor::EDIT : ColorDisabled)
+		    // | (able.value().index==0 ? EPICSColor::EDIT : ColorDisabled)
+		    | val_bg
 		    | size(WIDTH, EQUAL, 10),
 		llm.component()->Render()
 		    | EPICSColor::EDIT
@@ -390,7 +411,8 @@ ftxui::Element AllMotorDisplay::get_renderer() {
 		    | center,
 		dval.component()->Render()
 		    | center
-		    | (able.value().index==0 ? EPICSColor::EDIT : ColorDisabled)
+		    // | (able.value().index==0 ? EPICSColor::EDIT : ColorDisabled)
+		    | val_bg
 		    | size(WIDTH, EQUAL, 10),
 		dllm.component()->Render()
 		    | EPICSColor::EDIT

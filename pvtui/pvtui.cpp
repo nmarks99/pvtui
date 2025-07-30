@@ -1,6 +1,6 @@
-#include "pvtui.hpp"
-#include "ftxui/component/component.hpp"
-#include "ftxui/component/component_options.hpp"
+#include <pvtui/pvtui.hpp>
+#include <ftxui/component/component.hpp>
+#include <ftxui/component/component_options.hpp>
 #include <charconv>
 
 namespace pvtui {

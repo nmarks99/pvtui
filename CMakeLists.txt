@@ -9,22 +9,22 @@ project(pvtui
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 # C/C++ Standards
-set(CMAKE_C_STANDARD 11)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
-
-# Local cmake projects might be built here
-list(APPEND CMAKE_PREFIX_PATH "$ENV{HOME}/.local")
 
 # Built binaries in build/bin, libraries in build/lib
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 
-# --- FTXUI --------------------------------------------------------------------
-option(FETCH_FTXUI "Fetch FTXUI using FetchContent instead of finding it on the system" OFF)
+# PVTUI build options
+option(FETCH_FTXUI "Fetch FTXUI using FetchContent" ON)
+option(BUILD_APPS "Build applications in apps/" ON)
+option(BUILD_DOCS "Build documentation" OFF)
+option(BUILD_TESTS "Build tests" OFF)
 
+# --- FTXUI --------------------------------------------------------------------
 if(FETCH_FTXUI)
     message(STATUS "Fetching FTXUI using FetchContent.")
     include(FetchContent)
@@ -54,20 +54,25 @@ endif()
 
 
 # --- EPICS Base ---------------------------------------------------------------
-# Get path to EPICS base
-set(EPICS_BASE "" CACHE STRING "Path to EPICS base")
-if (NOT EPICS_BASE)
-  message(FATAL_ERROR "Missing required variable 'EPICS_BASE'")
+# Get path to EPICS base from environment variable or -DEPICS_BASE
+if(NOT DEFINED EPICS_BASE OR EPICS_BASE STREQUAL "")
+    set(EPICS_BASE $ENV{EPICS_BASE})
+endif()
+if(NOT EPICS_BASE OR EPICS_BASE STREQUAL "")
+    message(FATAL_ERROR "Missing required variable 'EPICS_BASE'. Provide it via -DEPICS_BASE=... or set the EPICS_BASE environment variable.")
 endif()
 if(NOT IS_DIRECTORY "${EPICS_BASE}")
-  message(FATAL_ERROR "Specified EPICS_BASE does not exist: ${EPICS_BASE}")
+    message(FATAL_ERROR "Specified EPICS_BASE does not exist: ${EPICS_BASE}")
 endif()
+
+# Put it into the cache so it’s visible in GUI tools or later CMake runs
+set(EPICS_BASE "${EPICS_BASE}" CACHE STRING "Path to EPICS base")
 message(STATUS "Found EPICS_BASE: ${EPICS_BASE}")
 
 # Get EPICS host architecture
 set(EPICS_HOST_ARCH "$ENV{EPICS_HOST_ARCH}" CACHE STRING "Host architecture (e.g. linux-x86_64")
 if (NOT EPICS_HOST_ARCH)
-  message(FATAL_ERROR "'EPICS_HOST_ARCH' not defined")
+    message(FATAL_ERROR "'EPICS_HOST_ARCH' not defined")
 endif()
 message(STATUS "EPICS_HOST_ARCH: ${EPICS_HOST_ARCH}")
 
@@ -115,32 +120,71 @@ endif()
 # ------------------------------------------------------------------------------
 
 # --- PVTUI static library -----------------------------------------------------
-add_library(pvtui STATIC src/pvtui.cpp src/pvgroup.cpp)
-target_include_directories(pvtui PUBLIC src ${EPICS_BASE_INCLUDES})
+add_library(pvtui STATIC pvtui/pvtui.cpp pvtui/pvgroup.cpp)
+target_include_directories(pvtui
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<INSTALL_INTERFACE:include>
+        ${EPICS_BASE_INCLUDES}
+)
 target_link_libraries(pvtui
-  PUBLIC ${EPICS_BASE_LIBRARIES}
-  PUBLIC ftxui::screen
-  PUBLIC ftxui::dom
-  PUBLIC ftxui::component
+    PUBLIC ${EPICS_BASE_LIBRARIES}
+    PUBLIC ftxui::screen
+    PUBLIC ftxui::dom
+    PUBLIC ftxui::component
 )
 # ------------------------------------------------------------------------------
 
-# --- Build executables --------------------------------------------------------
-add_executable(pvtui_motor apps/motor_display.cpp apps/motor.cpp src/pvgroup.cpp src/pvtui.cpp)
-target_link_libraries(pvtui_motor PRIVATE pvtui)
+# --- Build applications -------------------------------------------------------
+if(BUILD_APPS)
+    message(STATUS "Building applications")
+    add_subdirectory(apps)
+else()
+    message(STATUS "Skipping executables in apps/ (BUILD_APPS=OFF)")
+endif()
+# ------------------------------------------------------------------------------
 
-add_executable(pvtui_asyn apps/asyn.cpp src/pvgroup.cpp src/pvtui.cpp)
-target_link_libraries(pvtui_asyn PRIVATE pvtui)
+# --- Build tests --------------------------------------------------------------
+if(BUILD_TESTS)
+    message(STATUS "Building tests")
+    add_subdirectory(tests)
+else()
+    message(STATUS "Skipping tests (BUILD_TESTS=OFF)")
+endif()
+# ------------------------------------------------------------------------------
 
-add_executable(pvtui_calcout apps/calcout.cpp src/pvtui.cpp src/pvgroup.cpp)
-target_link_libraries(pvtui_calcout PRIVATE pvtui)
+# --- Installation/CMake config ------------------------------------------------
+# Install library headers
+install(DIRECTORY pvtui/
+        DESTINATION include/pvtui
+        FILES_MATCHING
+            PATTERN "*.hpp"
+            PATTERN "*.h")
 
-add_executable(pvtui_sr apps/sr.cpp src/pvtui.cpp src/pvgroup.cpp)
-target_link_libraries(pvtui_sr PRIVATE pvtui)
+# Install the actual library
+install(TARGETS pvtui
+        EXPORT pvtuiTargets
+        ARCHIVE DESTINATION lib
+        LIBRARY DESTINATION lib
+        RUNTIME DESTINATION bin
+        INCLUDES DESTINATION include)
 
-add_executable(test_pvgroup tests/test_pvgroup.cpp src/pvgroup.cpp)
-target_link_libraries(test_pvgroup PRIVATE pvtui)
+# Export the targets to a cmake file
+install(EXPORT pvtuiTargets
+        FILE pvtuiTargets.cmake
+        NAMESPACE pvtui::
+        DESTINATION lib/cmake/pvtui)
 
-add_executable(test_pvtui tests/test_pvtui.cpp src/pvgroup.cpp src/pvtui.cpp)
-target_link_libraries(test_pvtui PRIVATE pvtui)
+include(CMakePackageConfigHelpers)
+
+configure_package_config_file(
+  ${CMAKE_CURRENT_SOURCE_DIR}/cmake/pvtuiConfig.cmake.in
+  ${CMAKE_CURRENT_BINARY_DIR}/pvtuiConfig.cmake
+  INSTALL_DESTINATION lib/cmake/pvtui
+  NO_CHECK_REQUIRED_COMPONENTS_MACRO
+)
+
+install(FILES
+  ${CMAKE_CURRENT_BINARY_DIR}/pvtuiConfig.cmake
+  DESTINATION lib/cmake/pvtui)
 # ------------------------------------------------------------------------------

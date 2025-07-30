@@ -6,7 +6,7 @@
 #include <chrono>
 #include <thread>
 
-#include "pvgroup.hpp"
+#include <pvtui/pvgroup.hpp>
 
 volatile std::sig_atomic_t g_signal_caught = 0;
 // Signal handler function
