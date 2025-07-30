@@ -35,3 +35,7 @@ cmake .. -DEPICS_BASE=/path/to/epics/base
 
 make
 ```
+
+## Contributing
+If you create a new PVTUI app which could be useful to others, fork this repo,
+add your app to the apps/ directory, and submit a pull request.
