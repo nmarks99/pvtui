@@ -9,13 +9,9 @@ project(pvtui
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 # C/C++ Standards
-set(CMAKE_C_STANDARD 11)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
-
-# Local cmake projects might be built here
-list(APPEND CMAKE_PREFIX_PATH "$ENV{HOME}/.local")
 
 # Built binaries in build/bin, libraries in build/lib
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
@@ -23,7 +19,7 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 
 # --- FTXUI --------------------------------------------------------------------
-option(FETCH_FTXUI "Fetch FTXUI using FetchContent instead of finding it on the system" OFF)
+option(FETCH_FTXUI "Fetch FTXUI using FetchContent instead of finding it on the system" ON)
 
 if(FETCH_FTXUI)
     message(STATUS "Fetching FTXUI using FetchContent.")
@@ -54,14 +50,19 @@ endif()
 
 
 # --- EPICS Base ---------------------------------------------------------------
-# Get path to EPICS base
-set(EPICS_BASE "" CACHE STRING "Path to EPICS base")
-if (NOT EPICS_BASE)
-  message(FATAL_ERROR "Missing required variable 'EPICS_BASE'")
+# Get path to EPICS base from environment variable or -DEPICS_BASE
+if(NOT DEFINED EPICS_BASE OR EPICS_BASE STREQUAL "")
+  set(EPICS_BASE $ENV{EPICS_BASE})
+endif()
+if(NOT EPICS_BASE OR EPICS_BASE STREQUAL "")
+  message(FATAL_ERROR "Missing required variable 'EPICS_BASE'. Provide it via -DEPICS_BASE=... or set the EPICS_BASE environment variable.")
 endif()
 if(NOT IS_DIRECTORY "${EPICS_BASE}")
   message(FATAL_ERROR "Specified EPICS_BASE does not exist: ${EPICS_BASE}")
 endif()
+
+# Put it into the cache so it’s visible in GUI tools or later CMake runs
+set(EPICS_BASE "${EPICS_BASE}" CACHE STRING "Path to EPICS base")
 message(STATUS "Found EPICS_BASE: ${EPICS_BASE}")
 
 # Get EPICS host architecture
