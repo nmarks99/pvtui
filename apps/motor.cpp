@@ -13,6 +13,26 @@
 using namespace ftxui;
 using namespace pvtui;
 
+static constexpr std::string_view CLI_HELP_MSG = R"(
+PVTUI motor - Terminal UI for EPICS motor record
+
+Usage:
+  pvtui_motor [options] 
+
+Options:
+  -h, --help        Show this help message and exit.
+  -m, --macro       Macros to pass to the UI (required: P, M, or M1,M2,...)
+
+Examples:
+    # start screen for xxx:m1
+    pvtui_motor --macro "P=xxx:,M=m1"
+  
+    # start motor3x.adl style screen for motors xxx:m1-m3
+    pvtui_motor --macro "P=xxx:,M1=m1,M2=m2,M3=m3"
+
+For more details, visit: https://github.com/nmarks99/pvtui
+)";
+
 enum class MotorDisplayType {
     Small,
     Medium,
@@ -24,6 +44,11 @@ int main(int argc, char *argv[]) {
 
     // Parse command line arguments and macros
     pvtui::ArgParser args(argc, argv);
+
+    if (args.flag("help") or args.flag("h")) {
+	std::cout << CLI_HELP_MSG << std::endl;
+	return EXIT_SUCCESS;
+    }
 
     if (not args.macros_present({"P"})) {
         printf("Missing required macro P\n");

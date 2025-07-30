@@ -20,10 +20,11 @@ Usage:
   pvtui_calcout [options] 
 
 Options:
-  -h, --help                   Show this help message and exit.
+  -h, --help        Show this help message and exit.
+  -m, --macro       Macros to pass to the UI (required: P, C)        
 
 Examples:
-    pvtui_calcout --macro "P=xxx:,C=userCalcOut1"
+    pvtui_calcout --macro "P=xxx:,C=calcout1"
 
 For more details, visit: https://github.com/nmarks99/pvtui
 )";
