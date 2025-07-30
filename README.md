@@ -16,25 +16,35 @@ the following displays are located in the apps/ directory:
 ## Installation
 
 Currently PVTUI is only officially supported on Linux. It has been tested on 
-Red Hat Enterprise Linux 9 and Arch Linux.
+Red Hat Enterprise Linux 9 and Arch Linux. Cmake is used for building the project.
 
 ### Dependencies
 * [FTXUI](https://github.com/ArthurSonzogni/FTXUI)
+    - FTXUI can be automatically cloned and compiled when building PVTUI via cmake's FetchContent,
+    or you can compile it yourself and install it somewhere that cmake can find it.
 * [EPICS Base](https://docs.epics-controls.org/en/latest/getting-started/installation.html)
+    - EPICS base must be installed on your system before building PVTUI.
+    Make sure `EPICS_BASE` and `EPICS_HOST_ARCH` environment variables are set.
+
 
 ### Building
+Clone PVTUI from GitHub and build with cmake:
 
 ```bash
+git clone https://github.com/nmarks99/pvtui.git
+cd pvtui
 mkdir build && cd build
-
-# To clone and build FTXUI with this project (using FetchContent):
-cmake .. -DEPICS_BASE=/path/to/epics/base -DFETCH_FTXUI=ON
-
-# If FTXUI is installed on your system somewhere cmake can find it (with find_package):
-cmake .. -DEPICS_BASE=/path/to/epics/base
-
+cmake ..
 make
 ```
+
+There are several optional flags when running cmake:
+- `-DEPICS_BASE`: (Default from environment) The path to EPICS base installation
+- `-DFETCH_FTXUI`[ON/OFF]: (Default ON) Whether or not to clone and compile FTXUI
+- `-DBUILD_APPS`[ON/OFF]: (Default ON) Whether or not to build applications in apps/ directory
+- `-DBUILD_TESTS`[ON/OFF]: (Default OFF) Whether or not to build tests in tests/ directory
+- `-DBUILD_DOCS`[ON/OFF]: (Default OFF) Whether or not to build Doxygen documentation
+
 
 ## Contributing
 If you create a new PVTUI app which could be useful to others, fork this repo,
