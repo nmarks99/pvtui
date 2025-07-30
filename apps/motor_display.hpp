@@ -22,8 +22,9 @@ class SmallMotorDisplay : public DisplayBase {
     pvtui::VarWidget<int> dmov;
     pvtui::VarWidget<int> lls;
     pvtui::VarWidget<int> hls;
+    pvtui::VarWidget<int> lvio;
     pvtui::VarWidget<std::string> egu;
-    pvtui::ChoiceWidget en_dis;
+    pvtui::ChoiceWidget able;
     pvtui::ChoiceWidget use_set;
     pvtui::ButtonWidget stop;
 
@@ -48,6 +49,7 @@ class MediumMotorDisplay : public DisplayBase {
     pvtui::VarWidget<int> dmov;
     pvtui::VarWidget<int> lls;
     pvtui::VarWidget<int> hls;
+    pvtui::VarWidget<int> lvio;
     pvtui::VarWidget<std::string> egu;
     pvtui::ChoiceWidget use_set;
     pvtui::VarWidget<std::string> drbv;
@@ -79,6 +81,7 @@ class AllMotorDisplay : public DisplayBase {
     pvtui::VarWidget<int> dmov;
     pvtui::VarWidget<int> lls;
     pvtui::VarWidget<int> hls;
+    pvtui::VarWidget<int> lvio;
     pvtui::InputWidget egu;
     pvtui::ChoiceWidget use_set;
     pvtui::VarWidget<std::string> drbv;
