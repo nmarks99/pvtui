@@ -18,9 +18,13 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 
-# --- FTXUI --------------------------------------------------------------------
-option(FETCH_FTXUI "Fetch FTXUI using FetchContent instead of finding it on the system" ON)
+# PVTUI build options
+option(FETCH_FTXUI "Fetch FTXUI using FetchContent" ON)
+option(BUILD_APPS "Build applications in apps/" ON)
+option(BUILD_DOCS "Build documentation" OFF)
+option(BUILD_TESTS "Build tests" OFF)
 
+# --- FTXUI --------------------------------------------------------------------
 if(FETCH_FTXUI)
     message(STATUS "Fetching FTXUI using FetchContent.")
     include(FetchContent)
@@ -52,13 +56,13 @@ endif()
 # --- EPICS Base ---------------------------------------------------------------
 # Get path to EPICS base from environment variable or -DEPICS_BASE
 if(NOT DEFINED EPICS_BASE OR EPICS_BASE STREQUAL "")
-  set(EPICS_BASE $ENV{EPICS_BASE})
+    set(EPICS_BASE $ENV{EPICS_BASE})
 endif()
 if(NOT EPICS_BASE OR EPICS_BASE STREQUAL "")
-  message(FATAL_ERROR "Missing required variable 'EPICS_BASE'. Provide it via -DEPICS_BASE=... or set the EPICS_BASE environment variable.")
+    message(FATAL_ERROR "Missing required variable 'EPICS_BASE'. Provide it via -DEPICS_BASE=... or set the EPICS_BASE environment variable.")
 endif()
 if(NOT IS_DIRECTORY "${EPICS_BASE}")
-  message(FATAL_ERROR "Specified EPICS_BASE does not exist: ${EPICS_BASE}")
+    message(FATAL_ERROR "Specified EPICS_BASE does not exist: ${EPICS_BASE}")
 endif()
 
 # Put it into the cache so it’s visible in GUI tools or later CMake runs
@@ -68,7 +72,7 @@ message(STATUS "Found EPICS_BASE: ${EPICS_BASE}")
 # Get EPICS host architecture
 set(EPICS_HOST_ARCH "$ENV{EPICS_HOST_ARCH}" CACHE STRING "Host architecture (e.g. linux-x86_64")
 if (NOT EPICS_HOST_ARCH)
-  message(FATAL_ERROR "'EPICS_HOST_ARCH' not defined")
+    message(FATAL_ERROR "'EPICS_HOST_ARCH' not defined")
 endif()
 message(STATUS "EPICS_HOST_ARCH: ${EPICS_HOST_ARCH}")
 
@@ -118,37 +122,35 @@ endif()
 # --- PVTUI static library -----------------------------------------------------
 add_library(pvtui STATIC pvtui/pvtui.cpp pvtui/pvgroup.cpp)
 target_include_directories(pvtui
-  PUBLIC
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
-    $<INSTALL_INTERFACE:include>
-    ${EPICS_BASE_INCLUDES}
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<INSTALL_INTERFACE:include>
+        ${EPICS_BASE_INCLUDES}
 )
 target_link_libraries(pvtui
-  PUBLIC ${EPICS_BASE_LIBRARIES}
-  PUBLIC ftxui::screen
-  PUBLIC ftxui::dom
-  PUBLIC ftxui::component
+    PUBLIC ${EPICS_BASE_LIBRARIES}
+    PUBLIC ftxui::screen
+    PUBLIC ftxui::dom
+    PUBLIC ftxui::component
 )
 # ------------------------------------------------------------------------------
 
-# --- Build executables --------------------------------------------------------
-add_executable(pvtui_motor apps/motor_display.cpp apps/motor.cpp pvtui/pvgroup.cpp pvtui/pvtui.cpp)
-target_link_libraries(pvtui_motor PRIVATE pvtui)
+# --- Build applications -------------------------------------------------------
+if(BUILD_APPS)
+    message(STATUS "Building applications")
+    add_subdirectory(apps)
+else()
+    message(STATUS "Skipping executables in apps/ (BUILD_APPS=OFF)")
+endif()
+# ------------------------------------------------------------------------------
 
-add_executable(pvtui_asyn apps/asyn.cpp pvtui/pvgroup.cpp pvtui/pvtui.cpp)
-target_link_libraries(pvtui_asyn PRIVATE pvtui)
-
-add_executable(pvtui_calcout apps/calcout.cpp pvtui/pvtui.cpp pvtui/pvgroup.cpp)
-target_link_libraries(pvtui_calcout PRIVATE pvtui)
-
-add_executable(pvtui_sr apps/sr.cpp pvtui/pvtui.cpp pvtui/pvgroup.cpp)
-target_link_libraries(pvtui_sr PRIVATE pvtui)
-
-add_executable(test_pvgroup tests/test_pvgroup.cpp pvtui/pvgroup.cpp)
-target_link_libraries(test_pvgroup PRIVATE pvtui)
-
-add_executable(test_pvtui tests/test_pvtui.cpp pvtui/pvgroup.cpp pvtui/pvtui.cpp)
-target_link_libraries(test_pvtui PRIVATE pvtui)
+# --- Build tests --------------------------------------------------------------
+if(BUILD_TESTS)
+    message(STATUS "Building tests")
+    add_subdirectory(tests)
+else()
+    message(STATUS "Skipping tests (BUILD_TESTS=OFF)")
+endif()
 # ------------------------------------------------------------------------------
 
 # --- Installation/CMake config ------------------------------------------------
