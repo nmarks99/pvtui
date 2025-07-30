@@ -2,8 +2,8 @@
 #include <pv/caProvider.h>
 #include <pva/client.h>
 
-#include "display_base.hpp"
-#include "pvtui.hpp"
+#include <pvtui/display_base.hpp>
+#include <pvtui/pvtui.hpp>
 
 class SmallMotorDisplay : public DisplayBase {
   public:

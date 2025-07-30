@@ -1,6 +1,6 @@
 #pragma once
-#include "ftxui/component/component_base.hpp"
-#include "pvgroup.hpp"
+#include <ftxui/component/component_base.hpp>
+#include <pvtui/pvgroup.hpp>
 #include <pv/caProvider.h>
 #include <pva/client.h>
 

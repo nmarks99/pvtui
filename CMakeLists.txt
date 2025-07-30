@@ -116,11 +116,10 @@ endif()
 # ------------------------------------------------------------------------------
 
 # --- PVTUI static library -----------------------------------------------------
-add_library(pvtui STATIC src/pvtui.cpp src/pvgroup.cpp)
-# target_include_directories(pvtui PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include ${EPICS_BASE_INCLUDES})
+add_library(pvtui STATIC pvtui/pvtui.cpp pvtui/pvgroup.cpp)
 target_include_directories(pvtui
   PUBLIC
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
     $<INSTALL_INTERFACE:include>
     ${EPICS_BASE_INCLUDES}
 )
@@ -133,29 +132,29 @@ target_link_libraries(pvtui
 # ------------------------------------------------------------------------------
 
 # --- Build executables --------------------------------------------------------
-add_executable(pvtui_motor apps/motor_display.cpp apps/motor.cpp src/pvgroup.cpp src/pvtui.cpp)
+add_executable(pvtui_motor apps/motor_display.cpp apps/motor.cpp pvtui/pvgroup.cpp pvtui/pvtui.cpp)
 target_link_libraries(pvtui_motor PRIVATE pvtui)
 
-add_executable(pvtui_asyn apps/asyn.cpp src/pvgroup.cpp src/pvtui.cpp)
+add_executable(pvtui_asyn apps/asyn.cpp pvtui/pvgroup.cpp pvtui/pvtui.cpp)
 target_link_libraries(pvtui_asyn PRIVATE pvtui)
 
-add_executable(pvtui_calcout apps/calcout.cpp src/pvtui.cpp src/pvgroup.cpp)
+add_executable(pvtui_calcout apps/calcout.cpp pvtui/pvtui.cpp pvtui/pvgroup.cpp)
 target_link_libraries(pvtui_calcout PRIVATE pvtui)
 
-add_executable(pvtui_sr apps/sr.cpp src/pvtui.cpp src/pvgroup.cpp)
+add_executable(pvtui_sr apps/sr.cpp pvtui/pvtui.cpp pvtui/pvgroup.cpp)
 target_link_libraries(pvtui_sr PRIVATE pvtui)
 
-add_executable(test_pvgroup tests/test_pvgroup.cpp src/pvgroup.cpp)
+add_executable(test_pvgroup tests/test_pvgroup.cpp pvtui/pvgroup.cpp)
 target_link_libraries(test_pvgroup PRIVATE pvtui)
 
-add_executable(test_pvtui tests/test_pvtui.cpp src/pvgroup.cpp src/pvtui.cpp)
+add_executable(test_pvtui tests/test_pvtui.cpp pvtui/pvgroup.cpp pvtui/pvtui.cpp)
 target_link_libraries(test_pvtui PRIVATE pvtui)
 # ------------------------------------------------------------------------------
 
 # --- Installation/CMake config ------------------------------------------------
 # Install library headers
-install(DIRECTORY src/
-        DESTINATION include
+install(DIRECTORY pvtui/
+        DESTINATION include/pvtui
         FILES_MATCHING
             PATTERN "*.hpp"
             PATTERN "*.h")

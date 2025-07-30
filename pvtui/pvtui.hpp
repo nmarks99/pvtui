@@ -4,12 +4,12 @@
 #include <unordered_map>
 #include <vector>
 
-#include "ftxui/screen/color.hpp"
-#include "ftxui/dom/elements.hpp"
-#include "ftxui/component/component_options.hpp"
+#include <ftxui/screen/color.hpp>
+#include <ftxui/dom/elements.hpp>
+#include <ftxui/component/component_options.hpp>
 
-#include "argh.h"
-#include "pvgroup.hpp"
+#include <pvtui/argh.h>
+#include <pvtui/pvgroup.hpp>
 
 namespace pvtui {
 

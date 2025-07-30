@@ -1,14 +1,14 @@
 #include <charconv>
 
-#include "ftxui/component/component.hpp"
-#include "ftxui/component/loop.hpp"
-#include "ftxui/component/event.hpp"
-#include "ftxui/component/screen_interactive.hpp"
-#include "ftxui/dom/elements.hpp"
-#include "ftxui/screen/color.hpp"
+#include <ftxui/component/component.hpp>
+#include <ftxui/component/loop.hpp>
+#include <ftxui/component/event.hpp>
+#include <ftxui/component/screen_interactive.hpp>
+#include <ftxui/dom/elements.hpp>
+#include <ftxui/screen/color.hpp>
 
 #include "motor_display.hpp"
-#include "pvtui.hpp"
+#include <pvtui/pvtui.hpp>
 
 using namespace ftxui;
 using namespace pvtui;

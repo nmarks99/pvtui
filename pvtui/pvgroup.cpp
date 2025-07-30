@@ -1,4 +1,4 @@
-#include "pvgroup.hpp"
+#include <pvtui/pvgroup.hpp>
 #include <regex>
 
 constexpr int DEFAULT_PRECISION = 4;
