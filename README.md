@@ -6,11 +6,10 @@
 PVTUI is a library for creating terminal/text based user interfaces for EPICS built on [FTXUI](https://github.com/ArthurSonzogni/FTXUI)
 and [pvAccessCPP](https://github.com/epics-base/pvAccessCPP).
 
-Various ready-to-use applications are included in this respository. The source code for
-the following displays are located in the apps/ directory:
-- asyn record
+There are several ready-to-use applications included in this respository:
 - motor record
 - calcout record
+- asyn record
 - APS storage ring status
 
 ## Installation

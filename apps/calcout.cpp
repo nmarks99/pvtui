@@ -77,12 +77,14 @@ int main(int argc, char *argv[]) {
     ChoiceWidget oopt(pvgroup, args, "$(P)$(C).OOPT", ChoiceStyle::Dropdown);
     InputWidget odly(pvgroup, args, "$(P)$(C).ODLY", PVPutType::Double);
     InputWidget ivov(pvgroup, args, "$(P)$(C).IVOV", PVPutType::Double);
+    ButtonWidget proc(pvgroup, args, "$(P)$(C).PROC", " PROC ");
 
     // Main container to define interactivity of components
     auto main_container = Container::Vertical({
 	desc.component(),
 	Container::Horizontal({
 	    scan.component(),
+	    proc.component(),
 	    prec.component(),
 	}),
 	Container::Horizontal({
@@ -120,14 +122,17 @@ int main(int argc, char *argv[]) {
 	    hbox({
 		scan.component()->Render()
 		    | EPICSColor::EDIT
-		    | size(WIDTH, EQUAL, 10)
-		    | color(Color::Black),
+		    | size(WIDTH, EQUAL, 10),
+		separatorEmpty(),
+		proc.component()->Render()
+		    | EPICSColor::EDIT
+		    | size(WIDTH, EQUAL, 8),
 		filler(),
 		text("PREC: ") | color(Color::Black),
 		prec.component()->Render()
 		    | EPICSColor::EDIT
 		    | size(WIDTH, EQUAL, 3),
-		separatorEmpty(), separatorEmpty()
+		separatorEmpty()
 	    }),
 	    separatorEmpty(),
 
