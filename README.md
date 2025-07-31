@@ -6,6 +6,8 @@
 PVTUI is a library for creating terminal/text based user interfaces for EPICS built on [FTXUI](https://github.com/ArthurSonzogni/FTXUI)
 and [pvAccessCPP](https://github.com/epics-base/pvAccessCPP).
 
+![pvtui_motor](https://github.com/user-attachments/assets/34c1cbec-c25e-458f-af9d-a3579e8f632a)
+
 There are several ready-to-use applications included in this respository:
 - motor record
 - calcout record
