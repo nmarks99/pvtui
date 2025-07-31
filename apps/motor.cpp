@@ -14,7 +14,8 @@ using namespace ftxui;
 using namespace pvtui;
 
 static constexpr std::string_view CLI_HELP_MSG = R"(
-PVTUI motor - Terminal UI for EPICS motor record
+pvtui_motor - Terminal UI for EPICS motor record
+Inspired by MEDM motor record screens.
 
 Usage:
   pvtui_motor [options] 

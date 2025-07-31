@@ -15,8 +15,8 @@ using namespace ftxui;
 using namespace pvtui;
 
 static constexpr std::string_view CLI_HELP_MSG = R"(
-PVTUI asyn - Terminal UI for EPICS asyn record.
-Inspired by the asynOctet.adl and asynRecord.adl screens.
+pvtui_asyn - Terminal UI for EPICS asyn record.
+Inspired by MEDM asyn record screens.
 
 Usage:
   pvtui_asyn [options] 

@@ -15,6 +15,20 @@
 using namespace ftxui;
 using namespace pvtui;
 
+static constexpr std::string_view CLI_HELP_MSG = R"(
+pvtui_sr - APS storage ring status display
+Inspired by xfd-display.adl
+Note: pvgateway must be set correctly. See /APSshare/bin/xfd-display
+
+Usage:
+  pvtui_sr [options] 
+
+Options:
+  -h, --help        Show this help message and exit.
+
+For more details, visit: https://github.com/nmarks99/pvtui
+)";
+
 std::vector<double> downsample_and_clip(const std::vector<double>& input, int target_size, double curr_min, double curr_max, double height) {
     std::vector<double> result;
     double chunk_size = static_cast<double>(input.size()) / target_size;
@@ -54,6 +68,14 @@ static const std::unordered_map<int, Element> shutter_status_text = {
 
 
 int main(int argc, char *argv[]) {
+
+    // Parse command line arguments and macros
+    pvtui::ArgParser args(argc, argv);
+
+    if (args.flag("help") or args.flag("h")) {
+	std::cout << CLI_HELP_MSG << std::endl;
+	return EXIT_SUCCESS;
+    }
 
     // Create the FTXUI screen. Interactive and uses the full terminal screen
     auto screen = ScreenInteractive::Fullscreen();

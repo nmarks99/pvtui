@@ -15,6 +15,7 @@ using namespace pvtui;
 
 static constexpr std::string_view CLI_HELP_MSG = R"(
 PVTUI calcout - Terminal UI for EPICS calcout record
+Inspired by MEDM calcout record screens.
 
 Usage:
   pvtui_calcout [options] 
