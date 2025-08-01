@@ -21,14 +21,14 @@ struct PVEnum {
 /**
  * @brief Variant type for pointers to variables monitored by a PV.
  */
-using MonitorPtr = std::variant<std::monostate,             ///< No variable monitored.
-                                std::string *,              ///< Pointer to a string.
-                                int *,                      ///< Pointer to an integer.
-                                double *,                   ///< Pointer to a double.
-                                std::vector<std::string> *, ///< Pointer to a vector of strings.
-                                std::vector<int> *,         ///< Pointer to a vector of integers.
-                                std::vector<double> *,      ///< Pointer to a vector of doubles.
-                                PVEnum *>;                  ///< Pointer to a PVAny.
+using MonitorPtr = std::variant<std::monostate,
+                                std::string *,
+                                int *,
+                                double *,
+                                std::vector<std::string> *,
+                                std::vector<int> *,
+                                std::vector<double> *,
+                                PVEnum *>;
 
 /**
  * @brief Monitors a pvac::ClientChannel's connection status.
@@ -169,6 +169,6 @@ struct PVGroup {
     bool update();
 
   private:
-    pvac::ClientProvider &provider_;                         ///< PVA client provider.
+    pvac::ClientProvider &provider_;                   ///< PVA client provider.
     std::unordered_map<std::string, PVHandler> pv_map; ///< Map of PVs by name.
 };

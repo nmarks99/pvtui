@@ -4,9 +4,9 @@
 #include <unordered_map>
 #include <vector>
 
-#include <ftxui/screen/color.hpp>
-#include <ftxui/dom/elements.hpp>
 #include <ftxui/component/component_options.hpp>
+#include <ftxui/dom/elements.hpp>
+#include <ftxui/screen/color.hpp>
 
 #include <pvtui/argh.h>
 #include <pvtui/pvgroup.hpp>
@@ -45,11 +45,14 @@ static const Decorator LINK = bgcolor(Color::RGB(148, 148, 228)) | color(Color::
  * @brief Defines the data types for PV put operations for InputWidget
  */
 enum class PVPutType {
-    Integer,    ///< Integer type.
-    Double, ///< Double-precision floating-point type.
-    String, ///< String type.
+    Integer,
+    Double,
+    String,
 };
 
+/**
+ * @brief Style options for ChoiceWidget
+ */
 enum class ChoiceStyle {
     Vertical,
     Horizontal,
@@ -103,7 +106,7 @@ class ArgParser {
     std::string replace(const std::string &str) const;
 
     std::unordered_map<std::string, std::string> macros; ///< Parsed macros (e.g., "P=VAL").
-    std::string provider = "ca"; ///< The EPICS provider type (e.g., "ca", "pva").
+    std::string provider = "ca";                         ///< The EPICS provider type (e.g., "ca", "pva").
 
   private:
     argh::parser cmdl_; ///< Internal argh parser instance.
@@ -181,8 +184,8 @@ class InputWidget : public WidgetBase {
      * @param pv_name The PV name with macros, e.g. "$(P)$(M).VAL".
      * @param put_type Specifies how the input value is written to the PV.
      */
-    InputWidget(PVGroup &pvgroup, const ArgParser &args, const std::string &pv_name,
-                PVPutType put_type, InputTransform tf=nullptr);
+    InputWidget(PVGroup &pvgroup, const ArgParser &args, const std::string &pv_name, PVPutType put_type,
+                InputTransform tf = nullptr);
 
     /**
      * @brief Constructs an InputWidget with an already expanded PV name.
@@ -225,8 +228,7 @@ class ButtonWidget : public WidgetBase {
      * @param label The text displayed on the button.
      * @param press_val The value written to the PV on press.
      */
-    ButtonWidget(PVGroup &pvgroup, const std::string &pv_name, const std::string &label,
-                 int press_val = 1);
+    ButtonWidget(PVGroup &pvgroup, const std::string &pv_name, const std::string &label, int press_val = 1);
 };
 
 /**
@@ -285,8 +287,7 @@ class ChoiceWidget : public WidgetBase {
      * @param pv_name The PV name with macros, e.g. "$(P)$(M).VAL".
      * @param style Layout style (vertical, horizontal, dropdown).
      */
-    ChoiceWidget(PVGroup &pvgroup, const ArgParser &args, const std::string &pv_name,
-                 ChoiceStyle style);
+    ChoiceWidget(PVGroup &pvgroup, const ArgParser &args, const std::string &pv_name, ChoiceStyle style);
 
     /**
      * @brief Constructs a ChoiceWidget with a PV name without macros.

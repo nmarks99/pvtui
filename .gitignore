@@ -2,3 +2,4 @@
 build/
 .clang-format
 .loglogin
+*.local
