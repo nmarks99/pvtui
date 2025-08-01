@@ -1,0 +1,65 @@
+record(longout, "exm:long") {
+    field(VAL, "42")
+}
+
+record(ao, "exm:float") {
+    field(VAL, "3.14")
+    field(PREC, 3)
+}
+
+record(stringout, "exm:string") {
+    field(VAL, "hello")
+}
+
+record(mbbo, "exm:enum") {
+    field(ZRVL, "0")
+    field(ONVL, "1")
+    field(TWVL, "2")
+    field(ZRST, "zero")
+    field(ONST, "one")
+    field(TWST, "two")
+}
+
+record(bo, "exm:bin") {
+    field(ZNAM, "zero")
+    field(ONAM, "one")
+    field(VAL, 1)
+}
+
+record(calcout, "exm:add1") {
+    field(INPA, "exm:long.VAL")
+    field(CALC, "A + 1")
+    field(OUT, "exm:long.VAL PP")
+}
+
+record(calcout, "exm:subtract1") {
+    field(INPA, "exm:long.VAL")
+    field(CALC, "A - 1")
+    field(OUT, "exm:long.VAL PP")
+}
+
+record(aao, "exm:double_array") {
+    field(FTVL, "DOUBLE")
+    field(NELM, 10)
+}
+
+record(aao, "exm:long_array") {
+    field(FTVL, "LONG")
+    field(NELM, 10)
+}
+
+record(aao, "exm:string_array") {
+    field(FTVL, "STRING")
+    field(NELM, 10)
+}
+
+record(calcout, "exm:calcout1") {
+}
+
+record(asyn,"exm:asyn1") {
+    field(DTYP,"asynRecordDevice")
+    field(PORT,"dummy")
+    field(ADDR,"0")
+    field(OMAX,"256")
+    field(IMAX,"256")
+}

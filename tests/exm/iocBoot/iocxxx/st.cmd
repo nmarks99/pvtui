@@ -1,10 +1,10 @@
-# ../../bin/${EPICS_HOST_ARCH}/xxx st.cmd
+# ../../bin/${EPICS_HOST_ARCH}/exm st.cmd
 < envPaths
 
-dbLoadDatabase("../../dbd/iocxxxLinux.dbd")
-iocxxxLinux_registerRecordDeviceDriver(pdbbase)
+dbLoadDatabase("../../dbd/iocexmLinux.dbd")
+iocexmLinux_registerRecordDeviceDriver(pdbbase)
 
-epicsEnvSet("PREFIX", "xxx:")
+epicsEnvSet("PREFIX", "exm:")
 
 
 # Load simulated motors

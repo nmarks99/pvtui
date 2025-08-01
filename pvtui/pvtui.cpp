@@ -256,7 +256,17 @@ ChoiceWidget::ChoiceWidget(PVGroup &pvgroup, const ArgParser &args, const std::s
 ChoiceWidget::ChoiceWidget(PVGroup &pvgroup, const std::string &pv_name, ChoiceStyle style)
     : WidgetBase(pvgroup, pv_name) {
     pvgroup.set_monitor(pv_name_, value_);
-    component_ = make_choice_v_widget(pvgroup.get_pv(pv_name_), value_.choices, value_.index);
+    switch (style) {
+    case pvtui::ChoiceStyle::Vertical:
+        component_ = make_choice_v_widget(pvgroup.get_pv(pv_name_), value_.choices, value_.index);
+        break;
+    case pvtui::ChoiceStyle::Horizontal:
+        component_ = make_choice_h_widget(pvgroup.get_pv(pv_name_), value_.choices, value_.index);
+        break;
+    case pvtui::ChoiceStyle::Dropdown:
+        component_ = make_dropdown_widget(pvgroup.get_pv(pv_name_), value_.choices, value_.index);
+        break;
+    }
 }
 
 PVEnum ChoiceWidget::value() const { return value_; }

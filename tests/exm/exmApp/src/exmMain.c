@@ -1,4 +1,4 @@
-/* xxxMain.c */
+/* exmMain.c */
 /* Author:  Ron Sluiter */
 
 #include <stddef.h>
