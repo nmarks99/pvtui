@@ -1,17 +1,17 @@
-record(longout, "exm:long") {
+record(longout, "$(P)long") {
     field(VAL, "42")
 }
 
-record(ao, "exm:float") {
+record(ao, "$(P)float") {
     field(VAL, "3.14")
     field(PREC, 3)
 }
 
-record(stringout, "exm:string") {
+record(stringout, "$(P)string") {
     field(VAL, "hello")
 }
 
-record(mbbo, "exm:enum") {
+record(mbbo, "$(P)enum") {
     field(ZRVL, "0")
     field(ONVL, "1")
     field(TWVL, "2")
@@ -20,43 +20,43 @@ record(mbbo, "exm:enum") {
     field(TWST, "two")
 }
 
-record(bo, "exm:bin") {
+record(bo, "$(P)bin") {
     field(ZNAM, "zero")
     field(ONAM, "one")
     field(VAL, 1)
 }
 
-record(calcout, "exm:add1") {
-    field(INPA, "exm:long.VAL")
+record(calcout, "$(P)add1") {
+    field(INPA, "$(P)long.VAL")
     field(CALC, "A + 1")
-    field(OUT, "exm:long.VAL PP")
+    field(OUT, "$(P)long.VAL PP")
 }
 
-record(calcout, "exm:subtract1") {
-    field(INPA, "exm:long.VAL")
+record(calcout, "$(P)subtract1") {
+    field(INPA, "$(P)long.VAL")
     field(CALC, "A - 1")
-    field(OUT, "exm:long.VAL PP")
+    field(OUT, "$(P)long.VAL PP")
 }
 
-record(aao, "exm:double_array") {
+record(aao, "$(P)double_array") {
     field(FTVL, "DOUBLE")
     field(NELM, 10)
 }
 
-record(aao, "exm:long_array") {
+record(aao, "$(P)long_array") {
     field(FTVL, "LONG")
     field(NELM, 10)
 }
 
-record(aao, "exm:string_array") {
+record(aao, "$(P)string_array") {
     field(FTVL, "STRING")
     field(NELM, 10)
 }
 
-record(calcout, "exm:calcout1") {
+record(calcout, "$(P)calcout1") {
 }
 
-record(asyn,"exm:asyn1") {
+record(asyn,"$(P)asyn1") {
     field(DTYP,"asynRecordDevice")
     field(PORT,"dummy")
     field(ADDR,"0")
