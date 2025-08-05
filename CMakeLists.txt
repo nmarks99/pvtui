@@ -78,20 +78,30 @@ message(STATUS "EPICS_HOST_ARCH: ${EPICS_HOST_ARCH}")
 
 link_directories(${EPICS_BASE}/lib/${EPICS_HOST_ARCH})
 
+if(APPLE)
+    set(EPICS_LIB_EXT ".dylib")
+elseif(UNIX)
+    set(EPICS_LIB_EXT ".so")
+else()
+    set(EPICS_LIB_EXT ".a")
+endif()
+
 set(EPICS_BASE_LIBRARIES
-    "${EPICS_BASE}/lib/${EPICS_HOST_ARCH}/libpvAccessCA.so"
-    "${EPICS_BASE}/lib/${EPICS_HOST_ARCH}/libca.so"
-    "${EPICS_BASE}/lib/${EPICS_HOST_ARCH}/libpvAccess.so"
-    "${EPICS_BASE}/lib/${EPICS_HOST_ARCH}/libpvData.so"
-    "${EPICS_BASE}/lib/${EPICS_HOST_ARCH}/libCom.so"
+    "${EPICS_BASE}/lib/${EPICS_HOST_ARCH}/libpvAccessCA${EPICS_LIB_EXT}"
+    "${EPICS_BASE}/lib/${EPICS_HOST_ARCH}/libca${EPICS_LIB_EXT}"
+    "${EPICS_BASE}/lib/${EPICS_HOST_ARCH}/libpvAccess${EPICS_LIB_EXT}"
+    "${EPICS_BASE}/lib/${EPICS_HOST_ARCH}/libpvData${EPICS_LIB_EXT}"
+    "${EPICS_BASE}/lib/${EPICS_HOST_ARCH}/libCom${EPICS_LIB_EXT}"
 )
 
 set(EPICS_BASE_INCLUDES
     ${EPICS_BASE}/include
     ${EPICS_BASE}/include/compiler/gcc
+    ${EPICS_BASE}/include/compiler/clang
     ${EPICS_BASE}/include/pv
     ${EPICS_BASE}/include/pva
     ${EPICS_BASE}/include/os/Linux
+    ${EPICS_BASE}/include/os/Darwin
 )
 # ------------------------------------------------------------------------------
 
