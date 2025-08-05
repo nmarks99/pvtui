@@ -54,20 +54,20 @@ ftxui::Component make_input_widget(PVHandler &pv, std::string &disp_str, PVPutTy
             [&pv, &disp_str, put_type]() {
                 if (pv.connected()) {
                     if (put_type == PVPutType::Double) {
-                        double val_double;
-                        auto res = std::from_chars(disp_str.data(),
-                                                   disp_str.data() + disp_str.size(), val_double);
-                        if (res.ec == std::errc()) {
+                        try {
+                            double val_double = std::stod(disp_str);
                             pv.channel.put().set("value", val_double).exec();
+                        } catch (const std::exception&) {
+                            // handle parse error if needed
                         }
                     } else if (put_type == PVPutType::String) {
                         pv.channel.put().set("value", disp_str).exec();
                     } else if (put_type == PVPutType::Integer) {
-                        int val_int;
-                        auto res = std::from_chars(disp_str.data(),
-                                                   disp_str.data() + disp_str.size(), val_int);
-                        if (res.ec == std::errc()) {
+                        try {
+                            int val_int = std::stoi(disp_str);
                             pv.channel.put().set("value", val_int).exec();
+                        } catch (const std::exception&) {
+                            // handle parse error if needed
                         }
                     }
                 }

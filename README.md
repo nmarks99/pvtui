@@ -25,7 +25,9 @@ Red Hat Enterprise Linux 9 and Arch Linux. Cmake is used for building the projec
     or you can compile it yourself and install it somewhere that cmake can find it.
 * [EPICS Base](https://docs.epics-controls.org/en/latest/getting-started/installation.html)
     - EPICS base must be installed on your system before building PVTUI.
-    Make sure `EPICS_BASE` and `EPICS_HOST_ARCH` environment variables are set.
+    Make sure `EPICS_BASE` and `EPICS_HOST_ARCH` environment variables are set
+    - EPICS base builds for MACOS/darwin targets must have c++11 features enabled.
+        -  % make CXXFLAGS='-std=c++11'
 
 
 ### Building

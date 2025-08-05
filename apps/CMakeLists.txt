@@ -1,3 +1,4 @@
+
 add_executable(pvtui_motor motor_display.cpp motor.cpp ../pvtui/pvgroup.cpp ../pvtui/pvtui.cpp)
 target_link_libraries(pvtui_motor PRIVATE pvtui)
 
