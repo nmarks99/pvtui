@@ -21,6 +21,15 @@ using namespace pvtui;
 
 int main(int argc, char *argv[]) {
 
+    // Parse command line arguments and macros
+    pvtui::ArgParser args(argc, argv);
+
+    if (not args.macros_present({"P"})) {
+	printf("Missing required macros\nRequired macros: P\n");
+	return EXIT_FAILURE;
+    }
+    std::string P = args.macros.at("P");
+
     // Create the FTXUI screen. Interactive and uses the full terminal screen
     auto screen = ScreenInteractive::Fullscreen();
 
@@ -33,20 +42,20 @@ int main(int argc, char *argv[]) {
     PVGroup pvgroup(provider);
 
     // Create all the widgets
-    InputWidget string1(pvgroup, "exm:string", PVPutType::String);
-    InputWidget float1(pvgroup, "exm:float", PVPutType::Double);
-    InputWidget long1(pvgroup, "exm:long", PVPutType::Integer);
+    InputWidget string1(pvgroup, P+"string", PVPutType::String);
+    InputWidget float1(pvgroup, P+"float", PVPutType::Double);
+    InputWidget long1(pvgroup, P+"long", PVPutType::Integer);
 
-    VarWidget<std::string> string1_rbv(pvgroup, "exm:string");
-    VarWidget<double> float1_rbv(pvgroup, "exm:float");
-    VarWidget<int> long1_rbv(pvgroup, "exm:long");
+    VarWidget<std::string> string1_rbv(pvgroup, P+"string");
+    VarWidget<double> float1_rbv(pvgroup, P+"float");
+    VarWidget<int> long1_rbv(pvgroup, P+"long");
 
-    ChoiceWidget enum1_h(pvgroup, "exm:enum", ChoiceStyle::Horizontal);
-    ChoiceWidget enum1_v(pvgroup, "exm:enum", ChoiceStyle::Vertical);
-    ChoiceWidget enum1_d(pvgroup, "exm:enum", ChoiceStyle::Dropdown);
+    ChoiceWidget enum1_h(pvgroup, P+"enum", ChoiceStyle::Horizontal);
+    ChoiceWidget enum1_v(pvgroup, P+"enum", ChoiceStyle::Vertical);
+    ChoiceWidget enum1_d(pvgroup, P+"enum", ChoiceStyle::Dropdown);
 
-    ButtonWidget plus(pvgroup, "exm:add1.PROC", " + ");
-    ButtonWidget minus(pvgroup, "exm:subtract1.PROC", " - ");
+    ButtonWidget plus(pvgroup, P+"add1.PROC", " + ");
+    ButtonWidget minus(pvgroup, P+"subtract1.PROC", " - ");
 
 
     // ftxui container to define interactivity of components
@@ -73,17 +82,17 @@ int main(int argc, char *argv[]) {
                 vbox({
                     text("PV") | color(Color::Black) | size(WIDTH, EQUAL, 30),
                     separator() | color(Color::Black),
-                    text("exm:string") | color(Color::Black),
+                    text(P+"string") | color(Color::Black),
                     separatorEmpty(),
-                    text("exm:float") | color(Color::Black),
+                    text(P+"float") | color(Color::Black),
                     separatorEmpty(),
-                    text("exm:long") | color(Color::Black),
+                    text(P+"long") | color(Color::Black),
                     separatorEmpty(),
-                    text("exm:enum") | color(Color::Black),
+                    text(P+"enum") | color(Color::Black),
                 }) | size(WIDTH, EQUAL, 30),
-                
+
                 separator() | color(Color::Black),
-                
+
                 vbox({
                     text("Input") | color(Color::Black) | size(WIDTH, EQUAL, 30),
                     separator() | color(Color::Black),
@@ -121,7 +130,7 @@ int main(int argc, char *argv[]) {
                     text("Choice = " + enum1_h.value().choice),
                 }) | EPICSColor::READBACK | size(WIDTH, EQUAL, 30),
             }),
-            
+
         }) | center | EPICSColor::BACKGROUND;
     });
 

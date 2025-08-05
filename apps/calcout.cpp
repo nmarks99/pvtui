@@ -14,15 +14,15 @@ using namespace ftxui;
 using namespace pvtui;
 
 static constexpr std::string_view CLI_HELP_MSG = R"(
-PVTUI calcout - Terminal UI for EPICS calcout record
+pvtui_calcout - Terminal UI for EPICS calcout record
 Inspired by MEDM calcout record screens.
 
 Usage:
-  pvtui_calcout [options] 
+  pvtui_calcout [options]
 
 Options:
   -h, --help        Show this help message and exit.
-  -m, --macro       Macros to pass to the UI (required: P, C)        
+  -m, --macro       Macros to pass to the UI (required: P, C)
 
 Examples:
     pvtui_calcout --macro "P=xxx:,C=calcout1"
@@ -32,7 +32,7 @@ For more details, visit: https://github.com/nmarks99/pvtui
 
 
 int main(int argc, char *argv[]) {
-  
+
     // Parse command line arguments and macros
     pvtui::ArgParser args(argc, argv);
 
@@ -52,7 +52,7 @@ int main(int argc, char *argv[]) {
     // Instantiate EPICS client
     epics::pvAccess::ca::CAClientFactory::start();
     pvac::ClientProvider provider(args.provider);
-    
+
     // PVGroup to manage all PVs in the display
     PVGroup pvgroup(provider);
 
@@ -170,7 +170,7 @@ int main(int argc, char *argv[]) {
 	    }),
 
 	    separator() | color(Color::Black),
-	    
+
 	    hbox({
 		text("CALC") | color(Color::Black),
 		filler() | size(WIDTH, EQUAL, 2),
