@@ -1,7 +1,6 @@
 #include <pvtui/pvtui.hpp>
 #include <ftxui/component/component.hpp>
 #include <ftxui/component/component_options.hpp>
-#include <charconv>
 
 namespace pvtui {
 
@@ -33,15 +32,20 @@ ftxui::Component make_button_widget(PVHandler &pv, const std::string &label, int
 ftxui::Component make_input_widget(PVHandler &pv, std::string &disp_str, PVPutType put_type,
                                    InputTransform tf = nullptr) {
 
-    auto default_input_transform = [](ftxui::InputState s) {
-        s.element |= ftxui::color(ftxui::Color::Black);
+    auto default_input_transform = [&pv, &disp_str](ftxui::InputState s) {
+        if (not pv.connected()) {
+            disp_str = "";
+            return s.element | EPICSColor::DISCONNECTED;
+        }
         if (s.is_placeholder) {
-            s.element |= ftxui::dim;
+            s.element |= EPICSColor::EDIT | ftxui::dim;
         }
         if (s.focused) {
-            s.element |= ftxui::inverted;
+            s.element |= EPICSColor::EDIT | ftxui::inverted;
         } else if (s.hovered) {
             s.element |= ftxui::bgcolor(ftxui::Color::GrayDark);
+        } else {
+            s.element |= EPICSColor::EDIT;
         }
         return s.element;
     };
@@ -75,9 +79,9 @@ ftxui::Component make_input_widget(PVHandler &pv, std::string &disp_str, PVPutTy
     }));
 }
 
-ftxui::Component make_choice_h_widget(PVHandler &pv, const std::vector<std::string> &labels,
+ftxui::Component make_choice_h_widget(PVHandler &pv, std::vector<std::string> &labels,
                                       int &selected) {
-    ftxui::MenuOption op = ftxui::MenuOption::Toggle();
+    ftxui::MenuOption op = ftxui::MenuOption::Horizontal();
     op.entries = &labels;
     op.selected = &selected;
     op.on_change = [&]() {
@@ -85,6 +89,30 @@ ftxui::Component make_choice_h_widget(PVHandler &pv, const std::vector<std::stri
             pv.channel.put().set("value.index", selected).exec();
         }
     };
+    op.elements_infix = [&pv] {
+        auto e = ftxui::text("│") | ftxui::automerge;
+        if (pv.connected()) {
+            e |= EPICSColor::EDIT;
+        } else {
+            e |= EPICSColor::DISCONNECTED;
+        }
+        return e;
+    };
+    op.entries_option.transform = [&pv](const ftxui::EntryState &state) {
+        ftxui::Element e = pv.connected() ? ftxui::text(state.label) : ftxui::text("    ");
+        auto color = pv.connected() ? EPICSColor::EDIT : EPICSColor::DISCONNECTED;
+        if (state.focused) {
+            e |= color | ftxui::inverted;
+        }
+        if (state.active) {
+            e |= color | ftxui::bold;
+        }
+        if (!state.focused && !state.active) {
+            e |= color | ftxui::dim;
+        }
+        return e;
+    };
+
     return ftxui::Menu(op);
 }
 
@@ -98,16 +126,17 @@ ftxui::Component make_choice_v_widget(PVHandler &pv, const std::vector<std::stri
             pv.channel.put().set("value.index", selected).exec();
         }
     };
-    op.entries_option.transform = [](const ftxui::EntryState &state) {
-        ftxui::Element e = ftxui::text(state.label);
+    op.entries_option.transform = [&pv](const ftxui::EntryState &state) {
+        ftxui::Element e = pv.connected() ? ftxui::text(state.label) : ftxui::text("    ");
+        auto color = pv.connected() ? EPICSColor::EDIT : EPICSColor::DISCONNECTED;
         if (state.focused) {
-            e |= ftxui::inverted;
+            e |= color | ftxui::inverted;
         }
         if (state.active) {
-            e |= ftxui::bold;
+            e |= color | ftxui::bold;
         }
         if (!state.focused && !state.active) {
-            e |= ftxui::dim;
+            e |= color | ftxui::dim;
         }
         return e;
     };
@@ -127,20 +156,20 @@ ftxui::Component make_dropdown_widget(PVHandler &pv, const std::vector<std::stri
                              }
                          }},
         .transform =
-            [](bool open, ftxui::Element checkbox, ftxui::Element radiobox) {
+            [&pv](bool open, ftxui::Element checkbox, ftxui::Element radiobox) {
+                auto color = pv.connected() ? EPICSColor::EDIT : EPICSColor::DISCONNECTED;
                 if (open) {
                     return ftxui::vbox({
                         checkbox | inverted,
                         radiobox | vscroll_indicator | frame | size(HEIGHT, LESS_THAN, 10),
                         filler(),
-                    });
+                    }) | color;
                 }
                 return vbox({
                     checkbox,
                     filler(),
-                });
+                }) | color;
             },
-
     });
     return ftxui::Dropdown(dropdown_op);
 }

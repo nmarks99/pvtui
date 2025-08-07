@@ -39,7 +39,13 @@ static const Decorator MENU = bgcolor(Color::RGB(16, 105, 25)) | color(Color::Wh
 static const Decorator READBACK = color(Color::DarkBlue);
 static const Decorator BACKGROUND = bgcolor(Color::RGB(196, 196, 196));
 static const Decorator LINK = bgcolor(Color::RGB(148, 148, 228)) | color(Color::Black);
+static const Decorator DISCONNECTED = bgcolor(Color::White) | color(Color::Black);
 } // namespace EPICSColor
+
+struct WidgetStyle {
+    ftxui::Decorator fg;
+    ftxui::Decorator bg;
+};
 
 /**
  * @brief Defines the data types for PV put operations for InputWidget
@@ -264,9 +270,6 @@ template <typename T> class VarWidget : public WidgetBase {
      */
     T value() const { return value_; };
 
-    /**
-     * @brief Deleted component method. This widget does not have a UI element.
-     */
     ftxui::Component component() const = delete;
 
   private:

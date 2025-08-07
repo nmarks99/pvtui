@@ -96,22 +96,22 @@ int main(int argc, char *argv[]) {
                 vbox({
                     text("Input") | color(Color::Black) | size(WIDTH, EQUAL, 30),
                     separator() | color(Color::Black),
-                    string1.component()->Render() | EPICSColor::EDIT,
+                    string1.component()->Render(),
                     separatorEmpty(),
-                    float1.component()->Render() | EPICSColor::EDIT,
+                    float1.component()->Render(),
                     separatorEmpty(),
                     hbox({
-                        long1.component()->Render() | EPICSColor::EDIT,
+                        long1.component()->Render(),
                         minus.component()->Render() | color(Color::Black),
                         plus.component()->Render() | color(Color::Black),
                     }),
                     separatorEmpty(),
                     hbox({
-                        vbox({ enum1_h.component()->Render() | xflex | EPICSColor::EDIT }),
+                        vbox({ enum1_h.component()->Render() | xflex}),
                         separatorEmpty(),
-                        vbox({ enum1_v.component()->Render() | xflex | EPICSColor::EDIT }),
+                        vbox({ enum1_v.component()->Render() | xflex}),
                         separatorEmpty(),
-                        vbox({ enum1_d.component()->Render() | xflex | EPICSColor::EDIT }),
+                        vbox({ enum1_d.component()->Render() | xflex}),
                     }),
                 }) | size(WIDTH, EQUAL, 30),
 
