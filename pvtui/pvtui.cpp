@@ -35,21 +35,18 @@ ftxui::Component make_input_widget(PVHandler &pv, std::string &disp_str, PVPutTy
     auto default_input_transform = [&pv, &disp_str](ftxui::InputState s) {
         if (not pv.connected()) {
             disp_str = "";
-            return s.element | EPICSColor::DISCONNECTED;
         }
+        s.element |= ftxui::color(ftxui::Color::Black);
         if (s.is_placeholder) {
-            s.element |= EPICSColor::EDIT | ftxui::dim;
+            s.element |= ftxui::dim;
         }
         if (s.focused) {
-            s.element |= EPICSColor::EDIT | ftxui::inverted;
+            s.element |= ftxui::inverted;
         } else if (s.hovered) {
             s.element |= ftxui::bgcolor(ftxui::Color::GrayDark);
-        } else {
-            s.element |= EPICSColor::EDIT;
         }
         return s.element;
     };
-
     return ftxui::Input(ftxui::InputOption({
         .content = &disp_str,
         .transform = tf ? tf : default_input_transform,
@@ -79,9 +76,10 @@ ftxui::Component make_input_widget(PVHandler &pv, std::string &disp_str, PVPutTy
     }));
 }
 
-ftxui::Component make_choice_h_widget(PVHandler &pv, std::vector<std::string> &labels,
+
+ftxui::Component make_choice_h_widget(PVHandler &pv, const std::vector<std::string> &labels,
                                       int &selected) {
-    ftxui::MenuOption op = ftxui::MenuOption::Horizontal();
+    ftxui::MenuOption op = ftxui::MenuOption::Toggle();
     op.entries = &labels;
     op.selected = &selected;
     op.on_change = [&]() {
@@ -89,23 +87,12 @@ ftxui::Component make_choice_h_widget(PVHandler &pv, std::vector<std::string> &l
             pv.channel.put().set("value.index", selected).exec();
         }
     };
-    op.elements_infix = [&pv] {
-        auto e = ftxui::text("│") | ftxui::automerge;
-        if (pv.connected()) {
-            e |= EPICSColor::EDIT;
-        } else {
-            e |= EPICSColor::DISCONNECTED;
-        }
-        return e;
-    };
+
     op.entries_option.transform = [&pv](const ftxui::EntryState &state) {
         ftxui::Element e = pv.connected() ? ftxui::text(state.label) : ftxui::text("    ");
-        auto color = pv.connected() ? EPICSColor::EDIT : EPICSColor::DISCONNECTED;
+        auto color = ftxui::color(ftxui::Color::Black);
         if (state.focused) {
             e |= color | ftxui::inverted;
-        }
-        if (state.active) {
-            e |= color | ftxui::bold;
         }
         if (!state.focused && !state.active) {
             e |= color | ftxui::dim;
@@ -128,15 +115,14 @@ ftxui::Component make_choice_v_widget(PVHandler &pv, const std::vector<std::stri
     };
     op.entries_option.transform = [&pv](const ftxui::EntryState &state) {
         ftxui::Element e = pv.connected() ? ftxui::text(state.label) : ftxui::text("    ");
-        auto color = pv.connected() ? EPICSColor::EDIT : EPICSColor::DISCONNECTED;
         if (state.focused) {
-            e |= color | ftxui::inverted;
+            e |= ftxui::inverted;
         }
         if (state.active) {
-            e |= color | ftxui::bold;
+            e |= ftxui::bold;
         }
         if (!state.focused && !state.active) {
-            e |= color | ftxui::dim;
+            e |= ftxui::dim;
         }
         return e;
     };
@@ -156,20 +142,20 @@ ftxui::Component make_dropdown_widget(PVHandler &pv, const std::vector<std::stri
                              }
                          }},
         .transform =
-            [&pv](bool open, ftxui::Element checkbox, ftxui::Element radiobox) {
-                auto color = pv.connected() ? EPICSColor::EDIT : EPICSColor::DISCONNECTED;
+            [](bool open, ftxui::Element checkbox, ftxui::Element radiobox) {
                 if (open) {
                     return ftxui::vbox({
                         checkbox | inverted,
                         radiobox | vscroll_indicator | frame | size(HEIGHT, LESS_THAN, 10),
                         filler(),
-                    }) | color;
+                    });
                 }
                 return vbox({
                     checkbox,
                     filler(),
-                }) | color;
+                });
             },
+
     });
     return ftxui::Dropdown(dropdown_op);
 }
@@ -234,13 +220,19 @@ std::unordered_map<std::string, std::string> ArgParser::get_macro_dict(std::stri
 WidgetBase::WidgetBase(PVGroup &pvgroup, const ArgParser &args, const std::string &pv_name)
     : pv_name_(args.replace(pv_name)) {
     pvgroup.add(pv_name_);
+    connection_monitor_ = std::make_unique<ConnectionMonitor>();
+    pvgroup[pv_name_].channel.addConnectListener(connection_monitor_.get());
 };
 
 WidgetBase::WidgetBase(PVGroup &pvgroup, const std::string &pv_name) : pv_name_(pv_name) {
     pvgroup.add(pv_name_);
+    connection_monitor_ = std::make_unique<ConnectionMonitor>();
+    pvgroup[pv_name_].channel.addConnectListener(connection_monitor_.get());
 };
 
 std::string WidgetBase::pv_name() const { return pv_name_; }
+
+bool WidgetBase::connected() const { return connection_monitor_->connected(); }
 
 ftxui::Component WidgetBase::component() const {
     if (component_) {

@@ -21,7 +21,7 @@ Inspired by xfd-display.adl
 Note: pvgateway must be set correctly. See /APSshare/bin/xfd-display
 
 Usage:
-  pvtui_sr [options] 
+  pvtui_sr [options]
 
 Options:
   -h, --help        Show this help message and exit.
@@ -228,7 +228,7 @@ int main(int argc, char *argv[]) {
             text("      Next Update: " + next_update.value()),
         });
     });
-        
+
     // Custom main loop
     constexpr int POLL_PERIOD_MS = 100;
     Loop loop(&screen, main_renderer);

@@ -148,7 +148,7 @@ int main(int argc, char *argv[]) {
             for (auto &display : displays) {
                 elements.push_back(display->get_renderer());
             }
-            return hbox({elements}) | center | EPICSColor::BACKGROUND;
+            return hbox({elements}) | center | EPICSColor::background();
         });
 
     } else {
@@ -175,7 +175,7 @@ int main(int argc, char *argv[]) {
             );
             return vbox({
                 elements,
-            }) | center | pvtui::EPICSColor::BACKGROUND;
+            }) | center | pvtui::EPICSColor::background();
         });
     }
 

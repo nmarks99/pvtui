@@ -58,7 +58,7 @@ record(calcout, "$(P)calcout1") {
 
 record(asyn,"$(P)asyn1") {
     field(DTYP,"asynRecordDevice")
-    field(PORT,"dummy")
+    field(PORT,"$(ASYN_PORT=dummy)")
     field(ADDR,"0")
     field(OMAX,"256")
     field(IMAX,"256")

@@ -96,22 +96,22 @@ int main(int argc, char *argv[]) {
                 vbox({
                     text("Input") | color(Color::Black) | size(WIDTH, EQUAL, 30),
                     separator() | color(Color::Black),
-                    string1.component()->Render(),
+                    string1.component()->Render() | EPICSColor::edit(string1),
                     separatorEmpty(),
-                    float1.component()->Render(),
+                    float1.component()->Render() | EPICSColor::edit(float1),
                     separatorEmpty(),
                     hbox({
-                        long1.component()->Render(),
+                        long1.component()->Render() | EPICSColor::edit(long1),
                         minus.component()->Render() | color(Color::Black),
                         plus.component()->Render() | color(Color::Black),
                     }),
                     separatorEmpty(),
                     hbox({
-                        vbox({ enum1_h.component()->Render() | xflex}),
+                        vbox({ enum1_h.component()->Render() | EPICSColor::edit(enum1_h) | xflex}),
                         separatorEmpty(),
-                        vbox({ enum1_v.component()->Render() | xflex}),
+                        vbox({ enum1_v.component()->Render() | EPICSColor::edit(enum1_v) | xflex}),
                         separatorEmpty(),
-                        vbox({ enum1_d.component()->Render() | xflex}),
+                        vbox({ enum1_d.component()->Render() | EPICSColor::edit(enum1_d) | xflex}),
                     }),
                 }) | size(WIDTH, EQUAL, 30),
 
@@ -120,18 +120,18 @@ int main(int argc, char *argv[]) {
                 vbox({
                     text("Readback") | color(Color::Black) | size(WIDTH, EQUAL, 30),
                     separator() | color(Color::Black),
-                    text(string1_rbv.value()) | EPICSColor::READBACK,
+                    text(string1_rbv.value()) | EPICSColor::readback(string1_rbv),
                     separatorEmpty(),
-                    text(std::to_string(float1_rbv.value())) | EPICSColor::READBACK,
+                    text(std::to_string(float1_rbv.value())) | EPICSColor::readback(float1_rbv),
                     separatorEmpty(),
-                    text(std::to_string(long1_rbv.value())) | EPICSColor::READBACK,
+                    text(std::to_string(long1_rbv.value())) | EPICSColor::readback(long1_rbv),
                     separatorEmpty(),
-                    text("Index = " + std::to_string(enum1_h.value().index)),
-                    text("Choice = " + enum1_h.value().choice),
-                }) | EPICSColor::READBACK | size(WIDTH, EQUAL, 30),
+                    text("Index = " + std::to_string(enum1_h.value().index)) | EPICSColor::readback(enum1_h),
+                    text("Choice = " + enum1_h.value().choice) | EPICSColor::readback(enum1_h),
+                }) | size(WIDTH, EQUAL, 30),
             }),
 
-        }) | center | EPICSColor::BACKGROUND;
+        }) | center | EPICSColor::background();
     });
 
     // Main loop

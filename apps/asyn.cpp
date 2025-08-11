@@ -19,11 +19,11 @@ pvtui_asyn - Terminal UI for EPICS asyn record.
 Inspired by MEDM asyn record screens.
 
 Usage:
-  pvtui_asyn [options] 
+  pvtui_asyn [options]
 
 Options:
   -h, --help        Show this help message and exit.
-  -m, --macro       Macros to pass to the UI (required: P, R)        
+  -m, --macro       Macros to pass to the UI (required: P, R)
 
 Examples:
     pvtui_asyn --macro "P=xxx:,R=asyn1"
@@ -95,7 +95,7 @@ int main(int argc, char *argv[]) {
                 tmot.component(),
                 tmod.component(),
             }),
-            
+
             ftxui::Container::Horizontal({
                 aout.component(),
                 oeos.component(),
@@ -141,17 +141,17 @@ int main(int argc, char *argv[]) {
 
             hbox({
                 text("Timeout(sec): ") | color(Color::Black),
-                tmot.component()->Render() | EPICSColor::EDIT | size(WIDTH, EQUAL, 6),
+                tmot.component()->Render() | EPICSColor::edit(tmot) | size(WIDTH, EQUAL, 6),
                 filler(),
                 text("Transfer: ") | color(Color::Black),
-                tmod.component()->Render() | EPICSColor::EDIT | size(WIDTH, LESS_THAN, 12),
+                tmod.component()->Render() | EPICSColor::edit(tmod) | size(WIDTH, LESS_THAN, 12),
             }),
             separator(),
             hbox({
                 text("Out: ") | color(Color::Black),
-                aout.component()->Render() | EPICSColor::EDIT | xflex,
+                aout.component()->Render() | EPICSColor::edit(aout) | xflex,
                 separatorEmpty(),
-                oeos.component()->Render() | EPICSColor::EDIT | size(WIDTH, EQUAL, 5),
+                oeos.component()->Render() | EPICSColor::edit(oeos) | size(WIDTH, EQUAL, 5),
                 separatorEmpty(),
                 text(nawt.value()) | color(Color::Black) | size(WIDTH, EQUAL, 3),
             }),
@@ -160,7 +160,7 @@ int main(int argc, char *argv[]) {
                 text(" In: ") | color(Color::Black),
                 text(tinp.value()) | bgcolor(Color::RGB(220,220,220)) | xflex,
                 separatorEmpty(),
-                ieos.component()->Render() | EPICSColor::EDIT | size(WIDTH, EQUAL, 5),
+                ieos.component()->Render() | EPICSColor::edit(ieos) | size(WIDTH, EQUAL, 5),
                 separatorEmpty(),
                 text(nord.value()) | color(Color::Black) | size(WIDTH, EQUAL, 3),
             }),
@@ -171,19 +171,19 @@ int main(int argc, char *argv[]) {
             }),
             separatorEmpty(),
             hbox({
-                cnct.component()->Render() | EPICSColor::EDIT,
+                cnct.component()->Render() | EPICSColor::edit(cnct),
                 filler(),
-                enbl.component()->Render() | EPICSColor::EDIT,
+                enbl.component()->Render() | EPICSColor::edit(enbl),
                 filler(),
-                auct.component()->Render() | EPICSColor::EDIT
+                auct.component()->Render() | EPICSColor::edit(auct)
             }),
             separatorEmpty(),
             hbox({
                 text("I/O Status: ") | color(Color::Black),
-                text(stat.value().choice) | EPICSColor::READBACK,
+                text(stat.value().choice) | EPICSColor::readback(stat),
                 filler(),
                 text("I/O Severity: ") | color(Color::Black),
-                text(sevr.value().choice) | EPICSColor::READBACK
+                text(sevr.value().choice) | EPICSColor::readback(sevr)
             }),
 
             // separator() | color(Color::Black),
@@ -199,42 +199,42 @@ int main(int argc, char *argv[]) {
                         | color(Color::Black),
                     hbox({
                         tb0.component()->Render()
-                            | EPICSColor::EDIT
+                            | EPICSColor::edit(tb0)
                             | size(WIDTH, EQUAL, 7),
                         separatorEmpty(),
                         text("traceError") | color(Color::Black)
                     }),
                     hbox({
                         tb1.component()->Render()
-                            | EPICSColor::EDIT
+                            | EPICSColor::edit(tb1)
                             | size(WIDTH, EQUAL, 7),
                         separatorEmpty(),
                         text("traceIODevice") | color(Color::Black)
                     }),
                     hbox({
                         tb2.component()->Render()
-                            | EPICSColor::EDIT
+                            | EPICSColor::edit(tb2)
                             | size(WIDTH, EQUAL, 7),
                         separatorEmpty(),
                         text("traceIOFilter") | color(Color::Black)
                     }),
                     hbox({
                         tb3.component()->Render()
-                            | EPICSColor::EDIT
+                            | EPICSColor::edit(tb3)
                             | size(WIDTH, EQUAL, 7),
                         separatorEmpty(),
                         text("traceIODriver") | color(Color::Black)
                     }),
                     hbox({
                         tb4.component()->Render()
-                            | EPICSColor::EDIT
+                            | EPICSColor::edit(tb4)
                             | size(WIDTH, EQUAL, 7),
                         separatorEmpty(),
                         text("traceFlow") | color(Color::Black)
                     }),
                     hbox({
                         tb5.component()->Render()
-                            | EPICSColor::EDIT
+                            | EPICSColor::edit(tb5)
                             | size(WIDTH, EQUAL, 7),
                         separatorEmpty(),
                         text("traceWarning") | color(Color::Black)
@@ -249,21 +249,21 @@ int main(int argc, char *argv[]) {
                         | color(Color::Black),
                     hbox({
                         tib0.component()->Render()
-                            | EPICSColor::EDIT
+                            | EPICSColor::edit(tib0)
                             | size(WIDTH, EQUAL, 7),
                         separatorEmpty(),
                         text("traceIOASCII") | color(Color::Black)
                     }),
                     hbox({
                         tib1.component()->Render()
-                            | EPICSColor::EDIT
+                            | EPICSColor::edit(tib1)
                             | size(WIDTH, EQUAL, 7),
                         separatorEmpty(),
                         text("traceIOEscape") | color(Color::Black)
                     }),
                     hbox({
                         tib2.component()->Render()
-                            | EPICSColor::EDIT
+                            | EPICSColor::edit(tib2)
                             | size(WIDTH, EQUAL, 7),
                         separatorEmpty(),
                         text("traceIOHex") | color(Color::Black)
@@ -278,28 +278,28 @@ int main(int argc, char *argv[]) {
                         | color(Color::Black),
                     hbox({
                         tinb0.component()->Render()
-                            | EPICSColor::EDIT
+                            | EPICSColor::edit(tinb0)
                             | size(WIDTH, EQUAL, 7),
                         separatorEmpty(),
                         text("traceInfoTime") | color(Color::Black)
                     }),
                     hbox({
                         tinb1.component()->Render()
-                            | EPICSColor::EDIT
+                            | EPICSColor::edit(tinb1)
                             | size(WIDTH, EQUAL, 7),
                         separatorEmpty(),
                         text("traceInfoPort") | color(Color::Black)
                     }),
                     hbox({
                         tinb2.component()->Render()
-                            | EPICSColor::EDIT
+                            | EPICSColor::edit(tinb2)
                             | size(WIDTH, EQUAL, 7),
                         separatorEmpty(),
                         text("traceInfoSource") | color(Color::Black)
                     }),
                     hbox({
                         tinb3.component()->Render()
-                            | EPICSColor::EDIT
+                            | EPICSColor::edit(tinb3)
                             | size(WIDTH, EQUAL, 7),
                         separatorEmpty(),
                         text("traceInfoThread") | color(Color::Black)
@@ -309,10 +309,10 @@ int main(int argc, char *argv[]) {
             separatorEmpty(),
             hbox({
                 text("Trace file: ") | color(Color::Black),
-                tfil.component()->Render() | EPICSColor::EDIT,
+                tfil.component()->Render() | EPICSColor::edit(tfil),
             }),
             separatorEmpty(),
-        }) | border | color(Color::Black) | size(WIDTH, EQUAL, 52) | center | EPICSColor::BACKGROUND;
+        }) | border | color(Color::Black) | size(WIDTH, EQUAL, 52) | center | EPICSColor::background();
     });
 
     constexpr int POLL_PERIOD_MS = 100;
