@@ -1,6 +1,6 @@
-#include <pvtui/pvtui.hpp>
 #include <ftxui/component/component.hpp>
 #include <ftxui/component/component_options.hpp>
+#include <pvtui/pvtui.hpp>
 
 namespace pvtui {
 
@@ -58,7 +58,7 @@ ftxui::Component make_input_widget(PVHandler &pv, std::string &disp_str, PVPutTy
                         try {
                             double val_double = std::stod(disp_str);
                             pv.channel.put().set("value", val_double).exec();
-                        } catch (const std::exception&) {
+                        } catch (const std::exception &) {
                             // handle parse error if needed
                         }
                     } else if (put_type == PVPutType::String) {
@@ -67,7 +67,7 @@ ftxui::Component make_input_widget(PVHandler &pv, std::string &disp_str, PVPutTy
                         try {
                             int val_int = std::stoi(disp_str);
                             pv.channel.put().set("value", val_int).exec();
-                        } catch (const std::exception&) {
+                        } catch (const std::exception &) {
                             // handle parse error if needed
                         }
                     }
@@ -75,7 +75,6 @@ ftxui::Component make_input_widget(PVHandler &pv, std::string &disp_str, PVPutTy
             },
     }));
 }
-
 
 ftxui::Component make_choice_h_widget(PVHandler &pv, const std::vector<std::string> &labels,
                                       int &selected) {

@@ -94,7 +94,7 @@ class ArgParser {
     std::string replace(const std::string &str) const;
 
     std::unordered_map<std::string, std::string> macros; ///< Parsed macros (e.g., "P=VAL").
-    std::string provider = "ca";                         ///< The EPICS provider type (e.g., "ca", "pva").
+    std::string provider = "ca"; ///< The EPICS provider type (e.g., "ca", "pva").
 
   private:
     argh::parser cmdl_; ///< Internal argh parser instance.
@@ -156,10 +156,10 @@ class WidgetBase {
 
     ~WidgetBase() = default;
 
-    std::string pv_name_;        ///< The PV name.
-    ftxui::Component component_; ///< Underlying FTXUI component.
-    bool connected_;             ///< Boolean for PV connection status
-    std::unique_ptr<ConnectionMonitor> connection_monitor_;  ///< Monitors PV connection status.
+    std::string pv_name_;                                   ///< The PV name.
+    ftxui::Component component_;                            ///< Underlying FTXUI component.
+    bool connected_;                                        ///< Boolean for PV connection status
+    std::unique_ptr<ConnectionMonitor> connection_monitor_; ///< Monitors PV connection status.
 };
 
 /**
@@ -176,8 +176,8 @@ class InputWidget : public WidgetBase {
      * @param pv_name The PV name with macros, e.g. "$(P)$(M).VAL".
      * @param put_type Specifies how the input value is written to the PV.
      */
-    InputWidget(PVGroup &pvgroup, const ArgParser &args, const std::string &pv_name, PVPutType put_type,
-                InputTransform tf = nullptr);
+    InputWidget(PVGroup &pvgroup, const ArgParser &args, const std::string &pv_name,
+                PVPutType put_type, InputTransform tf = nullptr);
 
     /**
      * @brief Constructs an InputWidget with an already expanded PV name.
@@ -220,7 +220,8 @@ class ButtonWidget : public WidgetBase {
      * @param label The text displayed on the button.
      * @param press_val The value written to the PV on press.
      */
-    ButtonWidget(PVGroup &pvgroup, const std::string &pv_name, const std::string &label, int press_val = 1);
+    ButtonWidget(PVGroup &pvgroup, const std::string &pv_name, const std::string &label,
+                 int press_val = 1);
 };
 
 /**
@@ -256,6 +257,9 @@ template <typename T> class VarWidget : public WidgetBase {
      */
     T value() const { return value_; };
 
+    /**
+     * @brief Deleted component method. This widget does not have a UI element.
+     */
     ftxui::Component component() const = delete;
 
   private:
@@ -276,7 +280,8 @@ class ChoiceWidget : public WidgetBase {
      * @param pv_name The PV name with macros, e.g. "$(P)$(M).VAL".
      * @param style Layout style (vertical, horizontal, dropdown).
      */
-    ChoiceWidget(PVGroup &pvgroup, const ArgParser &args, const std::string &pv_name, ChoiceStyle style);
+    ChoiceWidget(PVGroup &pvgroup, const ArgParser &args, const std::string &pv_name,
+                 ChoiceStyle style);
 
     /**
      * @brief Constructs a ChoiceWidget with a PV name without macros.
@@ -299,7 +304,7 @@ class ChoiceWidget : public WidgetBase {
 /**
  * @brief Functions to generate FTXUI decorators for EPICS-style UI elements.
  * To align stylistically with MEDM, caQtDM etc, when PVs are disconnected, the widget
- * drawn as a white rectangle
+ * is drawn as a white rectangle
  */
 namespace EPICSColor {
 using namespace ftxui;
@@ -313,17 +318,17 @@ inline Decorator menu(const WidgetBase &w) {
     return w.connected() ? bgcolor(Color::RGB(16, 105, 25)) | color(Color::White) : WHITE_ON_WHITE;
 }
 inline Decorator readback(const WidgetBase &w) {
-    return w.connected() ? bgcolor(Color::RGB(196, 196, 196)) | color(Color::DarkBlue) : WHITE_ON_WHITE;
+    return w.connected() ? bgcolor(Color::RGB(196, 196, 196)) | color(Color::DarkBlue)
+                         : WHITE_ON_WHITE;
 }
 inline Decorator link(const WidgetBase &w) {
-    return w.connected() ? bgcolor(Color::RGB(148, 148, 228)) | color(Color::Black): WHITE_ON_WHITE;
+    return w.connected() ? bgcolor(Color::RGB(148, 148, 228)) | color(Color::Black)
+                         : WHITE_ON_WHITE;
 }
 inline Decorator custom(const WidgetBase &w, Decorator style) {
-  return w.connected() ? style : WHITE_ON_WHITE;
+    return w.connected() ? style : WHITE_ON_WHITE;
 }
-inline Decorator background() {
-  return bgcolor(Color::RGB(196, 196, 196));
-}
+inline Decorator background() { return bgcolor(Color::RGB(196, 196, 196)); }
 } // namespace EPICSColor
 
 } // namespace pvtui
