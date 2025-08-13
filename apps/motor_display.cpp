@@ -1,8 +1,8 @@
 #include "motor_display.hpp"
 #include <pvtui/pvtui.hpp>
 #include <ftxui/component/component.hpp>
-    
-ftxui::Decorator ColorDisabled = bgcolor(ftxui::Color::RGBA(80,10,4,230)) | color(ftxui::Color::Black);
+
+ftxui::Decorator ColorDisabled = bgcolor(ftxui::Color::DarkRed) | color(ftxui::Color::Black);
 
 SmallMotorDisplay::SmallMotorDisplay(PVGroup &pvgroup, const pvtui::ArgParser &args)
     : DisplayBase(pvgroup), args(args),
@@ -42,15 +42,12 @@ ftxui::Element SmallMotorDisplay::get_renderer() {
     using namespace ftxui;
     using namespace pvtui;
 
-    auto &conn_pv = pvgroup.get_pv(desc.pv_name());
-
     auto val_bg = able.value().index == 1 ? ColorDisabled :
 		lvio.value() == 1 ? bgcolor(Color::Yellow2) :
-		EPICSColor::EDIT;
+		EPICSColor::edit(val);
 
     return ftxui::vbox({
-	desc.component()->Render() 
-	    | EPICSColor::EDIT
+	desc.component()->Render()
 	    | size(WIDTH, EQUAL, 20)
 	    | underlined
 	    | center,
@@ -61,7 +58,9 @@ ftxui::Element SmallMotorDisplay::get_renderer() {
 		| center
 		| color(Color::Red),
 	    text(rbv.value())
-		| (use_set.value().index==0 ? EPICSColor::READBACK : color(Color::Yellow2))
+		| center
+		| size(WIDTH, EQUAL, 10)
+		| (use_set.value().index==0 ? EPICSColor::readback(use_set) : color(Color::Yellow2))
 		| (dmov.value() == 0 ? borderHeavy | color(Color::Green) : borderEmpty),
 	    text(hls.value() ? unicode::rectangle(1) : "  ")
 		| center
@@ -79,27 +78,25 @@ ftxui::Element SmallMotorDisplay::get_renderer() {
 	separatorEmpty(),
 
 	hbox({
-	    twr.component()->Render() | color(Color::Black),
+	    twr.component()->Render() | EPICSColor::custom(twr, color(Color::Black)),
 	    separatorEmpty(),
-	    twv.component()->Render() | EPICSColor::EDIT | size(WIDTH, EQUAL, 10),
+	    twv.component()->Render() | size(WIDTH, EQUAL, 10) | EPICSColor::edit(twv),
 	    separatorEmpty(),
-	    twf.component()->Render() | color(Color::Black),
+	    twf.component()->Render() | EPICSColor::custom(twf, color(Color::Black)),
 	}) | center,
 	separatorEmpty(),
 	hbox({
-	    use_set.component()->Render() | EPICSColor::EDIT,
+	    use_set.component()->Render() | EPICSColor::edit(use_set),
 	    separatorEmpty(),
 	    separatorEmpty(),
-	    stop.component()->Render() | color(Color::Red) | bold,
+	    stop.component()->Render() | EPICSColor::custom(stop, color(Color::Red)) | bold,
 	}) | center,
-	!conn_pv.connected() ? text("Disconnected") | color(Color::Red) | bold | center : text(""),
-
+	separatorEmpty()
     })
     | size(WIDTH, EQUAL, 24)
-    | border 
-    | color(Color::Black) 
-    | center 
-    | bgcolor(Color::RGB(196,196,196));
+    | border
+    | color(Color::Black)
+    | center;
 }
 
 
@@ -160,15 +157,11 @@ ftxui::Element MediumMotorDisplay::get_renderer() {
     using namespace ftxui;
     using namespace pvtui;
 
-    auto &desc_pv = pvgroup.get_pv(desc.pv_name());
-    
     auto val_bg = able.value().index == 1 ? ColorDisabled :
 		lvio.value() == 1 ? bgcolor(Color::Yellow2) :
-		EPICSColor::EDIT;
+		EPICSColor::edit(val);
 
     return ftxui::vbox({
-	(desc_pv.connected() ? text("") : text("Disconnected") | color(Color::Red)) | center,
-
 	desc.component()->Render() | color(Color::Black) | bgcolor(Color::RGB(210,210,210)) | size(WIDTH, EQUAL, 22) | center,
 	separatorEmpty(),
 
@@ -178,82 +171,67 @@ ftxui::Element MediumMotorDisplay::get_renderer() {
 	    filler() | size(WIDTH, EQUAL, egu.value().length()+8),
 	    vbox({
 		text("User") | center,
-		hlm.component()->Render()
-		    | center
-		    | EPICSColor::EDIT
-		    | size(WIDTH, EQUAL, 10),
+		hlm.component()->Render() | EPICSColor::edit(hlm),
 		text(rbv.value())
-		    | (use_set.value().index==0 ? EPICSColor::READBACK : color(Color::Yellow2))
+		    | (use_set.value().index==0 ? EPICSColor::readback(use_set) : color(Color::Yellow2))
 		    | (dmov.value() == 0 ? borderHeavy | color(Color::Green) : borderEmpty)
 		    | center,
-		val.component()->Render()
-		    | center
-		    | val_bg
-		    | size(WIDTH, EQUAL, 10),
-		separatorEmpty(), 	
-		llm.component()->Render()
-		    | EPICSColor::EDIT
-		    | size(WIDTH, EQUAL, 10),
-	    }),
-	    separatorEmpty(), 	
+		val.component()->Render() | center | val_bg,
+		separatorEmpty(),
+
+		llm.component()->Render() | EPICSColor::edit(llm),
+	    }) | size(WIDTH, EQUAL, 10),
+	    separatorEmpty(),
 	    vbox({
 		text("Dial") | center,
-		dhlm.component()->Render()
-		    | center
-		    | EPICSColor::EDIT
-		    | size(WIDTH, EQUAL, 10),
+		dhlm.component()->Render() | EPICSColor::edit(dhlm),
 		text(drbv.value())
-		    | (use_set.value().index==0 ? EPICSColor::READBACK : color(Color::Yellow2))
+		    | (use_set.value().index==0 ? EPICSColor::readback(use_set) : color(Color::Yellow2))
 		    | (dmov.value() == 0 ? borderHeavy | color(Color::Green) : borderEmpty)
 		    | center,
-		dval.component()->Render()
-		    | center
-		    | val_bg
-		    | size(WIDTH, EQUAL, 10),
-		separatorEmpty(), 	
-		dllm.component()->Render()
-		    | EPICSColor::EDIT
-		    | size(WIDTH, EQUAL, 10),
+		dval.component()->Render() | center | val_bg,
+		separatorEmpty(),
+		dllm.component()->Render() | EPICSColor::edit(dllm)
 	    }),
 	    separatorEmpty(),
 	    vbox({
 		separatorEmpty(),
 		text(hls.value() ? unicode::rectangle(2) : "") | color(Color::Red),
 		filler(),
-		text(egu.value()) | EPICSColor::READBACK,
+		text(egu.value()) | EPICSColor::readback(egu),
 		separatorEmpty(),
 		text(lls.value() ? unicode::rectangle(2) : "") | color(Color::Red),
 	    }) | size(WIDTH, EQUAL, egu.value().length()),
 	    separatorEmpty(),
 	    spmg.component()->Render()
-		| EPICSColor::EDIT
+		| EPICSColor::edit(spmg)
 		| size(HEIGHT, EQUAL, 2),
 	}) | center,
-	
-	separatorEmpty(), 	
+
+	separatorEmpty(),
 
 	hbox({
-	    twr.component()->Render() | color(Color::Black),
+	    twr.component()->Render() | EPICSColor::custom(twr, color(Color::Black)),
 	    separatorEmpty(),
 	    twv.component()->Render()
 		| center
-		| EPICSColor::EDIT
+		| EPICSColor::edit(twv)
 		| size(WIDTH, EQUAL, 11),
 	    separatorEmpty(),
-	    twf.component()->Render() | color(Color::Black),
+	    twf.component()->Render() | EPICSColor::custom(twf, color(Color::Black)),
 	}) | center,
 
 	separatorEmpty(),
 
 	hbox({
 	    separatorEmpty(),
-	    use_set.component()->Render() | EPICSColor::EDIT,
+	    use_set.component()->Render() | EPICSColor::edit(use_set),
 	    separatorEmpty(),
-	    able.component()->Render() | EPICSColor::EDIT,
+	    able.component()->Render() | EPICSColor::edit(able),
 	}) | center,
 	separatorEmpty(),
 
-    })| center | EPICSColor::BACKGROUND;
+    })| center | EPICSColor::background();
 }
 
 AllMotorDisplay::AllMotorDisplay(PVGroup &pvgroup, const pvtui::ArgParser &args)
@@ -361,17 +339,14 @@ ftxui::Element AllMotorDisplay::get_renderer() {
     using namespace ftxui;
     using namespace pvtui;
 
-    // use DESC pv to check connection status
-    auto &conn_pv = pvgroup.get_pv(desc.pv_name());
-    
     auto val_bg = able.value().index == 1 ? ColorDisabled :
 		lvio.value() == 1 ? bgcolor(Color::Yellow2) :
-		EPICSColor::EDIT;
+		EPICSColor::edit(val);
 
     auto drive = vbox({
 	hbox({
 	    vbox({
-		separatorEmpty(), 	
+		separatorEmpty(),
 		text("Hi Limit: "),
 		text("Readback: "),
 		text("Absolute: "),
@@ -380,51 +355,37 @@ ftxui::Element AllMotorDisplay::get_renderer() {
 	    }) | color(Color::Black),
 	    vbox({
 		text("User") | center | color(Color::Black),
-		hlm.component()->Render()
-		    | center
-		    | EPICSColor::EDIT
-		    | size(WIDTH, EQUAL, 10),
+		hlm.component()->Render() | EPICSColor::edit(hlm),
 		text(rbv.value())
-		    | (use_set.value().index==0 ? EPICSColor::READBACK : color(Color::Yellow2))
+		    | (use_set.value().index==0 ? EPICSColor::readback(use_set) : color(Color::Yellow2))
 		    | center,
 		val.component()->Render()
 		    | center
-		    // | (able.value().index==0 ? EPICSColor::EDIT : ColorDisabled)
-		    | val_bg
-		    | size(WIDTH, EQUAL, 10),
-		llm.component()->Render()
-		    | EPICSColor::EDIT
-		    | size(WIDTH, EQUAL, 10),
-		rlv.component()->Render()
-		    | EPICSColor::EDIT
-		    | size(WIDTH, EQUAL, 10),
-	    }),
-	    separatorEmpty(), 	
+		    | (able.value().index==0 ? EPICSColor::edit(able) : ColorDisabled)
+		    | val_bg,
+		llm.component()->Render() | EPICSColor::edit(llm),
+		rlv.component()->Render() | EPICSColor::edit(rlv)
+	    }) | size(WIDTH, EQUAL, 10),
+	    separatorEmpty(),
 	    vbox({
 		text("Dial") | center | color(Color::Black),
-		dhlm.component()->Render()
-		    | center
-		    | EPICSColor::EDIT
-		    | size(WIDTH, EQUAL, 10),
+		dhlm.component()->Render() | EPICSColor::edit(dhlm),
 		text(drbv.value())
-		    | (use_set.value().index==0 ? EPICSColor::READBACK : color(Color::Yellow2))
+		    | (use_set.value().index==0 ? EPICSColor::readback(use_set) : color(Color::Yellow2))
 		    | center,
 		dval.component()->Render()
 		    | center
-		    // | (able.value().index==0 ? EPICSColor::EDIT : ColorDisabled)
-		    | val_bg
-		    | size(WIDTH, EQUAL, 10),
-		dllm.component()->Render()
-		    | EPICSColor::EDIT
-		    | size(WIDTH, EQUAL, 10),
+		    | (able.value().index==0 ? EPICSColor::edit(able) : ColorDisabled)
+		    | val_bg,
+		dllm.component()->Render() | EPICSColor::edit(dllm),
 		filler() | size(WIDTH, EQUAL, 10),
-	    }),
+	    }) | size(WIDTH, EQUAL, 10),
 	    separatorEmpty(),
 	    vbox({
 		text("Raw") | center | color(Color::Black),
 		hls.value() == 1 ? text(unicode::rectangle(2)) | color(Color::Red) : text(""),
-		text(rrbv.value()) | EPICSColor::READBACK,
-		rval.component()->Render() | EPICSColor::EDIT | size(WIDTH, EQUAL, 6),
+		text(rrbv.value()) | EPICSColor::readback(rrbv),
+		rval.component()->Render() | size(WIDTH, EQUAL, 6) | EPICSColor::edit(rval),
 		lls.value() == 1 ? text(unicode::rectangle(2)) | color(Color::Red) : text(""),
 	    }),
 	    separatorEmpty(),
@@ -434,21 +395,21 @@ ftxui::Element AllMotorDisplay::get_renderer() {
 		    | bgcolor(Color::Black)
 		    | bold | italic : text(""),
 		filler(),
-		able.component()->Render() | EPICSColor::EDIT | size(WIDTH, EQUAL, 7)
+		able.component()->Render() | size(WIDTH, EQUAL, 7) | EPICSColor::edit(able)
 	    }),
 	    separatorEmpty(),
 	    vbox({
 		filler(),
-		spmg.component()->Render() | EPICSColor::EDIT | size(WIDTH, EQUAL, 7)
+		spmg.component()->Render() | size(WIDTH, EQUAL, 7) | EPICSColor::edit(spmg)
 	    }),
 	}),
 	hbox({
 	    text("Twk:") | color(Color::Black),
-	    twr.component()->Render() | color(Color::Black),
+	    twr.component()->Render() | EPICSColor::custom(twr, color(Color::Black)),
 	    separatorEmpty(),
-	    twv.component()->Render() | EPICSColor::EDIT | size(WIDTH, EQUAL, 10),
+	    twv.component()->Render() | size(WIDTH, EQUAL, 10) | EPICSColor::edit(twv),
 	    separatorEmpty(),
-	    twf.component()->Render() | color(Color::Black),
+	    twf.component()->Render() | EPICSColor::custom(twf, color(Color::Black)),
 	}),
     });
 
@@ -456,90 +417,90 @@ ftxui::Element AllMotorDisplay::get_renderer() {
 	hbox({
 	    text(" Max Speed: ") | color(Color::Black),
 	    separatorEmpty(),
-	    vmax.component()->Render() | EPICSColor::EDIT | size(WIDTH, GREATER_THAN, 7),
+	    vmax.component()->Render() | size(WIDTH, GREATER_THAN, 7) | EPICSColor::edit(vmax),
 	}),
 
 	hbox({
 	    text("     Speed: ") | color(Color::Black),
 	    separatorEmpty(),
-	    velo.component()->Render() | EPICSColor::EDIT | size(WIDTH, GREATER_THAN, 7),
+	    velo.component()->Render() | size(WIDTH, GREATER_THAN, 7) | EPICSColor::edit(velo),
 	}),
 
 	hbox({
 	    text(" Min Speed: ") | color(Color::Black),
 	    separatorEmpty(),
-	    vbas.component()->Render() | EPICSColor::EDIT | size(WIDTH, GREATER_THAN, 7),
+	    vbas.component()->Render() | size(WIDTH, GREATER_THAN, 7) | EPICSColor::edit(vbas),
 	}),
 
 	hbox({
 	    text("     Accel: ") | color(Color::Black),
 	    separatorEmpty(),
-	    accl.component()->Render() | EPICSColor::EDIT | size(WIDTH, GREATER_THAN, 7),
+	    accl.component()->Render() | size(WIDTH, GREATER_THAN, 7) | EPICSColor::edit(accl),
 	}),
     }) | size(WIDTH, EQUAL, 26);
 
     auto calibration = vbox({
 	hbox({
 	    text("Off: ") | color(Color::Black),
-	    off.component()->Render() | EPICSColor::EDIT | size(WIDTH, GREATER_THAN, 7),
+	    off.component()->Render() | size(WIDTH, GREATER_THAN, 7) | EPICSColor::edit(off),
 	    separatorEmpty(),
-	    foff.component()->Render() | EPICSColor::EDIT | size(WIDTH, GREATER_THAN, 7),
+	    foff.component()->Render() | size(WIDTH, GREATER_THAN, 7) | EPICSColor::edit(foff),
 	}),
 	hbox({
 	    text("Cal: ") | color(Color::Black),
-	    use_set.component()->Render() | EPICSColor::EDIT | size(WIDTH, EQUAL, 7),
+	    use_set.component()->Render() | size(WIDTH, EQUAL, 7) | EPICSColor::edit(use_set),
 	}),
 	hbox({
 	    text("Dir: ") | color(Color::Black),
-	    dir.component()->Render() | EPICSColor::EDIT | size(WIDTH, EQUAL, 7),
+	    dir.component()->Render() | size(WIDTH, EQUAL, 7) | EPICSColor::edit(dir),
 	}),
 	hbox({
 	    text("EGU: ") | color(Color::Black),
-	    egu.component()->Render() | EPICSColor::EDIT | size(WIDTH, EQUAL, 7),
+	    egu.component()->Render() | size(WIDTH, EQUAL, 7) | EPICSColor::edit(egu),
 	}),
     }) | size(WIDTH, EQUAL, 26);
 
     auto res_left = vbox({
 	hbox({
 	    text("   Motor res: ") | color(Color::Black),
-	    mres.component()->Render() | EPICSColor::EDIT | size(WIDTH, GREATER_THAN, 7),
+	    mres.component()->Render() | size(WIDTH, GREATER_THAN, 7) | EPICSColor::edit(mres),
 	}),
 	hbox({
 	    text(" Encoder res: ") | color(Color::Black),
-	    eres.component()->Render() | EPICSColor::EDIT | size(WIDTH, GREATER_THAN, 7),
+	    eres.component()->Render() | size(WIDTH, GREATER_THAN, 7) | EPICSColor::edit(eres),
 	}),
 	hbox({
 	    text("Readback res: ") | color(Color::Black),
-	    rres.component()->Render() | EPICSColor::EDIT | size(WIDTH, GREATER_THAN, 7),
+	    rres.component()->Render() | size(WIDTH, GREATER_THAN, 7) | EPICSColor::edit(rres),
 	}),
 	hbox({
 	    text("     Retries: ") | color(Color::Black),
-	    rtry.component()->Render() | EPICSColor::EDIT | size(WIDTH, GREATER_THAN, 7),
+	    rtry.component()->Render() | size(WIDTH, GREATER_THAN, 7) | EPICSColor::edit(rtry),
 	}),
     }) | size(WIDTH, EQUAL, 26) | color(Color::Black);
 
     auto res_right= vbox({
 	hbox({
 	    text("   Precision: ") | color(Color::Black),
-	    prec.component()->Render() | EPICSColor::EDIT | size(WIDTH, EQUAL, 6),
+	    prec.component()->Render() | size(WIDTH, EQUAL, 6) | EPICSColor::edit(prec),
 	}),
 	hbox({
 	    text(" Use encoder: ") | color(Color::Black),
-	    ueip.component()->Render() | EPICSColor::EDIT | size(WIDTH, EQUAL, 6),
+	    ueip.component()->Render() | size(WIDTH, EQUAL, 6) | EPICSColor::edit(ueip),
 	}),
 	hbox({
 	    text("Use readback: ") | color(Color::Black),
-	    urip.component()->Render() | EPICSColor::EDIT | size(WIDTH, EQUAL, 6),
+	    urip.component()->Render() | size(WIDTH, EQUAL, 6) | EPICSColor::edit(urip),
 	}),
 	separatorEmpty(),
 	hbox({
 	    text("Torque: ") | color(Color::Black),
-	    cnen.component()->Render() | EPICSColor::EDIT | size(WIDTH, EQUAL, 14),
+	    cnen.component()->Render() | size(WIDTH, EQUAL, 14) | EPICSColor::edit(cnen),
 	}),
     }) | size(WIDTH, EQUAL, 26) | color(Color::Black);
 
     auto title = hbox({
-	desc.component()->Render() | EPICSColor::EDIT | size(WIDTH, EQUAL, 26),
+	desc.component()->Render() | size(WIDTH, EQUAL, 26),
 	filler(),
 	text("(" + args.macros.at("P") + args.macros.at("M") + ")")
 	    | color(Color::Black)
@@ -564,6 +525,5 @@ ftxui::Element AllMotorDisplay::get_renderer() {
 	    res_right
 	}),
 	separatorEmpty(),
-	!conn_pv.connected() ? text("Disconnected") | color(Color::Red) | bold | center : text(""),
     }) | size(WIDTH, EQUAL, 52);
 }

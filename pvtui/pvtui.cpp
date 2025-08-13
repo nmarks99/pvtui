@@ -1,7 +1,6 @@
-#include <pvtui/pvtui.hpp>
 #include <ftxui/component/component.hpp>
 #include <ftxui/component/component_options.hpp>
-#include <charconv>
+#include <pvtui/pvtui.hpp>
 
 namespace pvtui {
 
@@ -33,7 +32,10 @@ ftxui::Component make_button_widget(PVHandler &pv, const std::string &label, int
 ftxui::Component make_input_widget(PVHandler &pv, std::string &disp_str, PVPutType put_type,
                                    InputTransform tf = nullptr) {
 
-    auto default_input_transform = [](ftxui::InputState s) {
+    auto default_input_transform = [&pv, &disp_str](ftxui::InputState s) {
+        if (not pv.connected()) {
+            disp_str = "";
+        }
         s.element |= ftxui::color(ftxui::Color::Black);
         if (s.is_placeholder) {
             s.element |= ftxui::dim;
@@ -45,7 +47,6 @@ ftxui::Component make_input_widget(PVHandler &pv, std::string &disp_str, PVPutTy
         }
         return s.element;
     };
-
     return ftxui::Input(ftxui::InputOption({
         .content = &disp_str,
         .transform = tf ? tf : default_input_transform,
@@ -57,7 +58,7 @@ ftxui::Component make_input_widget(PVHandler &pv, std::string &disp_str, PVPutTy
                         try {
                             double val_double = std::stod(disp_str);
                             pv.channel.put().set("value", val_double).exec();
-                        } catch (const std::exception&) {
+                        } catch (const std::exception &) {
                             // handle parse error if needed
                         }
                     } else if (put_type == PVPutType::String) {
@@ -66,7 +67,7 @@ ftxui::Component make_input_widget(PVHandler &pv, std::string &disp_str, PVPutTy
                         try {
                             int val_int = std::stoi(disp_str);
                             pv.channel.put().set("value", val_int).exec();
-                        } catch (const std::exception&) {
+                        } catch (const std::exception &) {
                             // handle parse error if needed
                         }
                     }
@@ -85,6 +86,19 @@ ftxui::Component make_choice_h_widget(PVHandler &pv, const std::vector<std::stri
             pv.channel.put().set("value.index", selected).exec();
         }
     };
+
+    op.entries_option.transform = [&pv](const ftxui::EntryState &state) {
+        ftxui::Element e = pv.connected() ? ftxui::text(state.label) : ftxui::text("    ");
+        auto color = ftxui::color(ftxui::Color::Black);
+        if (state.focused) {
+            e |= color | ftxui::inverted;
+        }
+        if (!state.focused && !state.active) {
+            e |= color | ftxui::dim;
+        }
+        return e;
+    };
+
     return ftxui::Menu(op);
 }
 
@@ -98,8 +112,8 @@ ftxui::Component make_choice_v_widget(PVHandler &pv, const std::vector<std::stri
             pv.channel.put().set("value.index", selected).exec();
         }
     };
-    op.entries_option.transform = [](const ftxui::EntryState &state) {
-        ftxui::Element e = ftxui::text(state.label);
+    op.entries_option.transform = [&pv](const ftxui::EntryState &state) {
+        ftxui::Element e = pv.connected() ? ftxui::text(state.label) : ftxui::text("    ");
         if (state.focused) {
             e |= ftxui::inverted;
         }
@@ -205,13 +219,19 @@ std::unordered_map<std::string, std::string> ArgParser::get_macro_dict(std::stri
 WidgetBase::WidgetBase(PVGroup &pvgroup, const ArgParser &args, const std::string &pv_name)
     : pv_name_(args.replace(pv_name)) {
     pvgroup.add(pv_name_);
+    connection_monitor_ = std::make_unique<ConnectionMonitor>();
+    pvgroup[pv_name_].channel.addConnectListener(connection_monitor_.get());
 };
 
 WidgetBase::WidgetBase(PVGroup &pvgroup, const std::string &pv_name) : pv_name_(pv_name) {
     pvgroup.add(pv_name_);
+    connection_monitor_ = std::make_unique<ConnectionMonitor>();
+    pvgroup[pv_name_].channel.addConnectListener(connection_monitor_.get());
 };
 
 std::string WidgetBase::pv_name() const { return pv_name_; }
+
+bool WidgetBase::connected() const { return connection_monitor_->connected(); }
 
 ftxui::Component WidgetBase::component() const {
     if (component_) {
@@ -256,7 +276,17 @@ ChoiceWidget::ChoiceWidget(PVGroup &pvgroup, const ArgParser &args, const std::s
 ChoiceWidget::ChoiceWidget(PVGroup &pvgroup, const std::string &pv_name, ChoiceStyle style)
     : WidgetBase(pvgroup, pv_name) {
     pvgroup.set_monitor(pv_name_, value_);
-    component_ = make_choice_v_widget(pvgroup.get_pv(pv_name_), value_.choices, value_.index);
+    switch (style) {
+    case pvtui::ChoiceStyle::Vertical:
+        component_ = make_choice_v_widget(pvgroup.get_pv(pv_name_), value_.choices, value_.index);
+        break;
+    case pvtui::ChoiceStyle::Horizontal:
+        component_ = make_choice_h_widget(pvgroup.get_pv(pv_name_), value_.choices, value_.index);
+        break;
+    case pvtui::ChoiceStyle::Dropdown:
+        component_ = make_dropdown_widget(pvgroup.get_pv(pv_name_), value_.choices, value_.index);
+        break;
+    }
 }
 
 PVEnum ChoiceWidget::value() const { return value_; }

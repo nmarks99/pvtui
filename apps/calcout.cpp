@@ -14,15 +14,15 @@ using namespace ftxui;
 using namespace pvtui;
 
 static constexpr std::string_view CLI_HELP_MSG = R"(
-PVTUI calcout - Terminal UI for EPICS calcout record
+pvtui_calcout - Terminal UI for EPICS calcout record
 Inspired by MEDM calcout record screens.
 
 Usage:
-  pvtui_calcout [options] 
+  pvtui_calcout [options]
 
 Options:
   -h, --help        Show this help message and exit.
-  -m, --macro       Macros to pass to the UI (required: P, C)        
+  -m, --macro       Macros to pass to the UI (required: P, C)
 
 Examples:
     pvtui_calcout --macro "P=xxx:,C=calcout1"
@@ -30,9 +30,8 @@ Examples:
 For more details, visit: https://github.com/nmarks99/pvtui
 )";
 
-
 int main(int argc, char *argv[]) {
-  
+
     // Parse command line arguments and macros
     pvtui::ArgParser args(argc, argv);
 
@@ -52,7 +51,7 @@ int main(int argc, char *argv[]) {
     // Instantiate EPICS client
     epics::pvAccess::ca::CAClientFactory::start();
     pvac::ClientProvider provider(args.provider);
-    
+
     // PVGroup to manage all PVs in the display
     PVGroup pvgroup(provider);
 
@@ -111,6 +110,8 @@ int main(int argc, char *argv[]) {
     });
 
 
+    const Decorator COLORDISCON = color(Color::White) | bgcolor(Color::White);
+
     // Main renderer to define visual layout of components and elements
     auto main_renderer = Renderer(main_container, [&] {
         return vbox({
@@ -122,16 +123,16 @@ int main(int argc, char *argv[]) {
 	    separatorEmpty(),
 	    hbox({
 		scan.component()->Render()
-		    | EPICSColor::EDIT
+		    | EPICSColor::edit(scan)
 		    | size(WIDTH, EQUAL, 10),
 		separatorEmpty(),
 		proc.component()->Render()
-		    | EPICSColor::EDIT
+		    | EPICSColor::edit(proc)
 		    | size(WIDTH, EQUAL, 8),
 		filler(),
 		text("PREC: ") | color(Color::Black),
 		prec.component()->Render()
-		    | EPICSColor::EDIT
+		    | EPICSColor::edit(prec)
 		    | size(WIDTH, EQUAL, 3),
 		separatorEmpty()
 	    }),
@@ -140,77 +141,88 @@ int main(int argc, char *argv[]) {
 	    hbox({
 		text("A") | color(Color::Black),
 		separatorEmpty(),
-		inpa.component()->Render() | size(WIDTH, EQUAL, 32) | EPICSColor::LINK,
+		inpa.component()->Render() | size(WIDTH, EQUAL, 32) | EPICSColor::link(inpa),
 		separatorEmpty(),
-		a_val.component()->Render() | size(WIDTH, EQUAL, 13) | EPICSColor::EDIT
+		a_val.component()->Render() | size(WIDTH, EQUAL, 13) | EPICSColor::edit(a_val)
 	    }),
 	    separatorEmpty(),
 	    hbox({
 		text("B") | color(Color::Black),
 		separatorEmpty(),
-		inpb.component()->Render() | size(WIDTH, EQUAL, 32) | EPICSColor::LINK,
+		inpb.component()->Render() | size(WIDTH, EQUAL, 32) | EPICSColor::link(inpb),
 		separatorEmpty(),
-		b_val.component()->Render() | size(WIDTH, EQUAL, 13) | EPICSColor::EDIT
+		b_val.component()->Render() | size(WIDTH, EQUAL, 13) | EPICSColor::edit(b_val)
 	    }),
 	    separatorEmpty(),
 	    hbox({
 		text("C") | color(Color::Black),
 		separatorEmpty(),
-		inpc.component()->Render() | size(WIDTH, EQUAL, 32) | EPICSColor::LINK,
+		inpc.component()->Render() | size(WIDTH, EQUAL, 32) | EPICSColor::link(inpc),
 		separatorEmpty(),
-		c_val.component()->Render() | size(WIDTH, EQUAL, 13) | EPICSColor::EDIT
+		c_val.component()->Render() | size(WIDTH, EQUAL, 13) | EPICSColor::edit(c_val)
 	    }),
 	    separatorEmpty(),
 	    hbox({
 		text("D") | color(Color::Black),
 		separatorEmpty(),
-		inpd.component()->Render() | size(WIDTH, EQUAL, 32) | EPICSColor::LINK,
+		inpd.component()->Render() | size(WIDTH, EQUAL, 32) | EPICSColor::link(inpd),
 		separatorEmpty(),
-		d_val.component()->Render() | size(WIDTH, EQUAL, 13) | EPICSColor::EDIT
+		d_val.component()->Render() | size(WIDTH, EQUAL, 13) | EPICSColor::edit(d_val)
 	    }),
 
 	    separator() | color(Color::Black),
-	    
+
 	    hbox({
 		text("CALC") | color(Color::Black),
 		filler() | size(WIDTH, EQUAL, 2),
-		calc.component()->Render() | size(WIDTH, EQUAL, 32) | EPICSColor::EDIT,
+		calc.component()->Render() | size(WIDTH, EQUAL, 32) | EPICSColor::edit(calc),
 		separatorEmpty(),
-		text("   " + val.value()) | EPICSColor::READBACK,
+		text("   " + val.value()) | EPICSColor::readback(val),
 	    }) | (dopt.value().index == 0 ? border : borderEmpty) | color(Color::Black),
 
 	    hbox({
 		text("OCAL") | color(Color::Black),
 		filler() | size(WIDTH, EQUAL, 2),
-		ocal.component()->Render() | size(WIDTH, EQUAL, 32) | EPICSColor::EDIT,
+		ocal.component()->Render() | size(WIDTH, EQUAL, 32) | EPICSColor::edit(ocal),
 		separatorEmpty(),
-		text("   " + oval.value()) | EPICSColor::READBACK,
+		text("   " + oval.value()) | EPICSColor::readback(oval),
 	    }) | (dopt.value().index == 1 ? border : borderEmpty) | color(Color::Black),
 
 	    separator() | color(Color::Black),
 
 	    hbox({
 		text("ODLY ") | color(Color::Black),
-		odly.component()->Render() | size(WIDTH, EQUAL, 4) | color(Color::Black) | bgcolor(Color::RGB(245, 179, 27)),
+		odly.component()->Render()
+		    | size(WIDTH, EQUAL, 4)
+		    | EPICSColor::custom(odly, color(Color::Black) | bgcolor(Color::RGB(245, 179, 27))),
 		filler() | size(WIDTH, EQUAL, 4),
-		oopt.component()->Render() | size(WIDTH, EQUAL, 25) | color(Color::Black) | bgcolor(Color::RGB(245, 179, 27)),
+		oopt.component()->Render()
+		    | size(WIDTH, EQUAL, 25)
+		    | EPICSColor::custom(oopt, color(Color::Black) | bgcolor(Color::RGB(245, 179, 27))),
 		separatorEmpty(),
-		dopt.component()->Render() | size(WIDTH, EQUAL, 10) | color(Color::Yellow) | bgcolor(Color::RGB(130, 95, 16)) | xflex,
+		dopt.component()->Render()
+		    | EPICSColor::custom(dopt, color(Color::Yellow) | bgcolor(Color::RGB(130, 95, 16)))
+		    | xflex
+		    | size(WIDTH, EQUAL, 10)
 	    }),
 
 	    separatorEmpty(),
 
 	    hbox({
-		ivoa.component()->Render() | color(Color::Yellow) | bgcolor(Color::RGB(130, 95, 16)) | size(WIDTH, EQUAL, 15),
+		ivoa.component()->Render()
+		    | EPICSColor::custom(ivoa, color(Color::Yellow) | bgcolor(Color::RGB(130, 95, 16)))
+		    | size(WIDTH, EQUAL, 15),
 		text("  IVOV ") | color(Color::Black),
-		ivov.component()->Render() | color(Color::Black) | bgcolor(Color::RGB(245, 179, 27)) | size(WIDTH, EQUAL, 4),
+		ivov.component()->Render()
+		    | EPICSColor::custom(ivov, color(Color::Black) | bgcolor(Color::RGB(245, 179, 27)))
+		    | size(WIDTH, EQUAL, 4),
 		text("  OUT ") | color(Color::Black),
-		out.component()->Render() | EPICSColor::LINK | xflex
+		out.component()->Render() | EPICSColor::link(out) | size(WIDTH, LESS_THAN, 17) | xflex
 	    }),
 	    separatorEmpty(),
 	    hbox({
 		text("FLNK ") | color(Color::Black),
-		flnk.component()->Render() | size(WIDTH, EQUAL, 18) | EPICSColor::LINK
+		flnk.component()->Render() | size(WIDTH, EQUAL, 18) | EPICSColor::link(flnk)
 	    }),
 
 	}) | center | bgcolor(Color::RGB(196,196,196));

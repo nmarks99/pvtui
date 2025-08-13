@@ -4,9 +4,9 @@
 #include <unordered_map>
 #include <vector>
 
-#include <ftxui/screen/color.hpp>
-#include <ftxui/dom/elements.hpp>
 #include <ftxui/component/component_options.hpp>
+#include <ftxui/dom/elements.hpp>
+#include <ftxui/screen/color.hpp>
 
 #include <pvtui/argh.h>
 #include <pvtui/pvgroup.hpp>
@@ -30,26 +30,17 @@ std::string rectangle(int len);
 } // namespace unicode
 
 /**
- * @brief Custom FTXUI decorators for EPICS-style UI elements.
- */
-namespace EPICSColor {
-using namespace ftxui;
-static const Decorator EDIT = bgcolor(Color::RGB(87, 202, 228)) | color(Color::Black);
-static const Decorator MENU = bgcolor(Color::RGB(16, 105, 25)) | color(Color::White);
-static const Decorator READBACK = color(Color::DarkBlue);
-static const Decorator BACKGROUND = bgcolor(Color::RGB(196, 196, 196));
-static const Decorator LINK = bgcolor(Color::RGB(148, 148, 228)) | color(Color::Black);
-} // namespace EPICSColor
-
-/**
  * @brief Defines the data types for PV put operations for InputWidget
  */
 enum class PVPutType {
-    Integer,    ///< Integer type.
-    Double, ///< Double-precision floating-point type.
-    String, ///< String type.
+    Integer,
+    Double,
+    String,
 };
 
+/**
+ * @brief Style options for ChoiceWidget
+ */
 enum class ChoiceStyle {
     Vertical,
     Horizontal,
@@ -145,6 +136,8 @@ class WidgetBase {
      */
     ftxui::Component component() const;
 
+    bool connected() const;
+
   protected:
     /**
      * @brief Constructs a WidgetBase and registers the PV with a group.
@@ -163,8 +156,10 @@ class WidgetBase {
 
     ~WidgetBase() = default;
 
-    std::string pv_name_;        ///< The PV name.
-    ftxui::Component component_; ///< Underlying FTXUI component.
+    std::string pv_name_;                                   ///< The PV name.
+    ftxui::Component component_;                            ///< Underlying FTXUI component.
+    bool connected_;                                        ///< Boolean for PV connection status
+    std::unique_ptr<ConnectionMonitor> connection_monitor_; ///< Monitors PV connection status.
 };
 
 /**
@@ -182,7 +177,7 @@ class InputWidget : public WidgetBase {
      * @param put_type Specifies how the input value is written to the PV.
      */
     InputWidget(PVGroup &pvgroup, const ArgParser &args, const std::string &pv_name,
-                PVPutType put_type, InputTransform tf=nullptr);
+                PVPutType put_type, InputTransform tf = nullptr);
 
     /**
      * @brief Constructs an InputWidget with an already expanded PV name.
@@ -305,5 +300,35 @@ class ChoiceWidget : public WidgetBase {
   private:
     PVEnum value_; ///< Current enum value from the PV.
 };
+
+/**
+ * @brief Functions to generate FTXUI decorators for EPICS-style UI elements.
+ * To align stylistically with MEDM, caQtDM etc, when PVs are disconnected, the widget
+ * is drawn as a white rectangle
+ */
+namespace EPICSColor {
+using namespace ftxui;
+
+static const Decorator WHITE_ON_WHITE = bgcolor(Color::White) | color(Color::White);
+
+inline Decorator edit(const WidgetBase &w) {
+    return w.connected() ? bgcolor(Color::RGB(87, 202, 228)) | color(Color::Black) : WHITE_ON_WHITE;
+}
+inline Decorator menu(const WidgetBase &w) {
+    return w.connected() ? bgcolor(Color::RGB(16, 105, 25)) | color(Color::White) : WHITE_ON_WHITE;
+}
+inline Decorator readback(const WidgetBase &w) {
+    return w.connected() ? bgcolor(Color::RGB(196, 196, 196)) | color(Color::DarkBlue)
+                         : WHITE_ON_WHITE;
+}
+inline Decorator link(const WidgetBase &w) {
+    return w.connected() ? bgcolor(Color::RGB(148, 148, 228)) | color(Color::Black)
+                         : WHITE_ON_WHITE;
+}
+inline Decorator custom(const WidgetBase &w, Decorator style) {
+    return w.connected() ? style : WHITE_ON_WHITE;
+}
+inline Decorator background() { return bgcolor(Color::RGB(196, 196, 196)); }
+} // namespace EPICSColor
 
 } // namespace pvtui

@@ -18,7 +18,7 @@ pvtui_motor - Terminal UI for EPICS motor record
 Inspired by MEDM motor record screens.
 
 Usage:
-  pvtui_motor [options] 
+  pvtui_motor [options]
 
 Options:
   -h, --help        Show this help message and exit.
@@ -27,7 +27,7 @@ Options:
 Examples:
     # start screen for xxx:m1
     pvtui_motor --macro "P=xxx:,M=m1"
-  
+
     # start motor3x.adl style screen for motors xxx:m1-m3
     pvtui_motor --macro "P=xxx:,M1=m1,M2=m2,M3=m3"
 
@@ -148,7 +148,7 @@ int main(int argc, char *argv[]) {
             for (auto &display : displays) {
                 elements.push_back(display->get_renderer());
             }
-            return hbox({elements}) | center | EPICSColor::BACKGROUND;
+            return hbox({elements}) | center | EPICSColor::background();
         });
 
     } else {
@@ -175,7 +175,7 @@ int main(int argc, char *argv[]) {
             );
             return vbox({
                 elements,
-            }) | center | pvtui::EPICSColor::BACKGROUND;
+            }) | center | pvtui::EPICSColor::background();
         });
     }
 

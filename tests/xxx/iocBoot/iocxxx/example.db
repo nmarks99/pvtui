@@ -1,16 +1,17 @@
-record(longout, "xxx:long") {
+record(longout, "$(P)long") {
     field(VAL, "42")
 }
 
-record(ao, "xxx:float") {
+record(ao, "$(P)float") {
     field(VAL, "3.14")
+    field(PREC, 3)
 }
 
-record(stringout, "xxx:string") {
+record(stringout, "$(P)string") {
     field(VAL, "hello")
 }
 
-record(mbbo, "xxx:enum") {
+record(mbbo, "$(P)enum") {
     field(ZRVL, "0")
     field(ONVL, "1")
     field(TWVL, "2")
@@ -19,33 +20,45 @@ record(mbbo, "xxx:enum") {
     field(TWST, "two")
 }
 
-record(bo, "xxx:bin") {
+record(bo, "$(P)bin") {
     field(ZNAM, "zero")
     field(ONAM, "one")
     field(VAL, 1)
 }
 
-record(aao, "xxx:double_array") {
+record(calcout, "$(P)add1") {
+    field(INPA, "$(P)long.VAL")
+    field(CALC, "A + 1")
+    field(OUT, "$(P)long.VAL PP")
+}
+
+record(calcout, "$(P)subtract1") {
+    field(INPA, "$(P)long.VAL")
+    field(CALC, "A - 1")
+    field(OUT, "$(P)long.VAL PP")
+}
+
+record(aao, "$(P)double_array") {
     field(FTVL, "DOUBLE")
     field(NELM, 10)
 }
 
-record(aao, "xxx:long_array") {
+record(aao, "$(P)long_array") {
     field(FTVL, "LONG")
     field(NELM, 10)
 }
 
-record(aao, "xxx:string_array") {
+record(aao, "$(P)string_array") {
     field(FTVL, "STRING")
     field(NELM, 10)
 }
 
-record(calcout, "xxx:calcout1") {
+record(calcout, "$(P)calcout1") {
 }
 
-record(asyn,"xxx:asyn1") {
+record(asyn,"$(P)asyn1") {
     field(DTYP,"asynRecordDevice")
-    field(PORT,"dummy")
+    field(PORT,"$(ASYN_PORT=dummy)")
     field(ADDR,"0")
     field(OMAX,"256")
     field(IMAX,"256")
