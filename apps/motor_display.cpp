@@ -78,18 +78,18 @@ ftxui::Element SmallMotorDisplay::get_renderer() {
 	separatorEmpty(),
 
 	hbox({
-	    twr.component()->Render() | color(Color::Black),
+	    twr.component()->Render() | EPICSColor::custom(twr, color(Color::Black)),
 	    separatorEmpty(),
 	    twv.component()->Render() | size(WIDTH, EQUAL, 10) | EPICSColor::edit(twv),
 	    separatorEmpty(),
-	    twf.component()->Render() | color(Color::Black),
+	    twf.component()->Render() | EPICSColor::custom(twf, color(Color::Black)),
 	}) | center,
 	separatorEmpty(),
 	hbox({
 	    use_set.component()->Render() | EPICSColor::edit(use_set),
 	    separatorEmpty(),
 	    separatorEmpty(),
-	    stop.component()->Render() | color(Color::Red) | bold,
+	    stop.component()->Render() | EPICSColor::custom(stop, color(Color::Red)) | bold,
 	}) | center,
 	separatorEmpty()
     })
@@ -97,7 +97,6 @@ ftxui::Element SmallMotorDisplay::get_renderer() {
     | border
     | color(Color::Black)
     | center;
-    // | bgcolor(Color::RGB(196,196,196));
 }
 
 
@@ -212,14 +211,14 @@ ftxui::Element MediumMotorDisplay::get_renderer() {
 	separatorEmpty(),
 
 	hbox({
-	    twr.component()->Render() | color(Color::Black),
+	    twr.component()->Render() | EPICSColor::custom(twr, color(Color::Black)),
 	    separatorEmpty(),
 	    twv.component()->Render()
 		| center
 		| EPICSColor::edit(twv)
 		| size(WIDTH, EQUAL, 11),
 	    separatorEmpty(),
-	    twf.component()->Render() | color(Color::Black),
+	    twf.component()->Render() | EPICSColor::custom(twf, color(Color::Black)),
 	}) | center,
 
 	separatorEmpty(),
@@ -406,11 +405,11 @@ ftxui::Element AllMotorDisplay::get_renderer() {
 	}),
 	hbox({
 	    text("Twk:") | color(Color::Black),
-	    twr.component()->Render() | color(Color::Black),
+	    twr.component()->Render() | EPICSColor::custom(twr, color(Color::Black)),
 	    separatorEmpty(),
 	    twv.component()->Render() | size(WIDTH, EQUAL, 10) | EPICSColor::edit(twv),
 	    separatorEmpty(),
-	    twf.component()->Render() | color(Color::Black),
+	    twf.component()->Render() | EPICSColor::custom(twf, color(Color::Black)),
 	}),
     });
 
