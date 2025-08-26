@@ -131,6 +131,16 @@ int main(int argc, char *argv[]) {
         })
     });
 
+    auto sevr_color = [&]() -> Decorator{
+        if (sevr.value().choice.find("MAJOR") != std::string::npos) {
+            return EPICSColor::custom(sevr, color(Color::Red));
+        } else if (sevr.value().choice.find("WARN") != std::string::npos) {
+            return EPICSColor::custom(sevr, color(Color::Orange1));
+        } else {
+            return EPICSColor::readback(sevr);
+        }
+    };
+
     // ftxui renderer defines the visual layout
     auto main_renderer = Renderer(main_container, [&] {
         return vbox({
@@ -158,7 +168,7 @@ int main(int argc, char *argv[]) {
             separatorEmpty(),
             hbox({
                 text(" In: ") | color(Color::Black),
-                text(tinp.value()) | bgcolor(Color::RGB(220,220,220)) | xflex,
+                text(tinp.value()) | bgcolor(Color::RGB(220,220,220)) | EPICSColor::readback(tinp) | xflex,
                 separatorEmpty(),
                 ieos.component()->Render() | EPICSColor::edit(ieos) | size(WIDTH, EQUAL, 5),
                 separatorEmpty(),
@@ -167,7 +177,7 @@ int main(int argc, char *argv[]) {
             separator(),
             hbox({
                 text("Err: ") | color(Color::Black),
-                paragraph(errs.value()) | bgcolor(Color::RGB(220,220,220)) | xflex,
+                paragraph(errs.value()) | bgcolor(Color::RGB(220,220,220)) | EPICSColor::readback(errs) | xflex,
             }),
             separatorEmpty(),
             hbox({
@@ -183,10 +193,9 @@ int main(int argc, char *argv[]) {
                 text(stat.value().choice) | EPICSColor::readback(stat),
                 filler(),
                 text("I/O Severity: ") | color(Color::Black),
-                text(sevr.value().choice) | EPICSColor::readback(sevr)
+                text(sevr.value().choice) | sevr_color()
             }),
 
-            // separator() | color(Color::Black),
             separator(),
 
             // trace mask toggles
