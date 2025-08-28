@@ -23,10 +23,10 @@ class DisplayBase {
     virtual ~DisplayBase() = default;
 
     /**
-     * @brief Updates all Process Variables managed by the associated PVGroup.
+     * @brief Checks if new data is available from and of the monitors in the group
      * @return True if any PV received new data, false otherwise.
      */
-    virtual bool pv_update() { return pvgroup.update(); };
+    virtual bool data_available() { return pvgroup.data_available(); };
 
     /**
      * @brief Pure virtual function to get the FTXUI Element for rendering the display.

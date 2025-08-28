@@ -52,20 +52,20 @@ int main(int argc, char *argv[]) {
 
     auto main_renderer = ftxui::Renderer(main_container, [&] {
         return vbox({
-            desc.component()->Render() | EPICSColor::EDIT | size(WIDTH, EQUAL, 30),
-            text(rbv.value()) | center | EPICSColor::READBACK,
+            desc.component()->Render() | EPICSColor::edit(desc) | size(WIDTH, EQUAL, 30),
+            text(rbv.value()) | center | EPICSColor::readback(rbv),
             hbox({
                 twr.component()->Render() | color(Color::Black),
-                twv.component()->Render() | EPICSColor::EDIT | size(WIDTH, EQUAL, 10),
+                twv.component()->Render() | EPICSColor::edit(twv) | size(WIDTH, EQUAL, 10),
                 twf.component()->Render() | color(Color::Black),
             })
-        }) | center | EPICSColor::BACKGROUND;
+        }) | center | EPICSColor::background();
     });
 
     constexpr int POLL_PERIOD_MS = 100;
     Loop loop(&screen, main_renderer);
     while (!loop.HasQuitted()) {
-        if (pvgroup.update()) {
+        if (pvgroup.data_available()) {
             screen.PostEvent(Event::Custom);
         }
         loop.RunOnce();

@@ -30,79 +30,78 @@ int main() {
     pvac::ClientProvider provider("ca");
 
     PVGroup pvgroup(provider, {
-	"xxx:m1.VAL",
-	"xxx:m1.RBV",
-	"xxx:m1.TWV",
-	"xxx:m1.TWF",
-	"xxx:m1.TWR",
-	"xxx:m1.PREC",
-	"xxx:m1.DESC",
-	"xxx:m1.SPMG",
-	"xxx:m1.VELO",
-	"xxx:long",
-	"xxx:string",
-	"xxx:float",
-	"xxx:enum",
-	"xxx:double_array",
-	"xxx:long_array",
-	"xxx:string_array"
+	"nmarksTestIOC:m1.VAL",
+	"nmarksTestIOC:m1.RBV",
+	"nmarksTestIOC:m1.TWV",
+	"nmarksTestIOC:m1.TWF",
+	"nmarksTestIOC:m1.TWR",
+	"nmarksTestIOC:m1.PREC",
+	"nmarksTestIOC:m1.DESC",
+	"nmarksTestIOC:m1.SPMG",
+	"nmarksTestIOC:m1.VELO",
+	"nmarksTestIOC:long",
+	"nmarksTestIOC:string",
+	"nmarksTestIOC:float",
+	"nmarksTestIOC:enum",
+	"nmarksTestIOC:double_array",
+	"nmarksTestIOC:long_array",
+	"nmarksTestIOC:string_array"
     });
 
     double rbv = 0;
-    pvgroup.set_monitor("xxx:m1.RBV", rbv);
+    pvgroup.set_monitor("nmarksTestIOC:m1.RBV", rbv);
 
     int prec = 0;
-    pvgroup.set_monitor("xxx:m1.PREC", prec);
+    pvgroup.set_monitor("nmarksTestIOC:m1.PREC", prec);
 
     std::string desc = "";
-    pvgroup.set_monitor("xxx:m1.DESC", desc);
+    pvgroup.set_monitor("nmarksTestIOC:m1.DESC", desc);
 
     PVEnum spmg;
-    pvgroup.set_monitor("xxx:m1.SPMG", spmg);
+    pvgroup.set_monitor("nmarksTestIOC:m1.SPMG", spmg);
 
     // almost any PV's value can be dumped to a string
     std::string velo_any;
-    pvgroup.set_monitor("xxx:m1.VELO", velo_any);
+    pvgroup.set_monitor("nmarksTestIOC:m1.VELO", velo_any);
 
     int long_val;
-    pvgroup.set_monitor("xxx:long", long_val);
+    pvgroup.set_monitor("nmarksTestIOC:long", long_val);
 
     std::vector<double> double_arr;
-    pvgroup.set_monitor("xxx:double_array", double_arr);
+    pvgroup.set_monitor("nmarksTestIOC:double_array", double_arr);
 
     std::vector<int> long_arr;
-    pvgroup.set_monitor("xxx:long_array", long_arr);
+    pvgroup.set_monitor("nmarksTestIOC:long_array", long_arr);
 
     std::vector<std::string> string_arr;
-    pvgroup.set_monitor("xxx:string_array", string_arr);
+    pvgroup.set_monitor("nmarksTestIOC:string_array", string_arr);
 
     while(g_signal_caught == 0) {
-	pvgroup.update();
-	std::cout << "xxx:m1.RBV = " << rbv << std::endl;
+	std::cout << "nmarksTestIOC:m1.RBV = " << rbv << std::endl;
 
-	std::cout << "xxx:m1.DESC = " << desc << std::endl;
+	std::cout << "nmarksTestIOC:m1.DESC = " << desc << std::endl;
 
-	std::cout << "xxx:m1.PREC = " << prec << std::endl;
+	std::cout << "nmarksTestIOC:m1.PREC = " << prec << std::endl;
 
-	std::cout << "xxx:m1.SPMG = " << spmg.choice << std::endl;
+	std::cout << "nmarksTestIOC:m1.SPMG = " << spmg.choice << std::endl;
 
-	std::cout << "xxx:m1.VELO (string) = " << velo_any << std::endl;
+	std::cout << "nmarksTestIOC:m1.VELO (string) = " << velo_any << std::endl;
 
-	std::cout << "xxx:long = " << long_val << std::endl;
+	std::cout << "nmarksTestIOC:long = " << long_val << std::endl;
 
-	std::cout << "xxx:double_array = ";
+	std::cout << "nmarksTestIOC:double_array = ";
 	for (const auto &v : double_arr) {
 	    std::cout << v << " ";
 	}
 	std::cout << "\n";
 
-	std::cout << "xxx:long_array = ";
+	std::cout << "nmarksTestIOC:long_array = ";
 	for (const auto &v : long_arr) {
 	    std::cout << v << " ";
 	}
 	std::cout << "\n";
 
-	std::cout << "xxx:string_array = ";
+	std::cout << "nmarksTestIOC:string_array = ";
 	for (const auto &v : string_arr) {
 	    std::cout << v << " ";
 	}

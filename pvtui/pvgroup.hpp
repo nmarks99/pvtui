@@ -66,7 +66,7 @@ class ConnectionMonitor : public pvac::ClientChannel::ConnectCallback {
  *
  * Handles connection, monitoring, and value updates for a PV.
  */
-struct PVHandler {
+struct PVHandler : public pvac::ClientChannel::MonitorCallback {
   public:
     pvac::ClientChannel channel; ///< PVA client channel.
     std::string name;            ///< Name of the process variable.
@@ -85,10 +85,10 @@ struct PVHandler {
     bool connected() const;
 
     /**
-     * @brief Updates the monitored variable with new data from the PV.
+     * @brief Checks if new data is available from the monitor
      * @return True if new data was received, false otherwise.
      */
-    bool update();
+    bool data_available();
 
     /**
      * @brief Adds the variable to list of variables which are updated by monitor
@@ -97,11 +97,21 @@ struct PVHandler {
      */
     template <typename T> void set_monitor(T &var) { monitor_var_ptrs_.push_back(&var); }
 
+    pvac::Monitor& getMonitor() { return monitor_; }
+
+
   private:
-    pvac::MonitorSync monitor_;                             ///< PVA data monitor.
+    pvac::Monitor monitor_;                                 ///< PVA data monitor.
     std::vector<MonitorPtr> monitor_var_ptrs_;              ///< Pointers to the user's variable.
     std::unique_ptr<ConnectionMonitor> connection_monitor_; ///< Monitors connection status.
+    bool new_data = false;
 
+    /**
+     * @brief Called when the monitor fires (new data, etc.)
+     * @param evt Monitor event struct
+     */
+    void monitorEvent(const pvac::MonitorEvent& evt) override final;
+                                                            ///
     /**
      * @brief Extracts and assigns the PV value to the monitored variable.
      * @param pfield Pointer to the PVStructure containing new data.
@@ -147,7 +157,7 @@ struct PVGroup {
     }
 
     /**
-     * @brief Retrieves a PV by name.
+     * @brief Retrieves a PVHandler by name.
      * @param pv_name Name of the PV.
      * @return Reference to the PVHandler object.
      * @throw std::runtime_error If PV not found.
@@ -155,7 +165,7 @@ struct PVGroup {
     PVHandler &get_pv(const std::string &pv_name);
 
     /**
-     * @brief Accesses a PV by name using array subscript operator.
+     * @brief Accesses a PVHandler by name using array subscript operator.
      * @param pv_name Name of the PV.
      * @return Reference to the PVHandler object.
      * @throw std::runtime_error If PV not found.
@@ -163,12 +173,13 @@ struct PVGroup {
     PVHandler &operator[](const std::string &pv_name);
 
     /**
-     * @brief Updates all monitored PVs in the group.
+     * @brief Checks if new data is available from and of the monitors in the group
      * @return True if any PV received new data, false otherwise.
      */
-    bool update();
+    bool data_available();
 
   private:
+    // bool new_data = false;
     pvac::ClientProvider &provider_;                   ///< PVA client provider.
-    std::unordered_map<std::string, PVHandler> pv_map; ///< Map of PVs by name.
+    std::unordered_map<std::string, std::unique_ptr<PVHandler>> pv_map; ///< Map of PVs by name.
 };
