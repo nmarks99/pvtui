@@ -66,7 +66,7 @@ class ConnectionMonitor : public pvac::ClientChannel::ConnectCallback {
  *
  * Handles connection, monitoring, and value updates for a PV.
  */
-struct PVHandler {
+struct PVHandler : public pvac::ClientChannel::MonitorCallback {
   public:
     pvac::ClientChannel channel; ///< PVA client channel.
     std::string name;            ///< Name of the process variable.
@@ -97,11 +97,17 @@ struct PVHandler {
      */
     template <typename T> void set_monitor(T &var) { monitor_var_ptrs_.push_back(&var); }
 
+    void monitorEvent(const pvac::MonitorEvent& evt) override final;
+
+    pvac::Monitor& getMonitor() { return monitor_; }
+
+    bool new_data = false;
+
   private:
-    pvac::MonitorSync monitor_;                             ///< PVA data monitor.
+    // pvac::MonitorSync monitor_;                             ///< PVA data monitor.
+    pvac::Monitor monitor_;
     std::vector<MonitorPtr> monitor_var_ptrs_;              ///< Pointers to the user's variable.
     std::unique_ptr<ConnectionMonitor> connection_monitor_; ///< Monitors connection status.
-
     /**
      * @brief Extracts and assigns the PV value to the monitored variable.
      * @param pfield Pointer to the PVStructure containing new data.
@@ -168,7 +174,9 @@ struct PVGroup {
      */
     bool update();
 
+    bool new_data = false;
+
   private:
     pvac::ClientProvider &provider_;                   ///< PVA client provider.
-    std::unordered_map<std::string, PVHandler> pv_map; ///< Map of PVs by name.
+    std::unordered_map<std::string, std::unique_ptr<PVHandler>> pv_map; ///< Map of PVs by name.
 };
