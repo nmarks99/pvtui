@@ -23,9 +23,7 @@ void PVHandler::monitorEvent(const pvac::MonitorEvent &evt) {
     switch (evt.event) {
     case pvac::MonitorEvent::Data:
         while (monitor_.poll()) {
-            auto pfield = monitor_.root.get();
-            this->get_monitored_variable(pfield);
-            this->new_data = true;
+            this->get_monitored_variable(monitor_.root.get());
         }
         break;
     case pvac::MonitorEvent::Disconnect:
@@ -61,7 +59,7 @@ void PVHandler::get_monitored_variable(const epics::pvData::PVStructure *pfield)
         std::visit(
             [&](auto ptr) {
                 using PtrType = std::decay_t<decltype(ptr)>;
-
+                this->new_data = true;
                 if constexpr (std::is_same_v<PtrType, int *>) {
                     if (ptr) {
                         if (auto val_field = pfield->getSubFieldT<pvd::PVScalar>("value")) {
@@ -140,13 +138,16 @@ void PVHandler::get_monitored_variable(const epics::pvData::PVStructure *pfield)
                         }
                         std::copy(vals.begin(), vals.end(), ptr->begin());
                     }
+                } else {
+                    // Unsupported pointer type which is not in MonitorPtr variant
+                    new_data = false;
                 }
             },
             mon_ptr);
     }
 }
 
-bool PVHandler::update() {
+bool PVHandler::data_available() {
     if (new_data) {
         new_data = false;
         return true;
@@ -154,34 +155,6 @@ bool PVHandler::update() {
         return false;
     }
 }
-// bool PVHandler::update() {
-    // bool new_data = false;
-    // for (auto mon_ptr : monitor_var_ptrs_) {
-        // if (std::holds_alternative<std::monostate>(mon_ptr)) {
-            // return new_data;
-        // }
-//
-        // if (monitor_.test()) {
-            // switch (monitor_.event.event) {
-            // case pvac::MonitorEvent::Data:
-                // new_data = true;
-                // while (monitor_.poll()) {
-                    // auto pfield = monitor_.root.get();
-                    // this->get_monitored_variable(pfield);
-                // }
-                // break;
-            // case pvac::MonitorEvent::Disconnect:
-                // break;
-            // case pvac::MonitorEvent::Fail:
-                // break;
-            // case pvac::MonitorEvent::Cancel:
-                // break;
-            // }
-        // }
-    // }
-//
-    // return new_data;
-// }
 
 PVGroup::PVGroup(pvac::ClientProvider &provider, const std::vector<std::string> &pv_names)
     : provider_(provider) {
@@ -208,10 +181,10 @@ PVHandler &PVGroup::get_pv(const std::string &pv_name) {
 
 PVHandler &PVGroup::operator[](const std::string &pv_name) { return this->get_pv(pv_name); }
 
-bool PVGroup::update() {
+bool PVGroup::data_available() {
     bool new_data = false;
     for (auto &[_, pv] : pv_map) {
-        new_data |= pv->update();
+        new_data |= pv->data_available();
     }
     return new_data;
 }

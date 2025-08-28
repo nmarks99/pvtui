@@ -184,7 +184,7 @@ int main(int argc, char *argv[]) {
     Loop loop(&screen, main_renderer);
     while (!loop.HasQuitted()) {
         for (auto &d : displays) {
-            if (d->pv_update()) {
+            if (d->data_available()) {
                 screen.PostEvent(Event::Custom);
             }
         }
