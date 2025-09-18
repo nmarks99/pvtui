@@ -11,5 +11,9 @@ target_link_libraries(pvtui_calcout PRIVATE pvtui)
 add_executable(pvtui_sr sr.cpp ../pvtui/pvtui.cpp ../pvtui/pvgroup.cpp)
 target_link_libraries(pvtui_sr PRIVATE pvtui)
 
+add_executable(pvtui_inputx inputx.cpp ../pvtui/pvtui.cpp ../pvtui/pvgroup.cpp)
+target_link_libraries(pvtui_inputx PRIVATE pvtui)
+
 add_executable(pvtui_demo demo.cpp ../pvtui/pvtui.cpp ../pvtui/pvgroup.cpp)
 target_link_libraries(pvtui_demo PRIVATE pvtui)
+
