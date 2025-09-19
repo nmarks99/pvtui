@@ -123,6 +123,7 @@ class ArgParser {
  */
 class WidgetBase {
   public:
+    virtual ~WidgetBase() = default;
     /**
      * @brief Get the PV name associated with the widget.
      * @return The fully expanded PV name.
@@ -153,8 +154,6 @@ class WidgetBase {
      * @param pv_name A fully-expanded PV name.
      */
     WidgetBase(PVGroup &pvgroup, const std::string &pv_name);
-
-    ~WidgetBase() = default;
 
     std::string pv_name_;                                   ///< The PV name.
     ftxui::Component component_;                            ///< Underlying FTXUI component.
