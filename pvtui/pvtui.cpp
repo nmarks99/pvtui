@@ -1,6 +1,7 @@
 #include <ftxui/component/component.hpp>
 #include <ftxui/component/component_options.hpp>
 #include <pvtui/pvtui.hpp>
+#include <pvtui/style.hpp>
 
 namespace pvtui {
 
@@ -32,24 +33,17 @@ ftxui::Component make_button_widget(PVHandler &pv, const std::string &label, int
 ftxui::Component make_input_widget(PVHandler &pv, std::string &disp_str, PVPutType put_type,
                                    InputTransform tf = nullptr) {
 
-    auto default_input_transform = [&pv, &disp_str](ftxui::InputState s) {
-        if (not pv.connected()) {
-            disp_str = "";
-        }
-        s.element |= ftxui::color(ftxui::Color::Black);
-        if (s.is_placeholder) {
-            s.element |= ftxui::dim;
-        }
-        if (s.focused) {
-            s.element |= ftxui::inverted;
-        } else if (s.hovered) {
-            s.element |= ftxui::bgcolor(ftxui::Color::GrayDark);
-        }
-        return s.element;
+    // Default transform using global theme (2 args, adapted down to 1)
+    auto default_transform = [&pv, &disp_str](ftxui::InputState s) {
+	if (!pv.connected()) {
+	    disp_str.clear();
+	}
+	return g_widget_styles.input_style(s, pv);
     };
+
     return ftxui::Input(ftxui::InputOption({
         .content = &disp_str,
-        .transform = tf ? tf : default_input_transform,
+	.transform = tf ? tf : default_transform,
         .multiline = false,
         .on_enter =
             [&pv, &disp_str, put_type]() {
