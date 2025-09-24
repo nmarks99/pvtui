@@ -3,6 +3,7 @@
 #include <string>
 #include <unordered_map>
 #include <vector>
+#include <mutex>
 
 #include <ftxui/component/component_options.hpp>
 #include <ftxui/dom/elements.hpp>
@@ -124,6 +125,8 @@ class ArgParser {
 class WidgetBase {
   public:
     virtual ~WidgetBase() = default;
+    virtual void sync() {};
+
     /**
      * @brief Get the PV name associated with the widget.
      * @return The fully expanded PV name.
@@ -191,9 +194,15 @@ class InputWidget : public WidgetBase {
      * @return The current string value.
      */
     std::string value() const;
+    void sync() override {
+        const std::lock_guard<std::mutex> lock(mutex_);
+        ui_value_ = pv_value_;
+    }
 
   private:
-    std::string value_; ///< Internal value monitored from the PV.
+    std::string pv_value_;  ///< Internal value monitored from the PV.
+    std::string ui_value_;  ///< Value displayed on the UI
+    std::mutex mutex_;      ///< Mutex for thread-safe value updates.
 };
 
 /**
@@ -238,7 +247,7 @@ template <typename T> class VarWidget : public WidgetBase {
      */
     VarWidget(PVGroup &pvgroup, const ArgParser &args, const std::string &pv_name)
         : WidgetBase(pvgroup, args, pv_name) {
-        pvgroup.set_monitor(pv_name_, value_);
+        pvgroup.set_monitor(pv_name_, pv_value_);
     }
 
     /**
@@ -247,14 +256,19 @@ template <typename T> class VarWidget : public WidgetBase {
      * @param pv_name The PV name.
      */
     VarWidget(PVGroup &pvgroup, const std::string &pv_name) : WidgetBase(pvgroup, pv_name) {
-        pvgroup.set_monitor(pv_name_, value_);
+        pvgroup.set_monitor(pv_name_, pv_value_);
     }
 
     /**
      * @brief Get the current value of the variable.
      * @return The current value stored in the widget.
      */
-    T value() const { return value_; };
+    T value() const { return ui_value_; };
+
+    void sync() override {
+        const std::lock_guard<std::mutex> lock(mutex_);
+        ui_value_ = pv_value_;
+    }
 
     /**
      * @brief Deleted component method. This widget does not have a UI element.
@@ -262,7 +276,9 @@ template <typename T> class VarWidget : public WidgetBase {
     ftxui::Component component() const = delete;
 
   private:
-    T value_; ///< Current value from the PV.
+    T pv_value_;      ///< Current value from the PV.
+    T ui_value_;      ///< Value displayed on the UI
+    std::mutex mutex_; ///< Mutex for thread-safe value updates.
 };
 
 /**
@@ -296,8 +312,15 @@ class ChoiceWidget : public WidgetBase {
      */
     PVEnum value() const;
 
+    void sync() override {
+        const std::lock_guard<std::mutex> lock(mutex_);
+        ui_value_ = pv_value_;
+    }
+
   private:
-    PVEnum value_; ///< Current enum value from the PV.
+    PVEnum pv_value_; ///< Current enum value from the PV.
+    PVEnum ui_value_; ///< Value displayed on the UI
+    std::mutex mutex_;      ///< Mutex for thread-safe value updates.
 };
 
 /**

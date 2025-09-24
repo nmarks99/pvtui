@@ -38,6 +38,7 @@ void PVHandler::monitorEvent(const pvac::MonitorEvent &evt) {
 bool PVHandler::connected() const { return connection_monitor_->connected(); }
 
 void PVHandler::get_monitored_variable(const epics::pvData::PVStructure *pfield) {
+    const std::lock_guard<std::mutex> lock(mutex);
     namespace pvd = epics::pvData;
 
     // get the display precision
@@ -148,6 +149,7 @@ void PVHandler::get_monitored_variable(const epics::pvData::PVStructure *pfield)
 }
 
 bool PVHandler::data_available() {
+    const std::lock_guard<std::mutex> lock(mutex);
     if (new_data) {
         new_data = false;
         return true;

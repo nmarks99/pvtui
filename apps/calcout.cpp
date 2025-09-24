@@ -79,6 +79,11 @@ int main(int argc, char *argv[]) {
     InputWidget ivov(pvgroup, args, "$(P)$(C).IVOV", PVPutType::Double);
     ButtonWidget proc(pvgroup, args, "$(P)$(C).PROC", " PROC ");
 
+    std::vector<WidgetBase *> widgets = {
+        &scan, &desc, &prec, &inpa, &a_val, &inpb, &b_val, &inpc, &c_val, &inpd, &d_val,
+        &calc, &ocal, &out, &flnk, &val, &oval, &dopt, &ivoa, &oopt, &odly, &ivov, &proc};
+
+
     // Main container to define interactivity of components
     auto main_container = Container::Vertical({
 	desc.component(),
@@ -233,6 +238,9 @@ int main(int argc, char *argv[]) {
     Loop loop(&screen, main_renderer);
     while (!loop.HasQuitted()) {
 	if (pvgroup.data_available()) {
+	    for (auto &widget : widgets) {
+		widget->sync();
+	    }
 	    screen.PostEvent(Event::Custom);
 	}
         loop.RunOnce();

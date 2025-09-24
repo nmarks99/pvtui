@@ -5,6 +5,7 @@
 #include <unordered_map>
 #include <vector>
 #include <variant>
+#include <mutex>
 
 #include <pv/caProvider.h>
 #include <pva/client.h>
@@ -98,6 +99,8 @@ struct PVHandler : public pvac::ClientChannel::MonitorCallback {
     template <typename T> void set_monitor(T &var) { monitor_var_ptrs_.push_back(&var); }
 
     pvac::Monitor& getMonitor() { return monitor_; }
+    std::mutex mutex;
+
 
 
   private:
