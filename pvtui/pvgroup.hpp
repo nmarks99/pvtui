@@ -207,7 +207,7 @@ struct PVGroup {
      */
     void add_sync_callback(const std::string &name, std::function<void()> cb) {
 	if (pv_map.count(name)) {
-	    sync_callbacks_[name] = std::move(cb);
+	    sync_callbacks_[name].push_back(std::move(cb));
 	} else {
 	    throw std::runtime_error(name + "not in map");
 	}
@@ -216,5 +216,5 @@ struct PVGroup {
   private:
     pvac::ClientProvider &provider_;                   ///< PVA client provider.
     std::unordered_map<std::string, std::unique_ptr<PVHandler>> pv_map; ///< Map of PVs by name.
-    std::unordered_map<std::string, std::function<void()>> sync_callbacks_;
+    std::unordered_map<std::string, std::vector<std::function<void()>>> sync_callbacks_;
 };

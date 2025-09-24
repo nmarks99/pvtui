@@ -213,8 +213,8 @@ class InputWidget : public WidgetBase {
      * @brief Safely copy the latest PV value to the UI value
      */
     void sync() override {
-        PVHandler &pv_handler = pvgroup_.get_pv(pv_name_);
-        const std::lock_guard<std::mutex> lock(pv_handler.get_mutex());
+	PVHandler &pv_handler = pvgroup_.get_pv(pv_name_);
+	const std::lock_guard<std::mutex> lock(pv_handler.get_mutex());
         ui_value_ = pv_value_;
     }
 

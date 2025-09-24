@@ -189,7 +189,9 @@ bool PVGroup::data_available() {
         if (pv->data_available()) {
             new_data = true;
             if (sync_callbacks_.count(name) > 0) {
-                sync_callbacks_.at(name)();
+		for (auto &cb : sync_callbacks_.at(name)) {
+		    cb();
+		}
             }
         }
     }
