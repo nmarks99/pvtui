@@ -69,7 +69,7 @@ class ArgParser {
      * @brief Constructs an ArgParser with a custom help message.
      * @param argc Argument count.
      * @param argv Argument values.
-     * @param help_msg Custom help message (currently unused in constructor logic).
+     * @param help_msg Custom help message to be displayed.
      */
     ArgParser(int argc, char *argv[], const std::string &help_msg);
 
@@ -88,9 +88,9 @@ class ArgParser {
     bool flag(const std::string &f) const;
 
     /**
-     * @brief Replaces macros in the given string and returns the result.
+     * @brief Replaces macros in a string with their corresponding values.
      * @param str A string with macros like $(P), $(R), etc.
-     * @return A string with the macros replaced by the values in the macros dict
+     * @return A new string with all macros replaced by their values.
      */
     std::string replace(const std::string &str) const;
 
@@ -109,7 +109,7 @@ class ArgParser {
     std::vector<std::string> split_string(const std::string &input, char delimiter);
 
     /**
-     * @brief Creates a map of macro names to values from an string similar to MEDM or caQtDM.
+     * @brief Creates a map of macro names to values from a string similar to MEDM or caQtDM.
      * @param all_macros A string like "P=xxx:,M=m1".
      * @return An unordered map of macro names to values. Returns an empty map on parse error.
      */
@@ -117,48 +117,57 @@ class ArgParser {
 };
 
 /**
- * @brief Base class for all widget types used in the PVTUI system.
+ * @brief A base class for all TUI widgets that interact with EPICS PVs.
  *
- * Provides a standard interface for accessing PV names and FTXUI components,
- * while ensuring widgets register themselves with a PVGroup.
+ * This class provides a standard interface for managing PV connections, accessing
+ * PV names, and retrieving the underlying FTXUI component.
  */
 class WidgetBase {
   public:
     virtual ~WidgetBase() = default;
 
     /**
-     * @brief Safely copy the latest PV value to the UI value
+     * @brief Synchronizes the UI state with the latest PV value.
+     *
+     * This method is called to safely copy the most recent value from the PV
+     * to the widget's internal state, preventing race conditions.
      */
     virtual void sync() {};
 
     /**
-     * @brief Get the PV name associated with the widget.
+     * @brief Gets the PV name associated with the widget.
      * @return The fully expanded PV name.
      */
     std::string pv_name() const;
 
     /**
-     * @brief Get the FTXUI component associated with the widget.
+     * @brief Gets the underlying FTXUI component for rendering.
      * @return A valid FTXUI component.
-     * @throws std::runtime_error if no component is set.
+     * @throws std::runtime_error if the component has not been set.
      */
     ftxui::Component component() const;
 
+    /**
+     * @brief Checks if the widget's PV is currently connected.
+     * @return True if the PV is connected, false otherwise.
+     */
     bool connected() const;
 
   protected:
     /**
-     * @brief Constructs a WidgetBase and registers the PV with a group.
-     * @param pvgroup The PVGroup managing the PVs used in this widget.
-     * @param args ArgParser for macro expansion.
+     * @brief Constructs a WidgetBase and registers the PV with a PVGroup.
+     *
+     * This constructor uses an ArgParser to expand any macros in the PV name.
+     * @param pvgroup The PVGroup used to manage PVs for this widget.
+     * @param args The ArgParser for macro expansion.
      * @param pv_name The macro-style PV name (e.g., "$(P)$(R)VAL").
      */
     WidgetBase(PVGroup &pvgroup, const ArgParser &args, const std::string &pv_name);
 
     /**
-     * @brief Constructs a WidgetBase with a raw PV name.
-     * @param pvgroup The PVGroup managing the PVs used in this widget.
-     * @param pv_name A fully-expanded PV name.
+     * @brief Constructs a WidgetBase with a fully-expanded PV name.
+     * @param pvgroup The PVGroup used to manage PVs for this widget.
+     * @param pv_name The fully-expanded PV name.
      */
     WidgetBase(PVGroup &pvgroup, const std::string &pv_name);
 
@@ -195,8 +204,8 @@ class InputWidget : public WidgetBase {
     InputWidget(PVGroup &pvgroup, const std::string &pv_name, PVPutType put_type);
 
     /**
-     * @brief Get the current value of the variable for use with the ui.
-     * @return The current string value.
+     * @brief Gets the current value of the string displayed in the UI.
+     * @return The current string value from the UI.
      */
     std::string value() const;
 
@@ -242,8 +251,10 @@ class ButtonWidget : public WidgetBase {
 };
 
 /**
- * @brief A read-only variable display widget useful for readback values
+ * @brief A read-only widget that monitors a PV but has no visible UI component.
  *
+ * This is useful for tracking a PV's value (e.g., a readback) and making it
+ * available to other parts of the application without rendering it directly.
  * @tparam T The C++ type used to store the PV value.
  */
 template <typename T> class VarWidget : public WidgetBase {
@@ -271,7 +282,7 @@ template <typename T> class VarWidget : public WidgetBase {
     }
 
     /**
-     * @brief Get the current value of the variable for use with the ui.
+     * @brief Gets the current value of the variable for use with the UI.
      * @return The current value stored in the widget.
      */
     T value() const { return ui_value_; };
@@ -286,7 +297,7 @@ template <typename T> class VarWidget : public WidgetBase {
     }
 
     /**
-     * @brief Deleted component method. This widget does not have a UI element.
+     * @brief This widget does not have a UI element, so the component method is deleted.
      */
     ftxui::Component component() const = delete;
 
@@ -321,8 +332,8 @@ class ChoiceWidget : public WidgetBase {
     ChoiceWidget(PVGroup &pvgroup, const std::string &pv_name, ChoiceStyle style);
 
     /**
-     * @brief Get the current value of the variable for use with the ui.
-     * @return The current PVEnum value.
+     * @brief Gets the current enum value displayed in the UI.
+     * @return The current PVEnum value from the UI.
      */
     PVEnum value() const;
 
