@@ -248,6 +248,7 @@ template <typename T> class VarWidget : public WidgetBase {
     VarWidget(PVGroup &pvgroup, const ArgParser &args, const std::string &pv_name)
         : WidgetBase(pvgroup, args, pv_name) {
         pvgroup.set_monitor(pv_name_, pv_value_);
+	pvgroup.add_sync_callback([this]{ this->sync(); });
     }
 
     /**
@@ -257,6 +258,7 @@ template <typename T> class VarWidget : public WidgetBase {
      */
     VarWidget(PVGroup &pvgroup, const std::string &pv_name) : WidgetBase(pvgroup, pv_name) {
         pvgroup.set_monitor(pv_name_, pv_value_);
+	pvgroup.add_sync_callback([this]{ this->sync(); });
     }
 
     /**

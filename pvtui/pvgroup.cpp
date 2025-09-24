@@ -188,5 +188,8 @@ bool PVGroup::data_available() {
     for (auto &[_, pv] : pv_map) {
         new_data |= pv->data_available();
     }
+    // if (new_data) {
+	// run_sync_callbacks();
+    // }
     return new_data;
 }

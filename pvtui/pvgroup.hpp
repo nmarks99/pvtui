@@ -2,6 +2,7 @@
 
 #include <memory>
 #include <string>
+#include <functional>
 #include <unordered_map>
 #include <vector>
 #include <variant>
@@ -181,8 +182,19 @@ struct PVGroup {
      */
     bool data_available();
 
+    void add_sync_callback(std::function<void()> cb) {
+	sync_callbacks_.push_back(std::move(cb));
+    }
+
+    void run_sync_callbacks() {
+	for (auto cb : sync_callbacks_) {
+	    cb();
+	}
+    }
+
   private:
     // bool new_data = false;
     pvac::ClientProvider &provider_;                   ///< PVA client provider.
     std::unordered_map<std::string, std::unique_ptr<PVHandler>> pv_map; ///< Map of PVs by name.
+    std::vector<std::function<void()>> sync_callbacks_;
 };
