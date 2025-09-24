@@ -183,11 +183,9 @@ int main(int argc, char *argv[]) {
     constexpr int POLL_PERIOD_MS = 100;
     Loop loop(&screen, main_renderer);
     while (!loop.HasQuitted()) {
-        for (auto &d : displays) {
-            if (d->data_available()) {
-                screen.PostEvent(Event::Custom);
-            }
-        }
+	if (pvgroup.data_available()) {
+	    screen.PostEvent(Event::Custom);
+	}
         loop.RunOnce();
         std::this_thread::sleep_for(std::chrono::milliseconds(POLL_PERIOD_MS));
     }

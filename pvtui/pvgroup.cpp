@@ -185,11 +185,13 @@ PVHandler &PVGroup::operator[](const std::string &pv_name) { return this->get_pv
 
 bool PVGroup::data_available() {
     bool new_data = false;
-    for (auto &[_, pv] : pv_map) {
-        new_data |= pv->data_available();
+    for (auto &[name, pv] : pv_map) {
+        if (pv->data_available()) {
+            new_data = true;
+            if (sync_callbacks_.count(name) > 0) {
+                sync_callbacks_.at(name)();
+            }
+        }
     }
-    // if (new_data) {
-	// run_sync_callbacks();
-    // }
     return new_data;
 }

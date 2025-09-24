@@ -217,13 +217,14 @@ std::unordered_map<std::string, std::string> ArgParser::get_macro_dict(std::stri
 }
 
 WidgetBase::WidgetBase(PVGroup &pvgroup, const ArgParser &args, const std::string &pv_name)
-    : pv_name_(args.replace(pv_name)) {
+    : pvgroup_(pvgroup), pv_name_(args.replace(pv_name)) {
     pvgroup.add(pv_name_);
     connection_monitor_ = std::make_unique<ConnectionMonitor>();
     pvgroup[pv_name_].channel.addConnectListener(connection_monitor_.get());
 };
 
-WidgetBase::WidgetBase(PVGroup &pvgroup, const std::string &pv_name) : pv_name_(pv_name) {
+WidgetBase::WidgetBase(PVGroup &pvgroup, const std::string &pv_name)
+    : pvgroup_(pvgroup), pv_name_(pv_name) {
     pvgroup.add(pv_name_);
     connection_monitor_ = std::make_unique<ConnectionMonitor>();
     pvgroup[pv_name_].channel.addConnectListener(connection_monitor_.get());
@@ -246,14 +247,14 @@ InputWidget::InputWidget(PVGroup &pvgroup, const ArgParser &args, const std::str
     : WidgetBase(pvgroup, args, pv_name) {
     pvgroup.set_monitor(pv_name_, pv_value_);
     component_ = make_input_widget(pvgroup.get_pv(pv_name_), ui_value_, put_type, tf);
-    pvgroup.add_sync_callback([this]{ this->sync(); });
+    pvgroup.add_sync_callback(pv_name_, [this]{ this->sync(); });
 }
 
 InputWidget::InputWidget(PVGroup &pvgroup, const std::string &pv_name, PVPutType put_type)
     : WidgetBase(pvgroup, pv_name) {
     pvgroup.set_monitor(pv_name_, pv_value_);
     component_ = make_input_widget(pvgroup.get_pv(pv_name_), ui_value_, put_type);
-    pvgroup.add_sync_callback([this]{ this->sync(); });
+    pvgroup.add_sync_callback(pv_name_, [this]{ this->sync(); });
 }
 
 std::string InputWidget::value() const { return ui_value_; }
@@ -262,7 +263,7 @@ ChoiceWidget::ChoiceWidget(PVGroup &pvgroup, const ArgParser &args, const std::s
                            ChoiceStyle style)
     : WidgetBase(pvgroup, args, pv_name) {
     pvgroup.set_monitor(pv_name_, pv_value_);
-    pvgroup.add_sync_callback([this]{ this->sync(); });
+    pvgroup.add_sync_callback(pv_name_, [this]{ this->sync(); });
     switch (style) {
     case pvtui::ChoiceStyle::Vertical:
         component_ = make_choice_v_widget(pvgroup.get_pv(pv_name_), ui_value_.choices, ui_value_.index);
@@ -279,7 +280,7 @@ ChoiceWidget::ChoiceWidget(PVGroup &pvgroup, const ArgParser &args, const std::s
 ChoiceWidget::ChoiceWidget(PVGroup &pvgroup, const std::string &pv_name, ChoiceStyle style)
     : WidgetBase(pvgroup, pv_name) {
     pvgroup.set_monitor(pv_name_, pv_value_);
-    pvgroup.add_sync_callback([this]{ this->sync(); });
+    pvgroup.add_sync_callback(pv_name_, [this]{ this->sync(); });
     switch (style) {
     case pvtui::ChoiceStyle::Vertical:
         component_ = make_choice_v_widget(pvgroup.get_pv(pv_name_), ui_value_.choices, ui_value_.index);

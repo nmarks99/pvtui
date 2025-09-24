@@ -100,6 +100,9 @@ struct PVHandler : public pvac::ClientChannel::MonitorCallback {
     template <typename T> void set_monitor(T &var) { monitor_var_ptrs_.push_back(&var); }
 
     pvac::Monitor& getMonitor() { return monitor_; }
+    std::mutex &get_mutex() { return mutex; }
+
+  private:
     std::mutex mutex;
 
 
@@ -182,19 +185,25 @@ struct PVGroup {
      */
     bool data_available();
 
-    void add_sync_callback(std::function<void()> cb) {
-	sync_callbacks_.push_back(std::move(cb));
-    }
-
-    void run_sync_callbacks() {
-	for (auto cb : sync_callbacks_) {
-	    cb();
+    void add_sync_callback(const std::string &name, std::function<void()> cb) {
+	// sync_callbacks_.push_back(std::move(cb));
+	if (pv_map.count(name)) {
+	    sync_callbacks_[name] = std::move(cb);
+	} else {
+	    throw std::runtime_error(name + "not in map");
 	}
     }
+
+    // void run_sync_callbacks() {
+	// for (auto cb : sync_callbacks_) {
+	    // cb();
+	// }
+    // }
 
   private:
     // bool new_data = false;
     pvac::ClientProvider &provider_;                   ///< PVA client provider.
     std::unordered_map<std::string, std::unique_ptr<PVHandler>> pv_map; ///< Map of PVs by name.
-    std::vector<std::function<void()>> sync_callbacks_;
+    // std::vector<std::function<void()>> sync_callbacks_;
+    std::unordered_map<std::string, std::function<void()>> sync_callbacks_;
 };

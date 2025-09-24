@@ -125,6 +125,10 @@ class ArgParser {
 class WidgetBase {
   public:
     virtual ~WidgetBase() = default;
+
+    /**
+     * @brief Safely copy the latest PV value to the UI value
+     */
     virtual void sync() {};
 
     /**
@@ -158,6 +162,7 @@ class WidgetBase {
      */
     WidgetBase(PVGroup &pvgroup, const std::string &pv_name);
 
+    PVGroup &pvgroup_;                                      ///< The PVGroup
     std::string pv_name_;                                   ///< The PV name.
     ftxui::Component component_;                            ///< Underlying FTXUI component.
     bool connected_;                                        ///< Boolean for PV connection status
@@ -190,19 +195,23 @@ class InputWidget : public WidgetBase {
     InputWidget(PVGroup &pvgroup, const std::string &pv_name, PVPutType put_type);
 
     /**
-     * @brief Get the current value of the input field.
+     * @brief Get the current value of the variable for use with the ui.
      * @return The current string value.
      */
     std::string value() const;
+
+    /**
+     * @brief Safely copy the latest PV value to the UI value
+     */
     void sync() override {
-        const std::lock_guard<std::mutex> lock(mutex_);
+        PVHandler &pv_handler = pvgroup_.get_pv(pv_name_);
+        const std::lock_guard<std::mutex> lock(pv_handler.get_mutex());
         ui_value_ = pv_value_;
     }
 
   private:
     std::string pv_value_;  ///< Internal value monitored from the PV.
     std::string ui_value_;  ///< Value displayed on the UI
-    std::mutex mutex_;      ///< Mutex for thread-safe value updates.
 };
 
 /**
@@ -248,7 +257,7 @@ template <typename T> class VarWidget : public WidgetBase {
     VarWidget(PVGroup &pvgroup, const ArgParser &args, const std::string &pv_name)
         : WidgetBase(pvgroup, args, pv_name) {
         pvgroup.set_monitor(pv_name_, pv_value_);
-	pvgroup.add_sync_callback([this]{ this->sync(); });
+	pvgroup.add_sync_callback(pv_name_, [this]{ this->sync(); });
     }
 
     /**
@@ -258,17 +267,21 @@ template <typename T> class VarWidget : public WidgetBase {
      */
     VarWidget(PVGroup &pvgroup, const std::string &pv_name) : WidgetBase(pvgroup, pv_name) {
         pvgroup.set_monitor(pv_name_, pv_value_);
-	pvgroup.add_sync_callback([this]{ this->sync(); });
+	pvgroup.add_sync_callback(pv_name_, [this]{ this->sync(); });
     }
 
     /**
-     * @brief Get the current value of the variable.
+     * @brief Get the current value of the variable for use with the ui.
      * @return The current value stored in the widget.
      */
     T value() const { return ui_value_; };
 
+    /**
+     * @brief Safely copy the latest PV value to the UI value
+     */
     void sync() override {
-        const std::lock_guard<std::mutex> lock(mutex_);
+        PVHandler &pv_handler = pvgroup_.get_pv(pv_name_);
+        const std::lock_guard<std::mutex> lock(pv_handler.get_mutex());
         ui_value_ = pv_value_;
     }
 
@@ -280,7 +293,6 @@ template <typename T> class VarWidget : public WidgetBase {
   private:
     T pv_value_;      ///< Current value from the PV.
     T ui_value_;      ///< Value displayed on the UI
-    std::mutex mutex_; ///< Mutex for thread-safe value updates.
 };
 
 /**
@@ -309,20 +321,23 @@ class ChoiceWidget : public WidgetBase {
     ChoiceWidget(PVGroup &pvgroup, const std::string &pv_name, ChoiceStyle style);
 
     /**
-     * @brief Get the current enum value.
+     * @brief Get the current value of the variable for use with the ui.
      * @return The current PVEnum value.
      */
     PVEnum value() const;
 
+    /**
+     * @brief Safely copy the latest PV value to the UI value
+     */
     void sync() override {
-        const std::lock_guard<std::mutex> lock(mutex_);
+        PVHandler &pv_handler = pvgroup_.get_pv(pv_name_);
+        const std::lock_guard<std::mutex> lock(pv_handler.get_mutex());
         ui_value_ = pv_value_;
     }
 
   private:
     PVEnum pv_value_; ///< Current enum value from the PV.
     PVEnum ui_value_; ///< Value displayed on the UI
-    std::mutex mutex_;      ///< Mutex for thread-safe value updates.
 };
 
 /**

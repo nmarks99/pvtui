@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import socket
 
-HOST = "0.0.0.0"  # Listen on all interfaces
+HOST = "localhost"  # Listen on all interfaces
 PORT = 5000       # Port to listen on
 
 with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
