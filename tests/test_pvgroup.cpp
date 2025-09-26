@@ -21,25 +21,20 @@ template <typename T> class PVMonitorValue {
   public:
     T value;
 
-    PVMonitorValue(PVGroup &group, const std::string &name)
-        : pv_name_(name), pv_mutex_(initialize_and_get_mutex(group, name)) {
-
-        group.set_monitor(name, pv_value_);
+    PVMonitorValue(PVGroup &group, const std::string &name) : pv_name_(name) {
+        group.add(name);
+        pv_handler_ = &group[name];
+        pv_handler_->set_monitor(pv_value_);
         group.add_sync_callback(name, [this]() {
-            std::lock_guard<std::mutex> lock(pv_mutex_);
+            std::lock_guard<std::mutex> lock(pv_handler_->get_mutex());
             value = pv_value_;
         });
     }
 
   private:
-    std::mutex &initialize_and_get_mutex(PVGroup &group, const std::string &name) {
-        group.add(name);
-        return group[name].get_mutex();
-    }
-
-    T pv_value_;
+    T pv_value_; // The value written to by the monitor thread.
     std::string pv_name_;
-    std::mutex &pv_mutex_; // This must be a member variable
+    PVHandler *pv_handler_; // Pointer to the PVHandler.
 };
 
 int main(int argc, char *argv[]) {
