@@ -1,17 +1,11 @@
 #include <pvtui/pvgroup.hpp>
 #include <regex>
 
-constexpr int DEFAULT_PRECISION = 4;
-
 void ConnectionMonitor::connectEvent(const pvac::ConnectEvent &event) {
-    if (event.connected) {
-        connected_ = true;
-    } else {
-        connected_ = false;
-    }
+    connected_.store(event.connected, std::memory_order_relaxed);
 }
 
-bool ConnectionMonitor::connected() const { return connected_; }
+bool ConnectionMonitor::connected() const { return connected_.load(std::memory_order_relaxed); }
 
 PVHandler::PVHandler(pvac::ClientProvider &provider, const std::string &pv_name)
     : channel(provider.connect(pv_name)), name(pv_name), monitor_(channel.monitor(this)),
@@ -42,6 +36,7 @@ void PVHandler::get_monitored_variable(const epics::pvData::PVStructure *pfield)
     namespace pvd = epics::pvData;
 
     // get the display precision
+    constexpr int DEFAULT_PRECISION = 4;
     int precision = DEFAULT_PRECISION;
     auto display_struct = pfield->getSubField<pvd::PVStructure>("display");
     if (display_struct) {
@@ -168,6 +163,7 @@ PVGroup::PVGroup(pvac::ClientProvider &provider, const std::vector<std::string> 
 PVGroup::PVGroup(pvac::ClientProvider &provider) : provider_(provider) {}
 
 void PVGroup::add(const std::string &pv_name) {
+    std::lock_guard<std::mutex> lock(mutex_);
     if (!pv_map.count(pv_name)) {
         pv_map.emplace(pv_name, std::make_unique<PVHandler>(provider_, pv_name));
     }
@@ -184,6 +180,7 @@ PVHandler &PVGroup::get_pv(const std::string &pv_name) {
 PVHandler &PVGroup::operator[](const std::string &pv_name) { return this->get_pv(pv_name); }
 
 bool PVGroup::data_available() {
+    std::lock_guard<std::mutex> lock(mutex_);
     bool new_data = false;
     for (auto &[name, pv] : pv_map) {
         if (pv->data_available()) {

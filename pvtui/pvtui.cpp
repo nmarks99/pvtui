@@ -220,7 +220,7 @@ std::unordered_map<std::string, std::string> ArgParser::get_macro_dict(std::stri
 WidgetBase::WidgetBase(PVGroup &pvgroup, const ArgParser &args, const std::string &pv_name)
     : pvgroup_(pvgroup), pv_name_(args.replace(pv_name)) {
     pvgroup.add(pv_name_);
-    connection_monitor_ = std::make_unique<ConnectionMonitor>();
+    connection_monitor_ = pvgroup[pv_name_].get_connection_monitor();
     pvgroup[pv_name_].channel.addConnectListener(connection_monitor_.get());
 };
 

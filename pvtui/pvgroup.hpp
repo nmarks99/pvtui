@@ -1,12 +1,13 @@
 #pragma once
 
-#include <memory>
-#include <string>
+#include <atomic>
 #include <functional>
-#include <unordered_map>
-#include <vector>
-#include <variant>
+#include <memory>
 #include <mutex>
+#include <string>
+#include <unordered_map>
+#include <variant>
+#include <vector>
 
 #include <pv/caProvider.h>
 #include <pva/client.h>
@@ -25,14 +26,8 @@ struct PVEnum {
  *
  * This allows a single mechanism to update variables of different types.
  */
-using MonitorPtr = std::variant<std::monostate,
-                                std::string *,
-                                int *,
-                                double *,
-                                std::vector<std::string> *,
-                                std::vector<int> *,
-                                std::vector<double> *,
-                                PVEnum *>;
+using MonitorPtr = std::variant<std::monostate, std::string *, int *, double *, std::vector<std::string> *,
+                                std::vector<int> *, std::vector<double> *, PVEnum *>;
 
 /**
  * @brief Monitors a pvac::ClientChannel's connection status.
@@ -62,7 +57,7 @@ class ConnectionMonitor : public pvac::ClientChannel::ConnectCallback {
     bool connected() const;
 
   private:
-    bool connected_ = false; ///< Connection status flag.
+    std::atomic<bool> connected_{false}; ///< Connection status flag.
 };
 
 /**
@@ -105,7 +100,7 @@ struct PVHandler : public pvac::ClientChannel::MonitorCallback {
      * @brief Gets the underlying PVA monitor instance.
      * @return A reference to the pvac::Monitor object.
      */
-    pvac::Monitor& getMonitor() { return monitor_; }
+    pvac::Monitor &get_monitor() { return monitor_; }
 
     /**
      * @brief Gets the mutex for thread-safe access to PV data.
@@ -113,23 +108,25 @@ struct PVHandler : public pvac::ClientChannel::MonitorCallback {
      */
     std::mutex &get_mutex() { return mutex; }
 
+    /**
+     * @brief Gets a shared_ptr to the ConnectionMonitor
+     * @return A shared_ptr to the ConnectionMonitor
+     */
+    std::shared_ptr<ConnectionMonitor> get_connection_monitor() const { return connection_monitor_; }
+
   private:
     std::mutex mutex;
-
-
-
-  private:
     pvac::Monitor monitor_;                                 ///< PVA data monitor.
     std::vector<MonitorPtr> monitor_var_ptrs_;              ///< Pointers to the user's variable.
-    std::unique_ptr<ConnectionMonitor> connection_monitor_; ///< Monitors connection status.
+    std::shared_ptr<ConnectionMonitor> connection_monitor_; ///< Monitors connection status.
     bool new_data = false;
 
     /**
      * @brief Callback invoked when a monitor event occurs (e.g., new data).
      * @param evt The monitor event containing the new data and status.
      */
-    void monitorEvent(const pvac::MonitorEvent& evt) override final;
-                                                            ///
+    void monitorEvent(const pvac::MonitorEvent &evt) override final;
+
     /**
      * @brief Extracts the PV value from the event and updates the monitored variable.
      * @param pfield A pointer to the PVStructure containing the new data.
@@ -200,21 +197,29 @@ struct PVGroup {
     bool data_available();
 
     /**
-     * @brief Adds a callback function to be executed after a PV is synchronized.
+     * @brief Adds a callback function to be executed after a PV is updated.
      * @param name The name of the PV to associate the callback with.
      * @param cb The callback function to execute.
      * @throws std::runtime_error if the PV is not found in the group.
      */
     void add_sync_callback(const std::string &name, std::function<void()> cb) {
-	if (pv_map.count(name)) {
-	    sync_callbacks_[name].push_back(std::move(cb));
-	} else {
-	    throw std::runtime_error(name + "not in map");
-	}
+	std::lock_guard<std::mutex> lock(mutex_);
+        if (pv_map.count(name)) {
+            sync_callbacks_[name].push_back(std::move(cb));
+        } else {
+            throw std::runtime_error(name + "not in map");
+        }
     }
 
+    /**
+     * @brief Gets the mutex for thread-safe access to the PVGroup.
+     * @return A reference to the std::mutex object.
+     */
+    std::mutex &get_mutex() { return mutex_; }
+
   private:
-    pvac::ClientProvider &provider_;                   ///< PVA client provider.
+    std::mutex mutex_;
+    pvac::ClientProvider &provider_;                                    ///< PVA client provider.
     std::unordered_map<std::string, std::unique_ptr<PVHandler>> pv_map; ///< Map of PVs by name.
     std::unordered_map<std::string, std::vector<std::function<void()>>> sync_callbacks_;
 };
