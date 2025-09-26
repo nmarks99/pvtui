@@ -1,8 +1,8 @@
+#include <chrono>
+#include <csignal>
 #include <iostream>
 #include <mutex>
-#include <chrono>
 #include <thread>
-#include <csignal>
 
 #include <pv/caProvider.h>
 #include <pva/client.h>
@@ -17,34 +17,39 @@ void signal_handler(int signal) {
     }
 }
 
-template <typename T>
-class PVMonitorValue {
-public:
+template <typename T> class PVMonitorValue {
+  public:
     T value;
 
-    PVMonitorValue(PVGroup& group, const std::string& name) : pv_name_(name) {
-        group.add(name);
+    PVMonitorValue(PVGroup &group, const std::string &name)
+        : pv_name_(name), pv_mutex_(initialize_and_get_mutex(group, name)) {
+
         group.set_monitor(name, pv_value_);
         group.add_sync_callback(name, [this]() {
-            std::lock_guard<std::mutex> lock(mutex_);
+            std::lock_guard<std::mutex> lock(pv_mutex_);
             value = pv_value_;
         });
     }
 
-private:
-    T pv_value_; // The value written to by the monitor thread
+  private:
+    std::mutex &initialize_and_get_mutex(PVGroup &group, const std::string &name) {
+        group.add(name);
+        return group[name].get_mutex();
+    }
+
+    T pv_value_;
     std::string pv_name_;
-    std::mutex mutex_;
+    std::mutex &pv_mutex_; // This must be a member variable
 };
 
 int main(int argc, char *argv[]) {
 
     std::string prefix;
     if (argc < 2) {
-	std::cout << "Please provide IOC prefix" << std::endl;
-	return EXIT_FAILURE;
+        std::cout << "Please provide IOC prefix" << std::endl;
+        return EXIT_FAILURE;
     } else {
-	prefix = argv[1];
+        prefix = argv[1];
     }
 
     signal(SIGINT, signal_handler);
@@ -59,11 +64,11 @@ int main(int argc, char *argv[]) {
     PVMonitorValue<std::string> desc(pvgroup, prefix + "m1.DESC");
     PVMonitorValue<double> rbv(pvgroup, prefix + "m1.RBV");
 
-    while(g_signal_caught == 0) {
-	if (pvgroup.data_available()) {
-	    std::cout << "DESC = " << desc.value << std::endl;
-	    std::cout << "RBV = " << rbv.value << std::endl;
-	}
+    while (g_signal_caught == 0) {
+        if (pvgroup.data_available()) {
+            std::cout << "DESC = " << desc.value << std::endl;
+            std::cout << "RBV = " << rbv.value << std::endl;
+        }
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
     }
 }
