@@ -17,16 +17,25 @@ void signal_handler(int signal) {
     }
 }
 
-
 template <typename T>
-struct DoubleBuffer {
-    T pv_value;
-    T app_value;
-    std::mutex mutex;
-};
+class PVMonitorValue {
+public:
+    T value;
 
-DoubleBuffer<double> rbv;
-DoubleBuffer<std::string> desc;
+    PVMonitorValue(PVGroup& group, const std::string& name) : pv_name_(name) {
+        group.add(name);
+        group.set_monitor(name, pv_value_);
+        group.add_sync_callback(name, [this]() {
+            std::lock_guard<std::mutex> lock(mutex_);
+            value = pv_value_;
+        });
+    }
+
+private:
+    T pv_value_; // The value written to by the monitor thread
+    std::string pv_name_;
+    std::mutex mutex_;
+};
 
 int main(int argc, char *argv[]) {
 
@@ -47,24 +56,13 @@ int main(int argc, char *argv[]) {
     // Create the group and add our PVs
     PVGroup pvgroup(provider);
 
-    pvgroup.add(prefix + "m1.DESC");
-    pvgroup.set_monitor(prefix + "m1.DESC", desc.pv_value);
-    pvgroup.add_sync_callback(prefix+"m1.DESC", [&](){
-	std::lock_guard<std::mutex> lock(desc.mutex);
-	desc.app_value = desc.pv_value;
-    });
-
-    pvgroup.add(prefix + "m1.RBV");
-    pvgroup.set_monitor(prefix + "m1.RBV", rbv.pv_value);
-    pvgroup.add_sync_callback(prefix+"m1.RBV", [&](){
-	std::lock_guard<std::mutex> lock(rbv.mutex);
-	rbv.app_value = rbv.pv_value;
-    });
+    PVMonitorValue<std::string> desc(pvgroup, prefix + "m1.DESC");
+    PVMonitorValue<double> rbv(pvgroup, prefix + "m1.RBV");
 
     while(g_signal_caught == 0) {
 	if (pvgroup.data_available()) {
-	    std::cout << "DESC = " << desc.app_value << std::endl;
-	    std::cout << "RBV = " << rbv.app_value << std::endl;
+	    std::cout << "DESC = " << desc.value << std::endl;
+	    std::cout << "RBV = " << rbv.value << std::endl;
 	}
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
     }
