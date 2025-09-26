@@ -59,7 +59,7 @@ if(NOT DEFINED EPICS_BASE OR EPICS_BASE STREQUAL "")
     set(EPICS_BASE $ENV{EPICS_BASE})
 endif()
 if(NOT EPICS_BASE OR EPICS_BASE STREQUAL "")
-    message(FATAL_ERROR "Missing required variable 'EPICS_BASE'. Provide it via -DEPICS_BASE=... or set the EPICS_BASE environment variable.")
+    message(FATAL_ERROR "Missing required variable 'EPICS_BASE'. Provide it via -DEPICS_BASTATICSE=... or set the EPICS_BASE environment variable.")
 endif()
 if(NOT IS_DIRECTORY "${EPICS_BASE}")
     message(FATAL_ERROR "Specified EPICS_BASE does not exist: ${EPICS_BASE}")
@@ -131,10 +131,15 @@ endif()
 
 # --- PVTUI static library -----------------------------------------------------
 add_library(pvtui STATIC pvtui/pvtui.cpp pvtui/pvgroup.cpp)
+target_compile_options(pvtui PUBLIC -Wall -Wextra -Wpedantic -std=c++17)
 target_include_directories(pvtui
     PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
         $<INSTALL_INTERFACE:include>
+)
+target_include_directories(pvtui
+    SYSTEM
+    PUBLIC
         ${EPICS_BASE_INCLUDES}
 )
 target_link_libraries(pvtui

@@ -47,33 +47,35 @@ ftxui::Component make_input_widget(PVHandler &pv, std::string &disp_str, PVPutTy
         }
         return s.element;
     };
-    return ftxui::Input(ftxui::InputOption({
-        .content = &disp_str,
-        .transform = tf ? tf : default_input_transform,
-        .multiline = false,
-        .on_enter =
-            [&pv, &disp_str, put_type]() {
-                if (pv.connected()) {
-                    if (put_type == PVPutType::Double) {
-                        try {
-                            double val_double = std::stod(disp_str);
-                            pv.channel.put().set("value", val_double).exec();
-                        } catch (const std::exception &) {
-                            // handle parse error if needed
-                        }
-                    } else if (put_type == PVPutType::String) {
-                        pv.channel.put().set("value", disp_str).exec();
-                    } else if (put_type == PVPutType::Integer) {
-                        try {
-                            int val_int = std::stoi(disp_str);
-                            pv.channel.put().set("value", val_int).exec();
-                        } catch (const std::exception &) {
-                            // handle parse error if needed
-                        }
-                    }
-                }
-            },
-    }));
+
+    ftxui::InputOption input_op;
+
+    input_op.content = &disp_str;
+    input_op.transform = tf ? tf : default_input_transform;
+    input_op.multiline = false;
+    input_op.on_enter = [&pv, &disp_str, put_type]() {
+	if (pv.connected()) {
+	    if (put_type == PVPutType::Double) {
+		try {
+		    double val_double = std::stod(disp_str);
+		    pv.channel.put().set("value", val_double).exec();
+		} catch (const std::exception &) {
+		    // handle parse error if needed
+		}
+	    } else if (put_type == PVPutType::String) {
+		pv.channel.put().set("value", disp_str).exec();
+	    } else if (put_type == PVPutType::Integer) {
+		try {
+		    int val_int = std::stoi(disp_str);
+		    pv.channel.put().set("value", val_int).exec();
+		} catch (const std::exception &) {
+		    // handle parse error if needed
+		}
+	    }
+	}
+    };
+
+    return ftxui::Input(input_op);
 }
 
 ftxui::Component make_choice_h_widget(PVHandler &pv, const std::vector<std::string> &labels,
@@ -131,31 +133,30 @@ ftxui::Component make_choice_v_widget(PVHandler &pv, const std::vector<std::stri
 ftxui::Component make_dropdown_widget(PVHandler &pv, const std::vector<std::string> &labels,
                                       int &selected) {
     using namespace ftxui;
-    auto dropdown_op = ftxui::DropdownOption({
-        .radiobox = {.entries = &labels,
-                     .selected = &selected,
-                     .on_change =
-                         [&]() {
-                             if (pv.connected()) {
-                                 pv.channel.put().set("value.index", selected).exec();
-                             }
-                         }},
-        .transform =
-            [](bool open, ftxui::Element checkbox, ftxui::Element radiobox) {
-                if (open) {
-                    return ftxui::vbox({
-                        checkbox | inverted,
-                        radiobox | vscroll_indicator | frame | size(HEIGHT, LESS_THAN, 10),
-                        filler(),
-                    });
-                }
-                return vbox({
-                    checkbox,
-                    filler(),
-                });
-            },
 
-    });
+    DropdownOption dropdown_op;
+
+    dropdown_op.radiobox.entries = &labels;
+    dropdown_op.radiobox.selected = &selected;
+    dropdown_op.radiobox.on_change = [&](){
+	if (pv.connected()) {
+	    pv.channel.put().set("value.index", selected).exec();
+	}
+    };
+
+    dropdown_op.transform = [](bool open, ftxui::Element checkbox, ftxui::Element radiobox){
+	if (open) {
+	    return ftxui::vbox({
+		checkbox | inverted,
+		radiobox | vscroll_indicator | frame | size(HEIGHT, LESS_THAN, 10),
+		filler(),
+	    });
+	}
+	return vbox({
+	    checkbox,
+	    filler(),
+	});
+    };
     return ftxui::Dropdown(dropdown_op);
 }
 

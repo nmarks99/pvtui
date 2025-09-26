@@ -14,8 +14,8 @@ void ConnectionMonitor::connectEvent(const pvac::ConnectEvent &event) {
 bool ConnectionMonitor::connected() const { return connected_; }
 
 PVHandler::PVHandler(pvac::ClientProvider &provider, const std::string &pv_name)
-    : channel(provider.connect(pv_name)), monitor_(channel.monitor(this)),
-      connection_monitor_(std::make_unique<ConnectionMonitor>()), name(pv_name) {
+    : channel(provider.connect(pv_name)), name(pv_name), monitor_(channel.monitor(this)),
+      connection_monitor_(std::make_unique<ConnectionMonitor>()) {
     channel.addConnectListener(connection_monitor_.get());
 }
 
@@ -102,7 +102,7 @@ void PVHandler::get_monitored_variable(const epics::pvData::PVStructure *pfield)
                     if (ptr) {
                         pvd::shared_vector<const std::string> choices =
                             pfield->getSubFieldT<pvd::PVStringArray>("value.choices")->view();
-                        int index = pfield->getSubFieldT<pvd::PVInt>("value.index")->getAs<int>();
+                        size_t index = pfield->getSubFieldT<pvd::PVInt>("value.index")->getAs<int>();
                         if (choices.size() > index) {
                             ptr->index = index;
                             ptr->choice = choices.at(index);
@@ -168,7 +168,7 @@ PVGroup::PVGroup(pvac::ClientProvider &provider, const std::vector<std::string> 
 PVGroup::PVGroup(pvac::ClientProvider &provider) : provider_(provider) {}
 
 void PVGroup::add(const std::string &pv_name) {
-   if (!pv_map.count(pv_name)) {
+    if (!pv_map.count(pv_name)) {
         pv_map.emplace(pv_name, std::make_unique<PVHandler>(provider_, pv_name));
     }
 }
@@ -189,9 +189,9 @@ bool PVGroup::data_available() {
         if (pv->data_available()) {
             new_data = true;
             if (sync_callbacks_.count(name) > 0) {
-		for (auto &cb : sync_callbacks_.at(name)) {
-		    cb();
-		}
+                for (auto &cb : sync_callbacks_.at(name)) {
+                    cb();
+                }
             }
         }
     }
