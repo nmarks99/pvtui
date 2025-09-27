@@ -182,6 +182,8 @@ struct PVGroup {
      */
     PVHandler &get_pv(const std::string &pv_name);
 
+    std::shared_ptr<PVHandler> get_pv_shared(const std::string &pv_name);
+
     /**
      * @brief Provides array-like access to a PVHandler in the group.
      * @param pv_name The name of the PV to access.
@@ -203,7 +205,7 @@ struct PVGroup {
      * @throws std::runtime_error if the PV is not found in the group.
      */
     void add_sync_callback(const std::string &name, std::function<void()> cb) {
-	std::lock_guard<std::mutex> lock(mutex_);
+        std::lock_guard<std::mutex> lock(mutex_);
         if (pv_map.count(name)) {
             sync_callbacks_[name].push_back(std::move(cb));
         } else {
@@ -220,6 +222,26 @@ struct PVGroup {
   private:
     std::mutex mutex_;
     pvac::ClientProvider &provider_;                                    ///< PVA client provider.
-    std::unordered_map<std::string, std::unique_ptr<PVHandler>> pv_map; ///< Map of PVs by name.
+    std::unordered_map<std::string, std::shared_ptr<PVHandler>> pv_map; ///< Map of PVs by name.
     std::unordered_map<std::string, std::vector<std::function<void()>>> sync_callbacks_;
+};
+
+template <typename T> class PVMonitorValue {
+  public:
+    T value;
+
+    PVMonitorValue(PVGroup &group, const std::string &name) : pv_name_(name) {
+        group.add(name);
+        pv_handler_ = group.get_pv_shared(name);
+        pv_handler_->set_monitor(pv_value_);
+        group.add_sync_callback(name, [this]() {
+            std::lock_guard<std::mutex> lock(pv_handler_->get_mutex());
+            value = pv_value_;
+        });
+    }
+
+  private:
+    T pv_value_; // The value written to by the monitor thread.
+    std::string pv_name_;
+    std::shared_ptr<PVHandler> pv_handler_; // Pointer to the PVHandler.
 };

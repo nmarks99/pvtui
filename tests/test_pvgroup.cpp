@@ -17,26 +17,6 @@ void signal_handler(int signal) {
     }
 }
 
-template <typename T> class PVMonitorValue {
-  public:
-    T value;
-
-    PVMonitorValue(PVGroup &group, const std::string &name) : pv_name_(name) {
-        group.add(name);
-        pv_handler_ = &group[name];
-        pv_handler_->set_monitor(pv_value_);
-        group.add_sync_callback(name, [this]() {
-            std::lock_guard<std::mutex> lock(pv_handler_->get_mutex());
-            value = pv_value_;
-        });
-    }
-
-  private:
-    T pv_value_; // The value written to by the monitor thread.
-    std::string pv_name_;
-    PVHandler *pv_handler_; // Pointer to the PVHandler.
-};
-
 int main(int argc, char *argv[]) {
 
     std::string prefix;

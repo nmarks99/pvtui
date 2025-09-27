@@ -177,6 +177,15 @@ PVHandler &PVGroup::get_pv(const std::string &pv_name) {
     return *it->second;
 }
 
+std::shared_ptr<PVHandler> PVGroup::get_pv_shared(const std::string &pv_name) {
+    auto it = pv_map.find(pv_name);
+    if (it == pv_map.end()) {
+        throw std::runtime_error(pv_name + " not registered in PVGroup");
+    }
+    return it->second;
+}
+
+
 PVHandler &PVGroup::operator[](const std::string &pv_name) { return this->get_pv(pv_name); }
 
 bool PVGroup::data_available() {
