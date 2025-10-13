@@ -130,28 +130,6 @@ int main(int argc, char *argv[]) {
 	});
     };
 
-    // auto dropdown_op = ftxui::DropdownOption({
-        // .radiobox = {
-            // .entries = &labels,
-            // .selected = &selected
-        // },
-        // .transform =
-            // [](bool open, ftxui::Element checkbox, ftxui::Element radiobox) {
-                // if (open) {
-                    // return ftxui::vbox({
-                        // checkbox | inverted,
-                        // radiobox | vscroll_indicator | frame | size(HEIGHT, LESS_THAN, 10),
-                        // filler(),
-                    // });
-                // }
-                // return vbox({
-                    // checkbox,
-                    // filler(),
-                // });
-            // },
-//
-    // });
-
     ftxui::Component main_container;
     ftxui::Component main_renderer;
 
