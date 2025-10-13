@@ -129,21 +129,19 @@ int main(int argc, char *argv[]) {
 
         // "user" current
         std::vector<int> y1(comp_user.size());
-        for (int x = 0; x < comp_user.size(); x++) {
-            float dx = float(x);
+        for (size_t x = 0; x < comp_user.size(); x++) {
             y1[x] = static_cast<int>(TARGET_HEIGHT-(comp_user.at(x)));
         }
-        for (int x = 1; x < comp_user.size()-1; x++) {
+        for (size_t x = 1; x < comp_user.size()-1; x++) {
             c.DrawPointLine(x, y1[x], x + 1, y1[x + 1], Color::Blue);
         }
 
         // "other" current
         std::vector<int> y2(comp_other.size());
-        for (int x = 0; x < comp_other.size(); x++) {
-            float dx = float(x);
+        for (size_t x = 0; x < comp_other.size(); x++) {
             y2[x] = static_cast<int>(TARGET_HEIGHT-(comp_other.at(x)));
         }
-        for (int x = 1; x < comp_other.size()-1; x++) {
+        for (size_t x = 1; x < comp_other.size()-1; x++) {
             c.DrawPointLine(x, y2[x], x + 1, y2[x + 1], Color::Red);
         }
 
@@ -233,7 +231,7 @@ int main(int argc, char *argv[]) {
     constexpr int POLL_PERIOD_MS = 100;
     Loop loop(&screen, main_renderer);
     while (!loop.HasQuitted()) {
-        if (pvgroup.data_available()) {
+        if (pvgroup.sync()) {
             screen.PostEvent(Event::Custom);
         }
         loop.RunOnce();

@@ -196,7 +196,7 @@ struct PVGroup {
      * @brief Checks if any PV in the group has received new data.
      * @return True if new data is available in any monitor, false otherwise.
      */
-    bool data_available();
+    bool sync();
 
     /**
      * @brief Adds a callback function to be executed after a PV is updated.

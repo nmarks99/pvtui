@@ -232,7 +232,7 @@ int main(int argc, char *argv[]) {
     constexpr int POLL_PERIOD_MS = 100;
     Loop loop(&screen, main_renderer);
     while (!loop.HasQuitted()) {
-	if (pvgroup.data_available()) {
+	if (pvgroup.sync()) {
 	    screen.PostEvent(Event::Custom);
 	}
         loop.RunOnce();

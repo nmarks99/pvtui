@@ -113,27 +113,44 @@ int main(int argc, char *argv[]) {
 
     int selected = 0;
     std::vector<std::string> labels = {"Small", "Medium", "All"};
-    auto dropdown_op = ftxui::DropdownOption({
-        .radiobox = {
-            .entries = &labels,
-            .selected = &selected
-        },
-        .transform =
-            [](bool open, ftxui::Element checkbox, ftxui::Element radiobox) {
-                if (open) {
-                    return ftxui::vbox({
-                        checkbox | inverted,
-                        radiobox | vscroll_indicator | frame | size(HEIGHT, LESS_THAN, 10),
-                        filler(),
-                    });
-                }
-                return vbox({
-                    checkbox,
-                    filler(),
-                });
-            },
+    auto dropdown_op = ftxui::DropdownOption();
+    dropdown_op.radiobox.entries = &labels;
+    dropdown_op.radiobox.selected = &selected;
+    dropdown_op.transform = [](bool open, ftxui::Element checkbox, ftxui::Element radiobox) {
+	if (open) {
+	    return ftxui::vbox({
+		checkbox | inverted,
+		radiobox | vscroll_indicator | frame | size(HEIGHT, LESS_THAN, 10),
+		filler(),
+	    });
+	}
+	return vbox({
+	    checkbox,
+	    filler(),
+	});
+    };
 
-    });
+    // auto dropdown_op = ftxui::DropdownOption({
+        // .radiobox = {
+            // .entries = &labels,
+            // .selected = &selected
+        // },
+        // .transform =
+            // [](bool open, ftxui::Element checkbox, ftxui::Element radiobox) {
+                // if (open) {
+                    // return ftxui::vbox({
+                        // checkbox | inverted,
+                        // radiobox | vscroll_indicator | frame | size(HEIGHT, LESS_THAN, 10),
+                        // filler(),
+                    // });
+                // }
+                // return vbox({
+                    // checkbox,
+                    // filler(),
+                // });
+            // },
+//
+    // });
 
     ftxui::Component main_container;
     ftxui::Component main_renderer;
@@ -183,7 +200,7 @@ int main(int argc, char *argv[]) {
     constexpr int POLL_PERIOD_MS = 100;
     Loop loop(&screen, main_renderer);
     while (!loop.HasQuitted()) {
-	if (pvgroup.data_available()) {
+	if (pvgroup.sync()) {
 	    screen.PostEvent(Event::Custom);
 	}
         loop.RunOnce();

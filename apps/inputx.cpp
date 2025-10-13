@@ -92,7 +92,7 @@ int main(int argc, char *argv[]) {
     // We use strings for everything here because it should work for most (all?) PV types
     std::vector<std::unique_ptr<InputWidget>> val_widgets;
     std::vector<std::unique_ptr<VarWidget<std::string>>> rbv_widgets;
-    for (int i = 0; i < val_pvs.size(); i++) {
+    for (size_t i = 0; i < val_pvs.size(); i++) {
 	val_widgets.emplace_back(std::make_unique<InputWidget>(pvgroup, val_pvs.at(i), PVPutType::String));
 	rbv_widgets.emplace_back(std::make_unique<VarWidget<std::string>>(pvgroup, rbv_pvs.at(i)));
     }
@@ -100,7 +100,7 @@ int main(int argc, char *argv[]) {
     // Add components to a main container.
     // Remember VarWidget doesn't define a component
     auto main_container = Container::Vertical({});
-    for (int i = 0; i < val_pvs.size(); i++) {
+    for (size_t i = 0; i < val_pvs.size(); i++) {
 	auto hcont = Container::Horizontal({
 	    val_widgets.at(i)->component(),
 	});
@@ -110,7 +110,7 @@ int main(int argc, char *argv[]) {
     // Define the visual layout of components in the main renderer
     auto main_renderer = Renderer(main_container, [&] {
 	Elements elements;
-	for (int i = 0; i < val_pvs.size(); i++) {
+	for (size_t i = 0; i < val_pvs.size(); i++) {
 	    auto &val = val_widgets.at(i);
 	    auto &rbv = rbv_widgets.at(i);
 	    auto h = vbox({
@@ -142,7 +142,7 @@ int main(int argc, char *argv[]) {
     constexpr int POLL_PERIOD_MS = 100;
     Loop loop(&screen, main_renderer);
     while (!loop.HasQuitted()) {
-	if (pvgroup.data_available()) {
+	if (pvgroup.sync()) {
 	    screen.PostEvent(Event::Custom);
 	}
 	loop.RunOnce();

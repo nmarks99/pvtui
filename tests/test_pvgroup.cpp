@@ -40,7 +40,7 @@ int main(int argc, char *argv[]) {
     PVMonitorValue<double> rbv(pvgroup, prefix + "m1.RBV");
 
     while (g_signal_caught == 0) {
-        if (pvgroup.data_available()) {
+        if (pvgroup.sync()) {
             std::cout << "DESC = " << desc.value << std::endl;
             std::cout << "RBV = " << rbv.value << std::endl;
         }

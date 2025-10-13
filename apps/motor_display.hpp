@@ -13,6 +13,7 @@ class SmallMotorDisplay : public DisplayBase {
     ftxui::Component get_container() override;
 
   private:
+    const pvtui::ArgParser &args;
     pvtui::InputWidget desc;
     pvtui::InputWidget val;
     pvtui::ButtonWidget twr;
@@ -27,8 +28,6 @@ class SmallMotorDisplay : public DisplayBase {
     pvtui::ChoiceWidget able;
     pvtui::ChoiceWidget use_set;
     pvtui::ButtonWidget stop;
-
-    const pvtui::ArgParser &args;
 };
 
 
@@ -40,6 +39,7 @@ class MediumMotorDisplay : public DisplayBase {
     ftxui::Component get_container() override;
 
   private:
+    const pvtui::ArgParser &args;
     pvtui::InputWidget desc;
     pvtui::InputWidget val;
     pvtui::ButtonWidget twr;
@@ -60,8 +60,6 @@ class MediumMotorDisplay : public DisplayBase {
     pvtui::InputWidget dllm;
     pvtui::ChoiceWidget spmg;
     pvtui::ChoiceWidget able;
-
-    const pvtui::ArgParser &args;
 };
 
 class AllMotorDisplay : public DisplayBase {
@@ -72,6 +70,7 @@ class AllMotorDisplay : public DisplayBase {
     ftxui::Component get_container() override;
 
   private:
+    const pvtui::ArgParser &args;
     pvtui::InputWidget desc;
     pvtui::InputWidget val;
     pvtui::ButtonWidget twr;
@@ -110,6 +109,4 @@ class AllMotorDisplay : public DisplayBase {
     pvtui::ChoiceWidget cnen;
     pvtui::ChoiceWidget foff;
     pvtui::VarWidget<std::string> rrbv;
-
-    const pvtui::ArgParser &args;
 };

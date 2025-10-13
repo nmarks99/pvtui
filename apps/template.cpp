@@ -62,7 +62,7 @@ int main(int argc, char *argv[]) {
     Loop loop(&screen, main_renderer);
     while (!loop.HasQuitted()) {
         // update monitored variables in the PVGroup, if new data post an ftxui event
-        if (pvgroup.data_available()) {
+        if (pvgroup.sync()) {
             screen.PostEvent(Event::Custom);
         }
         // run the ftxui main loop once and sleep

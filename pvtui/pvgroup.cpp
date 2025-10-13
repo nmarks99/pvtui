@@ -188,7 +188,7 @@ std::shared_ptr<PVHandler> PVGroup::get_pv_shared(const std::string &pv_name) {
 
 PVHandler &PVGroup::operator[](const std::string &pv_name) { return this->get_pv(pv_name); }
 
-bool PVGroup::data_available() {
+bool PVGroup::sync() {
     std::lock_guard<std::mutex> lock(mutex_);
     bool new_data = false;
     for (auto &[name, pv] : pv_map) {

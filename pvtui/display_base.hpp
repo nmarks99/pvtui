@@ -26,7 +26,7 @@ class DisplayBase {
      * @brief Checks if new data is available from and of the monitors in the group
      * @return True if any PV received new data, false otherwise.
      */
-    virtual bool data_available() { return pvgroup.data_available(); };
+    virtual bool sync() { return pvgroup.sync(); };
 
     /**
      * @brief Pure virtual function to get the FTXUI Element for rendering the display.
