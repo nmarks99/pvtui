@@ -82,31 +82,17 @@ int main(int argc, char *argv[]) {
     // Main container to define interactivity of components
     auto main_container = Container::Vertical({
 	desc.component(),
-	Container::Horizontal({
-	    scan.component(),
-	    proc.component(),
-	    prec.component(),
-	}),
-	Container::Horizontal({
-	    inpa.component(), a_val.component()
-	}),
-	Container::Horizontal({
-	    inpb.component(), b_val.component()
-	}),
-	Container::Horizontal({
-	    inpc.component(), c_val.component()
-	}),
-	Container::Horizontal({
-	    inpd.component(), d_val.component()
-	}),
+	scan.component(),
+	proc.component(),
+	prec.component(),
+	inpa.component(), a_val.component(),
+	inpb.component(), b_val.component(),
+	inpc.component(), c_val.component(),
+	inpd.component(), d_val.component(),
 	calc.component(),
 	ocal.component(),
-	Container::Horizontal({
-	    odly.component(), oopt.component(), dopt.component()
-	}),
-	Container::Horizontal({
-	    ivoa.component(), ivov.component(), out.component(), flnk.component(),
-	})
+	odly.component(), oopt.component(), dopt.component(),
+	ivoa.component(), ivov.component(), out.component(), flnk.component(),
     });
 
 

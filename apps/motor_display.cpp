@@ -27,14 +27,10 @@ ftxui::Component SmallMotorDisplay::get_container() {
     return Container::Vertical({
 	desc.component(),
 	val.component(),
-	Container::Horizontal({
-	    twr.component(),
-	    twv.component(),
-	    twf.component(),
-	}),
-	Container::Horizontal({
-	    use_set.component(), stop.component()
-	})
+	twr.component(),
+	twv.component(),
+	twf.component(),
+	use_set.component(), stop.component()
     });
 }
 
@@ -127,27 +123,15 @@ ftxui::Component MediumMotorDisplay::get_container() {
     using namespace ftxui;
     return Container::Vertical({
 	desc.component(),
-	Container::Horizontal({
-	    Container::Vertical({
-		hlm.component(),
-		val.component(),
-		llm.component(),
-	    }),
-	    Container::Vertical({
-		dhlm.component(),
-		dval.component(),
-		dllm.component(),
-	    }),
-	    Container::Vertical({
-		spmg.component(),
-	    }),
-	}),
-	Container::Horizontal({
-	    twr.component(), twv.component(), twf.component()
-	}),
-	Container::Horizontal({
-	    able.component(), use_set.component(),
-	})
+	hlm.component(),
+	val.component(),
+	llm.component(),
+	dhlm.component(),
+	dval.component(),
+	dllm.component(),
+	spmg.component(),
+	twr.component(), twv.component(), twf.component(),
+	able.component(), use_set.component(),
     });
 
 }
@@ -279,59 +263,37 @@ ftxui::Component AllMotorDisplay::get_container() {
     using namespace ftxui;
     return Container::Vertical({
 	desc.component(),
-
-	Container::Horizontal({
-	    Container::Vertical({
-		hlm.component(),
-		val.component(),
-		llm.component(),
-		rlv.component(),
-	    }),
-	    Container::Vertical({
-		dhlm.component(),
-		dval.component(),
-		dllm.component(),
-	    }),
-	    rval.component(),
-	    able.component(),
-	    spmg.component(),
-	}),
-	Container::Horizontal({
-	    twr.component(),
-	    twv.component(),
-	    twf.component(),
-	}),
-	Container::Horizontal({
-	    Container::Vertical({
-		vmax.component(),
-		velo.component(),
-		vbas.component(),
-		accl.component(),
-	    }),
-	    Container::Vertical({
-		foff.component(),
-		use_set.component(),
-		off.component(),
-		dir.component(),
-		egu.component(),
-	    })
-	}),
-	Container::Horizontal({
-	    Container::Vertical({
-		mres.component(),
-		eres.component(),
-		rres.component(),
-		rtry.component(),
-	    }),
-	    Container::Vertical({
-		ueip.component(),
-		urip.component(),
-		prec.component(),
-		cnen.component(),
-	    })
-	}),
+	hlm.component(),
+	val.component(),
+	llm.component(),
+	rlv.component(),
+	dhlm.component(),
+	dval.component(),
+	dllm.component(),
+	rval.component(),
+	able.component(),
+	spmg.component(),
+	twr.component(),
+	twv.component(),
+	twf.component(),
+	vmax.component(),
+	velo.component(),
+	vbas.component(),
+	accl.component(),
+	foff.component(),
+	use_set.component(),
+	off.component(),
+	dir.component(),
+	egu.component(),
+	mres.component(),
+	eres.component(),
+	rres.component(),
+	rtry.component(),
+	ueip.component(),
+	urip.component(),
+	prec.component(),
+	cnen.component(),
     });
-
 }
 
 ftxui::Element AllMotorDisplay::get_renderer() {

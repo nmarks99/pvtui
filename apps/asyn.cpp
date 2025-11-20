@@ -91,42 +91,27 @@ int main(int argc, char *argv[]) {
     // ftxui container to define interactivity of components
     auto main_container = ftxui::Container::Vertical({
         ftxui::Container::Vertical({
-            ftxui::Container::Horizontal({
-                tmot.component(),
-                tmod.component(),
-            }),
-
-            ftxui::Container::Horizontal({
-                aout.component(),
-                oeos.component(),
-            }),
+	    tmot.component(),
+	    tmod.component(),
+	    aout.component(),
+	    oeos.component(),
             ieos.component(),
-
-            ftxui::Container::Horizontal({
-                cnct.component(),
-                enbl.component(),
-                auct.component()
-            }),
-
-            ftxui::Container::Horizontal({
-                ftxui::Container::Vertical({
-                    tb0.component(),
-                    tb1.component(),
-                    tb2.component(),
-                    tb3.component(),
-                    tb4.component(),
-                    tb5.component(),
-                }),
-                ftxui::Container::Vertical({
-                    tib0.component(),
-                    tib1.component(),
-                    tib2.component(),
-                    tinb0.component(),
-                    tinb1.component(),
-                    tinb2.component(),
-                    tinb3.component(),
-                })
-            }),
+	    cnct.component(),
+	    enbl.component(),
+	    auct.component(),
+	    tb0.component(),
+	    tb1.component(),
+	    tb2.component(),
+	    tb3.component(),
+	    tb4.component(),
+	    tb5.component(),
+	    tib0.component(),
+	    tib1.component(),
+	    tib2.component(),
+	    tinb0.component(),
+	    tinb1.component(),
+	    tinb2.component(),
+	    tinb3.component(),
             tfil.component(),
         })
     });
