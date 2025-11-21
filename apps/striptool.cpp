@@ -152,13 +152,15 @@ int main(int argc, char *argv[]) {
 
 	// y1.push_back(m1rbv.value());
 	y1.insert(y1.begin(), m1rbv.value());
-	x1.push_back(sec);
-	sec -= 0.1;
 	if (sec <= 0.0) {
-	    sec = 50.0;
+	    // sec = 50.0;
+	    y1.pop_back();
 	    // plot->OnEvent(PlotEvent::AutoScaleX);
 	    // y1.erase(y1.begin());
 	    // x1.erase(x1.begin());
+	} else {
+	    sec -= 0.1;
+	    x1.push_back(sec);
 	}
 	screen.PostEvent(Event::Custom);
 
