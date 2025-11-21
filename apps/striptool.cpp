@@ -3,76 +3,75 @@
 #include <ftxui/dom/node.hpp>
 #include <string>
 
-#include "ftxui/component/component.hpp"
-#include "ftxui/component/component_base.hpp"
-#include "ftxui/component/loop.hpp"
-#include "ftxui/component/screen_interactive.hpp"
+#include <ftxui/component/component.hpp>
+#include <ftxui/component/component_base.hpp>
+#include <ftxui/component/loop.hpp>
+#include <ftxui/component/screen_interactive.hpp>
 
-#include "ftxui-plot/plot.hpp"
+#include <ftxui-plot/plot.hpp>
+#include <pvtui/pvtui.hpp>
+
+static constexpr std::string_view CLI_HELP_MSG = R"(
+pvtui_striptool - TUI StripTool plotting tool.
+
+Usage:
+    pvtui_striptool [options]
+
+Options:
+    -h, --help        Show this help message and exit.
+    -m, --macro       Macros to pass to the UI
+
+Examples:
+    # TODO
+
+For more details, visit: https://github.com/nmarks99/pvtui
+)";
 
 using namespace ftxui;
+using namespace pvtui;
 
 using PlotData = std::vector<PlotSeries>;
 
-int main() {
+int main(int argc, char *argv[]) {
 
     auto screen = ScreenInteractive::Fullscreen();
 
-    // Create some data
-    auto x1 = arange(0, 4 * M_PI, 0.1);
-    std::vector<double> y1(x1.size());
-    std::transform(x1.begin(), x1.end(), y1.begin(), [](double v) { return 2*std::sin(v); });
-    Color color1 = Color::Red;
 
-    auto x2 = arange(0, 8 * M_PI, 0.1);
-    std::vector<double> y2(x2.size());
-    std::transform(x2.begin(), x2.end(), y2.begin(), [](double v) { return 2.0/3.0*std::cos(v); });
-    Color color2 = Color::Blue;
+    // Parse command line arguments and macros
+    pvtui::ArgParser args(argc, argv);
+
+    if (args.flag("help") or args.flag("h")) {
+	std::cout << CLI_HELP_MSG << std::endl;
+	return EXIT_SUCCESS;
+    }
+
+    // Instantiate EPICS PVA client
+    // Start CAClientFactory so we can see CA only PVs
+    epics::pvAccess::ca::CAClientFactory::start();
+    pvac::ClientProvider provider(args.provider);
+
+    // PVGroup to manage all PVs for displays
+    PVGroup pvgroup(provider);
+
+    // Create vectors to store the data
+    // this will need to be done dynamically to be able
+    // to add more series to the plot at runtime
+    // const size_t WINDOW = 100;
+    std::vector<double> x1;
+    std::vector<double> y1;
+    Color color1 = Color::Red;
 
     PlotData data = {
 	{&x1, &y1, &color1},
-	{&x2, &y2}
     };
 
-    // Color selector for series 1
-    std::vector<std::string> color1_entries{"Red", "Orange", "Purple", "Green"};
-    int color1_choice = 0;
-    auto color1_radio_op = RadioboxOption{};
-    color1_radio_op.entries = color1_entries;
-    color1_radio_op.selected = &color1_choice;
-    color1_radio_op.on_change = [&](){
-	switch (color1_choice) {
-	    case 0:
-		color1 = Color::Red;
-		break;
-	    case 1:
-		color1 = Color::Orange1;
-		break;
-	    case 2:
-		color1 = Color::Purple;
-		break;
-	    case 3:
-		color1 = Color::Green;
-		break;
-	}
-    };
-    auto color1_menu = Radiobox(color1_radio_op);
-
-    // Edit some data after creating the plot to demonstrate we can
-    double lastx = x1.back();
-    double lasty = y1.back();
-    for (size_t i = 0; i < 50; i++) {
-	lastx += 0.1;
-	x1.push_back(lastx);
-	y1.push_back(lasty);
-    }
+    VarWidget<double> m1rbv(pvgroup, "nmrt:m1.RBV");
 
     // Axis limits
     std::string ymin;
     std::string ymax;
     std::string xmin;
     std::string xmax;
-
     auto make_input = [&](std::string &str){
 	auto op = InputOption{};
 	op.multiline = false;
@@ -108,7 +107,6 @@ int main() {
 	ymax_inp,
 	xmin_inp,
 	xmax_inp,
-	color1_menu,
 	autoscale_button
     });
 
@@ -136,17 +134,37 @@ int main() {
 		}) | borderEmpty,
 		separator(),
 		vbox({
-		    text("Series 1") | underlined,
-		    color1_menu->Render(),
-		}) | borderEmpty,
+		    text("m1.RBV = " + std::to_string(m1rbv.value()))
+		}),
 	    }) | border | size(HEIGHT, EQUAL, 12),
 	});
     });
 
-    // Auto-scale on start
-    plot->OnEvent(PlotEvent::AutoScale);
+    // // Auto-scale on start
+    // plot->OnEvent(PlotEvent::AutoScale);
 
-    screen.Loop(main_renderer);
+    // main program loop
+    constexpr int POLL_PERIOD_MS = 100;
+    Loop loop(&screen, main_renderer);
+    double sec = 50.0;
+    while (!loop.HasQuitted()) {
+	pvgroup.sync();
+
+	// y1.push_back(m1rbv.value());
+	y1.insert(y1.begin(), m1rbv.value());
+	x1.push_back(sec);
+	sec -= 0.1;
+	if (sec <= 0.0) {
+	    sec = 50.0;
+	    // plot->OnEvent(PlotEvent::AutoScaleX);
+	    // y1.erase(y1.begin());
+	    // x1.erase(x1.begin());
+	}
+	screen.PostEvent(Event::Custom);
+
+	loop.RunOnce();
+	std::this_thread::sleep_for(std::chrono::milliseconds(POLL_PERIOD_MS));
+    }
 
     return 0;
 }
