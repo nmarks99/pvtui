@@ -2,6 +2,7 @@
 #include <ftxui/component/event.hpp>
 #include <ftxui/dom/node.hpp>
 #include <string>
+#include <limits>
 
 #include <ftxui/component/component.hpp>
 #include <ftxui/component/component_base.hpp>
@@ -56,9 +57,9 @@ int main(int argc, char *argv[]) {
     // Create vectors to store the data
     // this will need to be done dynamically to be able
     // to add more series to the plot at runtime
-    // const size_t WINDOW = 100;
-    std::vector<double> x1;
-    std::vector<double> y1;
+    const int N = int(20.0/0.1);
+    std::vector<double> x1 = linspace(0, 20.0, N);
+    std::vector<double> y1(N, std::numeric_limits<double>::quiet_NaN());
     Color color1 = Color::Red;
 
     PlotData data = {
@@ -68,8 +69,8 @@ int main(int argc, char *argv[]) {
     VarWidget<double> m1rbv(pvgroup, "nmrt:m1.RBV");
 
     // Axis limits
-    std::string ymin;
-    std::string ymax;
+    std::string ymin = "-10";
+    std::string ymax = "10";
     std::string xmin;
     std::string xmax;
     auto make_input = [&](std::string &str){
@@ -140,28 +141,15 @@ int main(int argc, char *argv[]) {
 	});
     });
 
-    // // Auto-scale on start
-    // plot->OnEvent(PlotEvent::AutoScale);
-
     // main program loop
     constexpr int POLL_PERIOD_MS = 100;
     Loop loop(&screen, main_renderer);
-    double sec = 50.0;
     while (!loop.HasQuitted()) {
 	pvgroup.sync();
 
-	// y1.push_back(m1rbv.value());
-	y1.insert(y1.begin(), m1rbv.value());
-	if (sec <= 0.0) {
-	    // sec = 50.0;
-	    y1.pop_back();
-	    // plot->OnEvent(PlotEvent::AutoScaleX);
-	    // y1.erase(y1.begin());
-	    // x1.erase(x1.begin());
-	} else {
-	    sec -= 0.1;
-	    x1.push_back(sec);
-	}
+	y1.push_back(m1rbv.value());
+	y1.erase(y1.begin());
+
 	screen.PostEvent(Event::Custom);
 
 	loop.RunOnce();
