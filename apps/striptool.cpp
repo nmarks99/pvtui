@@ -31,7 +31,18 @@ For more details, visit: https://github.com/nmarks99/pvtui
 using namespace ftxui;
 using namespace pvtui;
 
-using PlotData = std::vector<PlotSeries>;
+std::deque<double> linspace(double start, double stop, size_t num_points) {
+    std::deque<double> out(num_points);
+    const double step = (stop - start) / (num_points - 1);
+    double val = start;
+    for (size_t i = 0; i < num_points; i++) {
+	out.at(i) = val;
+	val += step;
+    }
+    return out;
+}
+
+using PlotData = std::vector<PlotSeries<std::deque<double>>>;
 
 int main(int argc, char *argv[]) {
 
@@ -54,25 +65,28 @@ int main(int argc, char *argv[]) {
     // PVGroup to manage all PVs for displays
     PVGroup pvgroup(provider);
 
+    VarWidget<double> m1rbv(pvgroup, "namSoft:m1.RBV");
+    std::this_thread::sleep_for(std::chrono::milliseconds(500));
+    m1rbv.sync();
+    m1rbv.value();
+
     // Create vectors to store the data
     // this will need to be done dynamically to be able
     // to add more series to the plot at runtime
-    const int N = int(20.0/0.1);
-    std::vector<double> x1 = linspace(0, 20.0, N);
-    std::vector<double> y1(N, std::numeric_limits<double>::quiet_NaN());
+    // const int N = int(20.0/0.1);
+    std::deque<double> x1 = arange<std::deque<double>>(0, 5, 0.05);
+    std::deque<double> y1(x1.size(), m1rbv.value());
     Color color1 = Color::Red;
 
     PlotData data = {
 	{&x1, &y1, &color1},
     };
 
-    VarWidget<double> m1rbv(pvgroup, "nmrt:m1.RBV");
-
     // Axis limits
-    std::string ymin = "-10";
-    std::string ymax = "10";
-    std::string xmin;
-    std::string xmax;
+    std::string ymin = "-5.0";
+    std::string ymax = "5.0";
+    std::string xmin = "0.0";
+    std::string xmax = "5.0";
     auto make_input = [&](std::string &str){
 	auto op = InputOption{};
 	op.multiline = false;
@@ -85,7 +99,7 @@ int main(int argc, char *argv[]) {
     auto xmax_inp = make_input(xmax);
 
     // Create the plot component
-    PlotOption op;
+    PlotOption<std::deque<double>> op;
     op.data = &data;
     op.xmin = &xmin;
     op.xmax = &xmax;
@@ -148,7 +162,7 @@ int main(int argc, char *argv[]) {
 	pvgroup.sync();
 
 	y1.push_back(m1rbv.value());
-	y1.erase(y1.begin());
+	y1.pop_front();
 
 	screen.PostEvent(Event::Custom);
 
