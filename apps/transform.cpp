@@ -33,6 +33,8 @@ For more details, visit: https://github.com/nmarks99/pvtui
 )";
 
 
+// DisplayBase subclass to simplify adding rows which are the same
+// except for the PV names
 class TransformRow : public DisplayBase {
   public:
     TransformRow(PVGroup &pvgroup, const pvtui::ArgParser &args, const std::string &row_name)
@@ -58,7 +60,6 @@ class TransformRow : public DisplayBase {
 
     ftxui::Element get_renderer() override {
 	return hbox({
-	    // separator() | color(Color::Black),
 	    cmtx.component()->Render()
 		| size(WIDTH, EQUAL, 15)
 		| EPICSColor::edit(cmtx),
@@ -78,7 +79,6 @@ class TransformRow : public DisplayBase {
 	    outx.component()->Render()
 		| size(WIDTH, EQUAL, 20)
 		| EPICSColor::link(cmtx),
-	    // separator() | color(Color::Black),
 	});
     }
 
@@ -89,6 +89,7 @@ class TransformRow : public DisplayBase {
     InputWidget valx;
     InputWidget outx;
 };
+
 
 int main(int argc, char *argv[]) {
 
@@ -122,6 +123,7 @@ int main(int argc, char *argv[]) {
     InputWidget flnk(pvgroup, args, "$(P)$(T).FLNK", PVPutType::String);
     ChoiceWidget copt(pvgroup, args, "$(P)$(T).COPT", ChoiceStyle::Dropdown);
 
+    // add a row for transform record fields A through P (e.g. INPA, CLCA...INPA, CLCP)
     std::vector<std::unique_ptr<DisplayBase>> rows;
     for (char c = 'A'; c <= 'P'; c++) {
 	std::string s {c};
@@ -166,20 +168,24 @@ int main(int argc, char *argv[]) {
 	    separatorEmpty(),
 	    hbox({
 		text("Comment")
-		    | size(WIDTH, EQUAL, 15)
-		    | color(Color::Black),
+		    | color(Color::Black)
+		    | size(WIDTH, EQUAL, 15),
+		separator() | color(Color::Black),
 		text("In link")
-		    | size(WIDTH, EQUAL, 20)
-		    | color(Color::Black),
+		    | color(Color::Black)
+		    | size(WIDTH, EQUAL, 20),
+		separator() | color(Color::Black),
 		text("Calc")
-		    | size(WIDTH, EQUAL, 25)
-		    | color(Color::Black),
+		    | color(Color::Black)
+		    | size(WIDTH, EQUAL, 25),
+		separator() | color(Color::Black),
 		text("Value")
-		    | size(WIDTH, EQUAL, 15)
-		    | color(Color::Black),
+		    | color(Color::Black)
+		    | size(WIDTH, EQUAL, 15),
+		separator() | color(Color::Black),
 		text("Out link")
-		    | size(WIDTH, EQUAL, 25)
-		    | color(Color::Black),
+		    | color(Color::Black)
+		    | size(WIDTH, EQUAL, 20)
 	    }),
 	    separator() | color(Color::Black)
 	};
