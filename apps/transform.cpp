@@ -58,13 +58,13 @@ class TransformRow : public DisplayBase {
 
     ftxui::Element get_renderer() override {
 	return hbox({
-	    separator() | color(Color::Black),
+	    // separator() | color(Color::Black),
 	    cmtx.component()->Render()
 		| size(WIDTH, EQUAL, 15)
 		| EPICSColor::edit(cmtx),
 	    separator() | color(Color::Black),
 	    inpx.component()->Render()
-		| size(WIDTH, EQUAL, 25)
+		| size(WIDTH, EQUAL, 20)
 		| EPICSColor::link(cmtx),
 	    separator() | color(Color::Black),
 	    clcx.component()->Render()
@@ -76,9 +76,9 @@ class TransformRow : public DisplayBase {
 		| EPICSColor::edit(cmtx),
 	    separator() | color(Color::Black),
 	    outx.component()->Render()
-		| xflex
+		| size(WIDTH, EQUAL, 20)
 		| EPICSColor::link(cmtx),
-	    separator() | color(Color::Black),
+	    // separator() | color(Color::Black),
 	});
     }
 
@@ -133,6 +133,7 @@ int main(int argc, char *argv[]) {
 	desc.component(),
 	scan.component(),
 	proc.component(),
+	prec.component(),
 	copt.component(),
 	flnk.component()
     });
@@ -159,24 +160,24 @@ int main(int argc, char *argv[]) {
 		text("PREC: ") | color(Color::Black),
 		prec.component()->Render()
 		    | EPICSColor::edit(prec)
-		    | size(WIDTH, EQUAL, 2),
+		    | size(WIDTH, EQUAL, 3),
 		filler() | xflex,
 	    }),
 	    separatorEmpty(),
 	    hbox({
-		text("   Comment")
+		text("Comment")
 		    | size(WIDTH, EQUAL, 15)
 		    | color(Color::Black),
-		text("        In link")
+		text("In link")
+		    | size(WIDTH, EQUAL, 20)
+		    | color(Color::Black),
+		text("Calc")
 		    | size(WIDTH, EQUAL, 25)
 		    | color(Color::Black),
-		text("              Calc")
-		    | size(WIDTH, EQUAL, 35)
-		    | color(Color::Black),
-		text("  Value")
+		text("Value")
 		    | size(WIDTH, EQUAL, 15)
 		    | color(Color::Black),
-		text("       Out link")
+		text("Out link")
 		    | size(WIDTH, EQUAL, 25)
 		    | color(Color::Black),
 	    }),
