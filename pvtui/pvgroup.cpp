@@ -165,8 +165,8 @@ bool PVHandler::sync() {
 
     if (!new_data_) return false;
 
-    for (auto &tasks : sync_tasks_) {
-	tasks(monitor_var_internal_);
+    for (auto &task : sync_tasks_) {
+	task(monitor_var_internal_);
     }
 
     new_data_ = false;
