@@ -38,9 +38,6 @@ int main(int argc, char *argv[]) {
 	prefix+"m1.RBV",
     });
 
-    // PVMonitorValue<std::string> desc(pvgroup, prefix + "m1.DESC");
-    // PVMonitorValue<double> rbv(pvgroup, prefix + "m1.RBV");
-
     double rbv;
     pvgroup.set_monitor<double>(prefix+"m1.RBV", rbv);
 
