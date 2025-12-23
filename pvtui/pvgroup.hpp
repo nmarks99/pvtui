@@ -193,6 +193,12 @@ struct PVGroup {
      */
     PVHandler &get_pv(const std::string &pv_name);
 
+    /**
+     * @brief Returns a shared_ptr<PVHandler> from the group by its name.
+     * @param pv_name The name of the PV to retrieve.
+     * @return A shared_ptr<PVHandler> to the corresponding PVHandler object.
+     * @throws std::runtime_error if the PV is not found.
+     */
     std::shared_ptr<PVHandler> get_pv_shared(const std::string &pv_name);
 
     /**
@@ -214,23 +220,3 @@ struct PVGroup {
     pvac::ClientProvider &provider_;                                    ///< PVA client provider.
     std::unordered_map<std::string, std::shared_ptr<PVHandler>> pv_map; ///< Map of PVs by name.
 };
-
-// template <typename T> class PVMonitorValue {
-  // public:
-    // T value;
-//
-    // PVMonitorValue(PVGroup &group, const std::string &name) : pv_name_(name) {
-        // group.add(name);
-        // pv_handler_ = group.get_pv_shared(name);
-        // pv_handler_->set_monitor(pv_value_);
-        // // group.add_sync_callback(name, [this]() {
-            // // std::lock_guard<std::mutex> lock(pv_handler_->get_mutex());
-            // // value = pv_value_;
-        // // });
-    // }
-//
-  // private:
-    // T pv_value_; // The value written to by the monitor thread.
-    // std::string pv_name_;
-    // std::shared_ptr<PVHandler> pv_handler_; // Pointer to the PVHandler.
-// };
