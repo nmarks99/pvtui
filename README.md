@@ -12,6 +12,7 @@ There are several ready-to-use applications included in this respository:
 - motor record
 - calcout record
 - asyn record
+- transform record
 - APS storage ring status
 
 ## Installation

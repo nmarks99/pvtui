@@ -227,7 +227,7 @@ WidgetBase::WidgetBase(PVGroup &pvgroup, const ArgParser &args, const std::strin
 WidgetBase::WidgetBase(PVGroup &pvgroup, const std::string &pv_name)
     : pvgroup_(pvgroup), pv_name_(pv_name) {
     pvgroup.add(pv_name_);
-    connection_monitor_ = std::make_unique<ConnectionMonitor>();
+    connection_monitor_ = pvgroup[pv_name_].get_connection_monitor();
     pvgroup[pv_name_].channel.addConnectListener(connection_monitor_.get());
 };
 
@@ -246,56 +246,52 @@ ftxui::Component WidgetBase::component() const {
 InputWidget::InputWidget(PVGroup &pvgroup, const ArgParser &args, const std::string &pv_name,
                          PVPutType put_type, InputTransform tf)
     : WidgetBase(pvgroup, args, pv_name) {
-    pvgroup.set_monitor(pv_name_, pv_value_);
-    component_ = make_input_widget(pvgroup.get_pv(pv_name_), ui_value_, put_type, tf);
-    pvgroup.add_sync_callback(pv_name_, [this]{ this->sync(); });
+    pvgroup.set_monitor(pv_name_, value_);
+    component_ = make_input_widget(pvgroup.get_pv(pv_name_), value_, put_type, tf);
 }
 
 InputWidget::InputWidget(PVGroup &pvgroup, const std::string &pv_name, PVPutType put_type)
     : WidgetBase(pvgroup, pv_name) {
-    pvgroup.set_monitor(pv_name_, pv_value_);
-    component_ = make_input_widget(pvgroup.get_pv(pv_name_), ui_value_, put_type);
-    pvgroup.add_sync_callback(pv_name_, [this]{ this->sync(); });
+    pvgroup.set_monitor(pv_name_, value_);
+    component_ = make_input_widget(pvgroup.get_pv(pv_name_), value_, put_type);
 }
 
-std::string InputWidget::value() const { return ui_value_; }
+std::string InputWidget::value() const { return value_; }
 
 ChoiceWidget::ChoiceWidget(PVGroup &pvgroup, const ArgParser &args, const std::string &pv_name,
                            ChoiceStyle style)
     : WidgetBase(pvgroup, args, pv_name) {
-    pvgroup.set_monitor(pv_name_, pv_value_);
-    pvgroup.add_sync_callback(pv_name_, [this]{ this->sync(); });
+    pvgroup.set_monitor(pv_name_, value_);
     switch (style) {
     case pvtui::ChoiceStyle::Vertical:
-        component_ = make_choice_v_widget(pvgroup.get_pv(pv_name_), ui_value_.choices, ui_value_.index);
+        component_ = make_choice_v_widget(pvgroup.get_pv(pv_name_), value_.choices, value_.index);
         break;
     case pvtui::ChoiceStyle::Horizontal:
-        component_ = make_choice_h_widget(pvgroup.get_pv(pv_name_), ui_value_.choices, ui_value_.index);
+        component_ = make_choice_h_widget(pvgroup.get_pv(pv_name_), value_.choices, value_.index);
         break;
     case pvtui::ChoiceStyle::Dropdown:
-        component_ = make_dropdown_widget(pvgroup.get_pv(pv_name_), ui_value_.choices, ui_value_.index);
+        component_ = make_dropdown_widget(pvgroup.get_pv(pv_name_), value_.choices, value_.index);
         break;
     }
 }
 
 ChoiceWidget::ChoiceWidget(PVGroup &pvgroup, const std::string &pv_name, ChoiceStyle style)
     : WidgetBase(pvgroup, pv_name) {
-    pvgroup.set_monitor(pv_name_, pv_value_);
-    pvgroup.add_sync_callback(pv_name_, [this]{ this->sync(); });
+    pvgroup.set_monitor(pv_name_, value_);
     switch (style) {
     case pvtui::ChoiceStyle::Vertical:
-        component_ = make_choice_v_widget(pvgroup.get_pv(pv_name_), ui_value_.choices, ui_value_.index);
+        component_ = make_choice_v_widget(pvgroup.get_pv(pv_name_), value_.choices, value_.index);
         break;
     case pvtui::ChoiceStyle::Horizontal:
-        component_ = make_choice_h_widget(pvgroup.get_pv(pv_name_), ui_value_.choices, ui_value_.index);
+        component_ = make_choice_h_widget(pvgroup.get_pv(pv_name_), value_.choices, value_.index);
         break;
     case pvtui::ChoiceStyle::Dropdown:
-        component_ = make_dropdown_widget(pvgroup.get_pv(pv_name_), ui_value_.choices, ui_value_.index);
+        component_ = make_dropdown_widget(pvgroup.get_pv(pv_name_), value_.choices, value_.index);
         break;
     }
 }
 
-PVEnum ChoiceWidget::value() const { return ui_value_; }
+PVEnum ChoiceWidget::value() const { return value_; }
 
 ButtonWidget::ButtonWidget(PVGroup &pvgroup, const ArgParser &args, const std::string &pv_name,
                            const std::string &label, int press_val)

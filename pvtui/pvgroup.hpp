@@ -28,6 +28,8 @@ struct PVEnum {
  */
 using MonitorPtr = std::variant<std::monostate, std::string *, int *, double *, std::vector<std::string> *,
                                 std::vector<int> *, std::vector<double> *, PVEnum *>;
+using MonitorVar = std::variant<std::monostate, std::string, int, double, std::vector<std::string>,
+                                std::vector<int>, std::vector<double>, PVEnum>;
 
 /**
  * @brief Monitors a pvac::ClientChannel's connection status.
@@ -84,17 +86,31 @@ struct PVHandler : public pvac::ClientChannel::MonitorCallback {
     bool connected() const;
 
     /**
-     * @brief Checks if new data has been received from the PV monitor.
+     * @brief Safely copies the internal monitored value to the user variable.
      * @return True if new data is available, false otherwise.
      */
-    bool data_available();
+    bool sync();
 
     /**
-     * @brief Registers a variable to be updated when the PV monitor receives new data.
+     * @brief Registers a variable to be updated when the PV monitor receives new data and sync() is called.
      * @tparam T The type of the variable to monitor.
      * @param var A reference to the variable that will be updated.
      */
-    template <typename T> void set_monitor(T &var) { monitor_var_ptrs_.push_back(&var); }
+    template <typename T> void set_monitor(T &var) {
+	if (std::holds_alternative<std::monostate>(monitor_var_internal_)) {
+	    monitor_var_internal_ = T{};
+	}
+
+	if (!std::holds_alternative<T>(monitor_var_internal_)) {
+	    throw std::runtime_error("Cannot set multiple monitors of different types for a single PV: " + name);
+	}
+
+        sync_tasks_.push_back([&var](const MonitorVar& latest_data) {
+            if (auto* val = std::get_if<T>(&latest_data)) {
+                var = *val;
+            }
+        });
+    }
 
     /**
      * @brief Gets the underlying PVA monitor instance.
@@ -103,23 +119,18 @@ struct PVHandler : public pvac::ClientChannel::MonitorCallback {
     pvac::Monitor &get_monitor() { return monitor_; }
 
     /**
-     * @brief Gets the mutex for thread-safe access to PV data.
-     * @return A reference to the std::mutex object.
-     */
-    std::mutex &get_mutex() { return mutex; }
-
-    /**
      * @brief Gets a shared_ptr to the ConnectionMonitor
      * @return A shared_ptr to the ConnectionMonitor
      */
     std::shared_ptr<ConnectionMonitor> get_connection_monitor() const { return connection_monitor_; }
 
   private:
-    std::mutex mutex;
+    std::mutex mutex_;
     pvac::Monitor monitor_;                                 ///< PVA data monitor.
-    std::vector<MonitorPtr> monitor_var_ptrs_;              ///< Pointers to the user's variable.
+    MonitorVar monitor_var_internal_;         		    ///< Internal variable updated by monitor
     std::shared_ptr<ConnectionMonitor> connection_monitor_; ///< Monitors connection status.
-    bool new_data = false;
+    std::vector<std::function<void(const MonitorVar&)>> sync_tasks_; ///< Functions to copy internal value to user value
+    bool new_data_ = false;
 
     /**
      * @brief Callback invoked when a monitor event occurs (e.g., new data).
@@ -182,6 +193,12 @@ struct PVGroup {
      */
     PVHandler &get_pv(const std::string &pv_name);
 
+    /**
+     * @brief Returns a shared_ptr<PVHandler> from the group by its name.
+     * @param pv_name The name of the PV to retrieve.
+     * @return A shared_ptr<PVHandler> to the corresponding PVHandler object.
+     * @throws std::runtime_error if the PV is not found.
+     */
     std::shared_ptr<PVHandler> get_pv_shared(const std::string &pv_name);
 
     /**
@@ -198,50 +215,8 @@ struct PVGroup {
      */
     bool sync();
 
-    /**
-     * @brief Adds a callback function to be executed after a PV is updated.
-     * @param name The name of the PV to associate the callback with.
-     * @param cb The callback function to execute.
-     * @throws std::runtime_error if the PV is not found in the group.
-     */
-    void add_sync_callback(const std::string &name, std::function<void()> cb) {
-        std::lock_guard<std::mutex> lock(mutex_);
-        if (pv_map.count(name)) {
-            sync_callbacks_[name].push_back(std::move(cb));
-        } else {
-            throw std::runtime_error(name + "not in map");
-        }
-    }
-
-    /**
-     * @brief Gets the mutex for thread-safe access to the PVGroup.
-     * @return A reference to the std::mutex object.
-     */
-    std::mutex &get_mutex() { return mutex_; }
-
   private:
     std::mutex mutex_;
     pvac::ClientProvider &provider_;                                    ///< PVA client provider.
     std::unordered_map<std::string, std::shared_ptr<PVHandler>> pv_map; ///< Map of PVs by name.
-    std::unordered_map<std::string, std::vector<std::function<void()>>> sync_callbacks_;
-};
-
-template <typename T> class PVMonitorValue {
-  public:
-    T value;
-
-    PVMonitorValue(PVGroup &group, const std::string &name) : pv_name_(name) {
-        group.add(name);
-        pv_handler_ = group.get_pv_shared(name);
-        pv_handler_->set_monitor(pv_value_);
-        group.add_sync_callback(name, [this]() {
-            std::lock_guard<std::mutex> lock(pv_handler_->get_mutex());
-            value = pv_value_;
-        });
-    }
-
-  private:
-    T pv_value_; // The value written to by the monitor thread.
-    std::string pv_name_;
-    std::shared_ptr<PVHandler> pv_handler_; // Pointer to the PVHandler.
 };
