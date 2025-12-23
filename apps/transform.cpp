@@ -43,7 +43,7 @@ class TransformRow : public DisplayBase {
 	inpx(pvgroup, args, std::string("$(P)$(T).INP")+row_name, pvtui::PVPutType::String),
 	clcx(pvgroup, args, std::string("$(P)$(T).CLC")+row_name, pvtui::PVPutType::String),
 	valx(pvgroup, args, std::string("$(P)$(T).")+row_name, pvtui::PVPutType::Double),
-	outx(pvgroup, args, std::string("$(P)$(T).OUT")+row_name, pvtui::PVPutType::Double)
+	outx(pvgroup, args, std::string("$(P)$(T).OUT")+row_name, pvtui::PVPutType::String)
     {}
 
     ~TransformRow() override = default;
