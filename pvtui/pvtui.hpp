@@ -3,7 +3,6 @@
 #include <string>
 #include <unordered_map>
 #include <vector>
-#include <mutex>
 
 #include <ftxui/component/component_options.hpp>
 #include <ftxui/dom/elements.hpp>

@@ -185,7 +185,7 @@ PVGroup::PVGroup(pvac::ClientProvider &provider) : provider_(provider) {}
 void PVGroup::add(const std::string &pv_name) {
     std::lock_guard<std::mutex> lock(mutex_);
     if (!pv_map.count(pv_name)) {
-        pv_map.emplace(pv_name, std::make_unique<PVHandler>(provider_, pv_name));
+        pv_map.emplace(pv_name, std::make_shared<PVHandler>(provider_, pv_name));
     }
 }
 
