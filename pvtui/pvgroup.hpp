@@ -119,24 +119,17 @@ struct PVHandler : public pvac::ClientChannel::MonitorCallback {
     pvac::Monitor &get_monitor() { return monitor_; }
 
     /**
-     * @brief Gets the mutex for thread-safe access to PV data.
-     * @return A reference to the std::mutex object.
-     */
-    std::mutex &get_mutex() { return mutex; }
-
-    /**
      * @brief Gets a shared_ptr to the ConnectionMonitor
      * @return A shared_ptr to the ConnectionMonitor
      */
     std::shared_ptr<ConnectionMonitor> get_connection_monitor() const { return connection_monitor_; }
 
   private:
-    std::mutex mutex;
+    std::mutex mutex_;
     pvac::Monitor monitor_;                                 ///< PVA data monitor.
-    // std::vector<MonitorPtr> monitor_var_ptrs_;              ///< Pointers to the user's variable.
     MonitorVar monitor_var_internal_;         		    ///< Internal variable updated by monitor
-    std::vector<std::function<void(const MonitorVar&)>> sync_tasks_;
     std::shared_ptr<ConnectionMonitor> connection_monitor_; ///< Monitors connection status.
+    std::vector<std::function<void(const MonitorVar&)>> sync_tasks_; ///< Functions to copy internal value to user value
     bool new_data_ = false;
 
     /**
@@ -216,32 +209,10 @@ struct PVGroup {
      */
     bool sync();
 
-    /**
-     * @brief Adds a callback function to be executed after a PV is updated.
-     * @param name The name of the PV to associate the callback with.
-     * @param cb The callback function to execute.
-     * @throws std::runtime_error if the PV is not found in the group.
-     */
-    // void add_sync_callback(const std::string &name, std::function<void()> cb) {
-        // std::lock_guard<std::mutex> lock(mutex_);
-        // if (pv_map.count(name)) {
-            // sync_callbacks_[name].push_back(std::move(cb));
-        // } else {
-            // throw std::runtime_error(name + "not in map");
-        // }
-    // }
-
-    /**
-     * @brief Gets the mutex for thread-safe access to the PVGroup.
-     * @return A reference to the std::mutex object.
-     */
-    std::mutex &get_mutex() { return mutex_; }
-
   private:
     std::mutex mutex_;
     pvac::ClientProvider &provider_;                                    ///< PVA client provider.
     std::unordered_map<std::string, std::shared_ptr<PVHandler>> pv_map; ///< Map of PVs by name.
-    // std::unordered_map<std::string, std::vector<std::function<void()>>> sync_callbacks_;
 };
 
 // template <typename T> class PVMonitorValue {
