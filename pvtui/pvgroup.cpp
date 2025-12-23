@@ -9,7 +9,7 @@ bool ConnectionMonitor::connected() const { return connected_.load(std::memory_o
 
 PVHandler::PVHandler(pvac::ClientProvider &provider, const std::string &pv_name)
     : channel(provider.connect(pv_name)), name(pv_name), monitor_(channel.monitor(this)),
-      connection_monitor_(std::make_unique<ConnectionMonitor>()) {
+      connection_monitor_(std::make_shared<ConnectionMonitor>()) {
     channel.addConnectListener(connection_monitor_.get());
 }
 
