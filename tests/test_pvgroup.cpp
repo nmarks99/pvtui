@@ -1,7 +1,6 @@
 #include <chrono>
 #include <csignal>
 #include <iostream>
-#include <mutex>
 #include <thread>
 
 #include <pv/caProvider.h>
@@ -36,13 +35,17 @@ int main(int argc, char *argv[]) {
     // Create the group and add our PVs
     PVGroup pvgroup(provider);
 
-    PVMonitorValue<std::string> desc(pvgroup, prefix + "m1.DESC");
-    PVMonitorValue<double> rbv(pvgroup, prefix + "m1.RBV");
+    // PVMonitorValue<std::string> desc(pvgroup, prefix + "m1.DESC");
+    // PVMonitorValue<double> rbv(pvgroup, prefix + "m1.RBV");
+
+    pvgroup.add(prefix+"m1.RBV");
+    double rbv;
+    pvgroup.set_monitor<double>(prefix+"m1.RBV", rbv);
 
     while (g_signal_caught == 0) {
         if (pvgroup.sync()) {
-            std::cout << "DESC = " << desc.value << std::endl;
-            std::cout << "RBV = " << rbv.value << std::endl;
+            // std::cout << "DESC = " << desc.value << std::endl;
+            std::cout << "RBV1 = " << rbv << std::endl;
         }
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
     }
