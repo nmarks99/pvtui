@@ -65,14 +65,6 @@ class ArgParser {
     ArgParser(int argc, char *argv[]);
 
     /**
-     * @brief Constructs an ArgParser with a custom help message.
-     * @param argc Argument count.
-     * @param argv Argument values.
-     * @param help_msg Custom help message to be displayed.
-     */
-    ArgParser(int argc, char *argv[], const std::string &help_msg);
-
-    /**
      * @brief Checks if all specified macros are present in the parsed arguments.
      * @param macro_list A list of macro names to check.
      * @return True if all macros are present, false otherwise.
