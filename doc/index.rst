@@ -1,3 +1,4 @@
+=====
 PVTUI
 =====
 
@@ -21,6 +22,7 @@ Contents
     :maxdepth: 3
 
     applications
+    building
 
 
 Indices and tables
