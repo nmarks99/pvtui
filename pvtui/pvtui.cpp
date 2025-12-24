@@ -183,7 +183,7 @@ std::string ArgParser::replace(const std::string &str) const {
     for (auto &[k, v] : this->macros) {
         std::string pholder = "$(" + k + ")";
         while ((ind = out.find(pholder)) != std::string::npos) {
-            out.replace(ind, 4, v);
+            out.replace(ind, k.size()+3, v);
         }
     }
     return out;
