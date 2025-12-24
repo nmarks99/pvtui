@@ -108,23 +108,26 @@ set(EPICS_BASE_INCLUDES
 # --- Doxygen Documentation Generation -----------------------------------------
 if (BUILD_DOCS)
     find_package(Doxygen REQUIRED)
-    if (DOXYGEN_FOUND)
-        message(STATUS "Doxygen found. Version: ${DOXYGEN_VERSION}")
-        file(MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/doc/doxygen")
+    find_program(SPHINX_EXECUTABLE sphinx-build)
+
+    if (DOXYGEN_FOUND AND SPHINX_EXECUTABLE)
         configure_file(
-            ${CMAKE_CURRENT_SOURCE_DIR}/Doxyfile.in
-            ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile
-            @ONLY
+            ${CMAKE_CURRENT_SOURCE_DIR}/doc/Doxyfile.in
+            ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile @ONLY
         )
+
         add_custom_target(
             doc
+            # 1. Run Doxygen to generate docs/xml
             COMMAND ${DOXYGEN_EXECUTABLE} ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile
+            # 2. Run Sphinx on the docs folder
+            COMMAND ${SPHINX_EXECUTABLE} -b html
+                    ${CMAKE_CURRENT_SOURCE_DIR}/doc
+		    ${CMAKE_CURRENT_BINARY_DIR}/doc/sphinx
             WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
-            COMMENT "Generating API documentation with Doxygen"
+            COMMENT "Generating Doxygen XML and Sphinx HTML"
             VERBATIM
         )
-    else()
-        message(WARNING "Doxygen not found. Documentation will not be generated even if BUILD_DOCS is ON.")
     endif()
 endif()
 # ------------------------------------------------------------------------------
