@@ -1,20 +1,26 @@
 PVTUI
 =====
 
-.. toctree::
-   :maxdepth: 2
-   :caption: Contents:
+**A library for creating terminal/text user interfaces (TUIs) for EPICS.**
 
-PVTUI is a library for creating terminal/text based user interfaces for EPICS.
+
+    * Build EPICS aware TUIs fast with a readable and declartive API thanks to `FTXUI <https://github.com/ArthurSonzogni/FTXUI>`_
+    * As a complete FTXUI application, a PVTUI application supports keyboard and mouse navigation, animations, and more.
+    * Built in widgets which abstract EPICS communication details
+    * Supports both Channel Access and pvAccess
+    * Includes a set of ready-to-use applications (see :ref:`applications`)
+
+
+Repository: https://github.com/nmarks99/pvtui
 
 
 Contents
 --------
 
-   .. toctree::
-   :maxdepth: 3
+.. toctree::
+    :maxdepth: 3
 
-   applications
+    applications
 
 
 Indices and tables
