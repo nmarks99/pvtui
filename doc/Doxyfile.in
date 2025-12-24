@@ -4,22 +4,22 @@
 PROJECT_NAME           = pvtui
 PROJECT_BRIEF          = "Terminal User Interfaces for EPICS"
 PROJECT_LOGO           =
-OUTPUT_DIRECTORY       = @CMAKE_CURRENT_BINARY_DIR@/doc/doxygen
+OUTPUT_DIRECTORY       = @CMAKE_CURRENT_BINARY_DIR@/doc
 CREATE_SUBDIRS         = YES
 
 # Input settings
-INPUT                  = @CMAKE_SOURCE_DIR@/pvtui @CMAKE_SOURCE_DIR@/apps
+INPUT                  = @CMAKE_CURRENT_SOURCE_DIR@/pvtui @CMAKE_SOURCE_DIR@/apps
 FILE_PATTERNS          = *.h *.hpp *.cpp
 RECURSIVE              = YES
 EXCLUDE_PATTERNS       =
 EXCLUDE_SYMBOLS        =
 
 # Build settings
-GENERATE_HTML          = YES
+GENERATE_HTML          = NO
 GENERATE_LATEX         = NO
 GENERATE_MAN           = NO
 GENERATE_RTF           = NO
-GENERATE_XML           = NO
+GENERATE_XML           = YES
 GENERATE_DOCBOOK       = NO
 GENERATE_CHI           = NO
 GENERATE_ECLIPSEHELP   = NO
@@ -30,6 +30,8 @@ GENERATE_PERLMOD       = NO
 GENERATE_TAGFILE       =
 HTML_EXTRA_FILES       =
 LATEX_EXTRA_FILES      =
+
+XML_OUTPUT = xml
 
 # Output control
 QUIET                  = YES
