@@ -53,7 +53,10 @@ record(aao, "$(P)string_array") {
     field(NELM, 10)
 }
 
-record(calcout, "$(P)calcout1") {
+record(calcout, "$(P)calcout1") {}
+
+record(seq, "$(P)seq1") {
+    field(PREC, 2)
 }
 
 record(asyn,"$(P)asyn1") {
