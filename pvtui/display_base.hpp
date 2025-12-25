@@ -15,7 +15,7 @@ class DisplayBase {
      * @brief Constructs a DisplayBase object.
      * @param pvgroup A reference to the PVGroup managing the PVs for this display.
      */
-    DisplayBase(PVGroup &pvgroup) : pvgroup(pvgroup) {}
+    DisplayBase(pvtui::PVGroup &pvgroup) : pvgroup(pvgroup) {}
 
     /**
      * @brief Destroys the DisplayBase object.
@@ -42,5 +42,5 @@ class DisplayBase {
     virtual ftxui::Component get_container() = 0;
 
   protected:
-    PVGroup &pvgroup; ///< Reference to the PVGroup instance.
+    pvtui::PVGroup &pvgroup; ///< Reference to the PVGroup instance.
 };
