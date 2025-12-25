@@ -12,6 +12,8 @@
 #include <pv/caProvider.h>
 #include <pva/client.h>
 
+namespace pvtui {
+
 /**
  * @brief Represents the state of an EPICS enumeration (e.g., mbbo/mbbi).
  */
@@ -97,16 +99,17 @@ struct PVHandler : public pvac::ClientChannel::MonitorCallback {
      * @param var A reference to the variable that will be updated.
      */
     template <typename T> void set_monitor(T &var) {
-	if (std::holds_alternative<std::monostate>(monitor_var_internal_)) {
-	    monitor_var_internal_ = T{};
-	}
+        if (std::holds_alternative<std::monostate>(monitor_var_internal_)) {
+            monitor_var_internal_ = T{};
+        }
 
-	if (!std::holds_alternative<T>(monitor_var_internal_)) {
-	    throw std::runtime_error("Cannot set multiple monitors of different types for a single PV: " + name);
-	}
+        if (!std::holds_alternative<T>(monitor_var_internal_)) {
+            throw std::runtime_error("Cannot set multiple monitors of different types for a single PV: " +
+                                     name);
+        }
 
-        sync_tasks_.push_back([&var](const MonitorVar& latest_data) {
-            if (auto* val = std::get_if<T>(&latest_data)) {
+        sync_tasks_.push_back([&var](const MonitorVar &latest_data) {
+            if (auto *val = std::get_if<T>(&latest_data)) {
                 var = *val;
             }
         });
@@ -127,9 +130,10 @@ struct PVHandler : public pvac::ClientChannel::MonitorCallback {
   private:
     std::mutex mutex_;
     pvac::Monitor monitor_;                                 ///< PVA data monitor.
-    MonitorVar monitor_var_internal_;         		    ///< Internal variable updated by monitor
+    MonitorVar monitor_var_internal_;                       ///< Internal variable updated by monitor
     std::shared_ptr<ConnectionMonitor> connection_monitor_; ///< Monitors connection status.
-    std::vector<std::function<void(const MonitorVar&)>> sync_tasks_; ///< Functions to copy internal value to user value
+    std::vector<std::function<void(const MonitorVar &)>>
+        sync_tasks_; ///< Functions to copy internal value to user value
     bool new_data_ = false;
 
     /**
@@ -220,3 +224,4 @@ struct PVGroup {
     pvac::ClientProvider &provider_;                                    ///< PVA client provider.
     std::unordered_map<std::string, std::shared_ptr<PVHandler>> pv_map; ///< Map of PVs by name.
 };
+} // namespace pvtui

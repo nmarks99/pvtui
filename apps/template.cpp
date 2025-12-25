@@ -20,12 +20,9 @@ int main(int argc, char *argv[]) {
 
     // Parse command line arguments and macros
     pvtui::ArgParser args(argc, argv);
-    
-    // print the above help message if given "--help" or "-h" flags
-    if (args.flag("help") or args.flag("h")) {
-	std::cout << "Help Message Here!" << std::endl;
-	return EXIT_SUCCESS;
-    }
+
+    // print the help message if given "--help" or "-h" flags and return
+    if (args.help("Help Message Here!")) return EXIT_SUCCESS;
 
     // return if not all the required macros are given
     if (not args.macros_present({"P", "R"})) {

@@ -65,19 +65,26 @@ class ArgParser {
     ArgParser(int argc, char *argv[]);
 
     /**
-     * @brief Constructs an ArgParser with a custom help message.
-     * @param argc Argument count.
-     * @param argv Argument values.
-     * @param help_msg Custom help message to be displayed.
-     */
-    ArgParser(int argc, char *argv[], const std::string &help_msg);
-
-    /**
      * @brief Checks if all specified macros are present in the parsed arguments.
      * @param macro_list A list of macro names to check.
      * @return True if all macros are present, false otherwise.
      */
     bool macros_present(const std::vector<std::string> &macro_list) const;
+
+    /**
+     * @brief Prints a help message and returns true if help flags given
+     * @param msg The help message, as a type streamable to std::cout
+     * @return True if help flag present, false otherwise
+     */
+    template <typename T>
+    bool help(const T &msg) {
+	if (flag("help") or flag("h")) {
+	    std::cout << msg << std::endl;
+	    return true;
+	} else {
+	    return false;
+	}
+    }
 
     /**
      * @brief Checks if a specific command-line flag is set.
