@@ -72,6 +72,21 @@ class ArgParser {
     bool macros_present(const std::vector<std::string> &macro_list) const;
 
     /**
+     * @brief Prints a help message and returns true if help flags given
+     * @param msg The help message, as a type streamable to std::cout
+     * @return True if help flag present, false otherwise
+     */
+    template <typename T>
+    bool help(const T &msg) {
+	if (flag("help") or flag("h")) {
+	    std::cout << msg << std::endl;
+	    return true;
+	} else {
+	    return false;
+	}
+    }
+
+    /**
      * @brief Checks if a specific command-line flag is set.
      * @param f The flag name (e.g., "-h", "--version").
      * @return True if the flag is present, false otherwise.

@@ -1,4 +1,3 @@
-#include <pv/caProvider.h>
 #include <pva/client.h>
 
 #include <ftxui/component/component.hpp>
@@ -89,10 +88,7 @@ int main(int argc, char *argv[]) {
     // Parse command line arguments and macros
     pvtui::ArgParser args(argc, argv);
 
-    if (args.flag("help") or args.flag("h")) {
-	std::cout << CLI_HELP_MSG << std::endl;
-	return EXIT_SUCCESS;
-    }
+    if (args.help(CLI_HELP_MSG)) return EXIT_SUCCESS;
 
     if (not args.macros_present({"P", "S"})) {
 	printf("Missing required macros\nRequired macros: P, S\n");
