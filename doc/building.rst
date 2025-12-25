@@ -2,8 +2,7 @@
 
 Building from Source
 ====================
-At this time no binaries for PVTUI are provided so you must build it from source. However,
-there are not many dependencies so building from source is quite straightforward.
+At this time no binaries for PVTUI are provided so you must build it from source.
 
 
 Dependencies
