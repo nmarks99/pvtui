@@ -33,57 +33,45 @@ For more details, visit: https://github.com/nmarks99/pvtui
 
 int main(int argc, char *argv[]) {
 
-    // Parse command line arguments and macros
-    pvtui::ArgParser args(argc, argv);
+    Tui app(argc, argv);
 
-    if (args.help(CLI_HELP_MSG)) return EXIT_SUCCESS;
+    if (app.args.help(CLI_HELP_MSG)) return EXIT_SUCCESS;
 
-    if (not args.macros_present({"P", "R"})) {
+    if (not app.args.macros_present({"P", "R"})) {
         printf("Missing required macro P, R\n");
         return EXIT_FAILURE;
     }
 
-    // Create the FTXUI screen. Interactive and uses the full terminal screen
-    auto screen = ScreenInteractive::Fullscreen();
-
-    // Instantiate EPICS PVA client
-    // Start CAClientFactory so we can see CA only PVs
-    epics::pvAccess::ca::CAClientFactory::start();
-    pvac::ClientProvider provider(args.provider);
-
-    // PVGroup to manage all PVs for displays
-    PVGroup pvgroup(provider);
-
     // Create all the widgets
-    InputWidget aout(pvgroup, args, "$(P)$(R).AOUT", PVPutType::String);
-    InputWidget oeos(pvgroup, args, "$(P)$(R).OEOS", PVPutType::String);
-    InputWidget ieos(pvgroup, args, "$(P)$(R).IEOS", PVPutType::String);
-    InputWidget tmot(pvgroup, args, "$(P)$(R).TMOT", PVPutType::Double);
-    InputWidget tfil(pvgroup, args, "$(P)$(R).TFIL", PVPutType::String);
-    InputWidget nowt(pvgroup, args, "$(P)$(R).NOWT", PVPutType::Integer);
-    VarWidget<PVEnum> stat(pvgroup, args, "$(P)$(R).STAT");
-    VarWidget<PVEnum> sevr(pvgroup, args, "$(P)$(R).SEVR");
-    VarWidget<std::string> tinp(pvgroup, args, "$(P)$(R).TINP");
-    VarWidget<std::string> nawt(pvgroup, args, "$(P)$(R).NAWT");
-    VarWidget<std::string> nord(pvgroup, args, "$(P)$(R).NORD");
-    VarWidget<std::string> errs(pvgroup, args, "$(P)$(R).ERRS");
-    ChoiceWidget tmod(pvgroup, args, "$(P)$(R).TMOD", ChoiceStyle::Dropdown);
-    ChoiceWidget tb0(pvgroup, args, "$(P)$(R).TB0", ChoiceStyle::Horizontal);
-    ChoiceWidget tb1(pvgroup, args, "$(P)$(R).TB1", ChoiceStyle::Horizontal);
-    ChoiceWidget tb2(pvgroup, args, "$(P)$(R).TB2", ChoiceStyle::Horizontal);
-    ChoiceWidget tb3(pvgroup, args, "$(P)$(R).TB3", ChoiceStyle::Horizontal);
-    ChoiceWidget tb4(pvgroup, args, "$(P)$(R).TB4", ChoiceStyle::Horizontal);
-    ChoiceWidget tb5(pvgroup, args, "$(P)$(R).TB5", ChoiceStyle::Horizontal);
-    ChoiceWidget tib0(pvgroup, args, "$(P)$(R).TIB0", ChoiceStyle::Horizontal);
-    ChoiceWidget tib1(pvgroup, args, "$(P)$(R).TIB1", ChoiceStyle::Horizontal);
-    ChoiceWidget tib2(pvgroup, args, "$(P)$(R).TIB2", ChoiceStyle::Horizontal);
-    ChoiceWidget tinb0(pvgroup, args, "$(P)$(R).TINB0", ChoiceStyle::Horizontal);
-    ChoiceWidget tinb1(pvgroup, args, "$(P)$(R).TINB1", ChoiceStyle::Horizontal);
-    ChoiceWidget tinb2(pvgroup, args, "$(P)$(R).TINB2", ChoiceStyle::Horizontal);
-    ChoiceWidget tinb3(pvgroup, args, "$(P)$(R).TINB3", ChoiceStyle::Horizontal);
-    ChoiceWidget cnct(pvgroup, args, "$(P)$(R).CNCT", ChoiceStyle::Dropdown);
-    ChoiceWidget enbl(pvgroup, args, "$(P)$(R).ENBL", ChoiceStyle::Dropdown);
-    ChoiceWidget auct(pvgroup, args, "$(P)$(R).AUCT", ChoiceStyle::Dropdown);
+    InputWidget aout(app, "$(P)$(R).AOUT", PVPutType::String);
+    InputWidget oeos(app, "$(P)$(R).OEOS", PVPutType::String);
+    InputWidget ieos(app, "$(P)$(R).IEOS", PVPutType::String);
+    InputWidget tmot(app, "$(P)$(R).TMOT", PVPutType::Double);
+    InputWidget tfil(app, "$(P)$(R).TFIL", PVPutType::String);
+    InputWidget nowt(app, "$(P)$(R).NOWT", PVPutType::Integer);
+    VarWidget<PVEnum> stat(app, "$(P)$(R).STAT");
+    VarWidget<PVEnum> sevr(app, "$(P)$(R).SEVR");
+    VarWidget<std::string> tinp(app, "$(P)$(R).TINP");
+    VarWidget<std::string> nawt(app, "$(P)$(R).NAWT");
+    VarWidget<std::string> nord(app, "$(P)$(R).NORD");
+    VarWidget<std::string> errs(app, "$(P)$(R).ERRS");
+    ChoiceWidget tmod(app, "$(P)$(R).TMOD", ChoiceStyle::Dropdown);
+    ChoiceWidget tb0(app, "$(P)$(R).TB0", ChoiceStyle::Horizontal);
+    ChoiceWidget tb1(app, "$(P)$(R).TB1", ChoiceStyle::Horizontal);
+    ChoiceWidget tb2(app, "$(P)$(R).TB2", ChoiceStyle::Horizontal);
+    ChoiceWidget tb3(app, "$(P)$(R).TB3", ChoiceStyle::Horizontal);
+    ChoiceWidget tb4(app, "$(P)$(R).TB4", ChoiceStyle::Horizontal);
+    ChoiceWidget tb5(app, "$(P)$(R).TB5", ChoiceStyle::Horizontal);
+    ChoiceWidget tib0(app, "$(P)$(R).TIB0", ChoiceStyle::Horizontal);
+    ChoiceWidget tib1(app, "$(P)$(R).TIB1", ChoiceStyle::Horizontal);
+    ChoiceWidget tib2(app, "$(P)$(R).TIB2", ChoiceStyle::Horizontal);
+    ChoiceWidget tinb0(app, "$(P)$(R).TINB0", ChoiceStyle::Horizontal);
+    ChoiceWidget tinb1(app, "$(P)$(R).TINB1", ChoiceStyle::Horizontal);
+    ChoiceWidget tinb2(app, "$(P)$(R).TINB2", ChoiceStyle::Horizontal);
+    ChoiceWidget tinb3(app, "$(P)$(R).TINB3", ChoiceStyle::Horizontal);
+    ChoiceWidget cnct(app, "$(P)$(R).CNCT", ChoiceStyle::Dropdown);
+    ChoiceWidget enbl(app, "$(P)$(R).ENBL", ChoiceStyle::Dropdown);
+    ChoiceWidget auct(app, "$(P)$(R).AUCT", ChoiceStyle::Dropdown);
 
     // ftxui container to define interactivity of components
     auto main_container = ftxui::Container::Vertical({
@@ -126,7 +114,7 @@ int main(int argc, char *argv[]) {
     // ftxui renderer defines the visual layout
     auto main_renderer = Renderer(main_container, [&] {
         return vbox({
-            text(args.macros.at("P") + args.macros.at("R"))
+            text(app.args.macros.at("P") + app.args.macros.at("R"))
                 | bold | italic
                 | bgcolor(Color::NavyBlue) | color(Color::White),
             separatorEmpty(),
@@ -306,13 +294,5 @@ int main(int argc, char *argv[]) {
         }) | border | color(Color::Black) | size(WIDTH, EQUAL, 52) | center | EPICSColor::background();
     });
 
-    constexpr int POLL_PERIOD_MS = 100;
-    Loop loop(&screen, main_renderer);
-    while (!loop.HasQuitted()) {
-        if (pvgroup.sync()) {
-            screen.PostEvent(Event::Custom);
-        }
-        loop.RunOnce();
-        std::this_thread::sleep_for(std::chrono::milliseconds(POLL_PERIOD_MS));
-    }
+    app.run(main_renderer);
 }

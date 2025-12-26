@@ -1,5 +1,4 @@
-// A template to use as a starting point for
-// creating a new PVTUI application
+#include <string>
 
 #include <ftxui/dom/elements.hpp>
 #include <pv/caProvider.h>
@@ -12,8 +11,6 @@
 #include <ftxui/component/event.hpp>
 #include <ftxui/dom/node.hpp>
 
-#include <string>
-
 #include <pvtui/pvtui.hpp>
 
 using namespace ftxui;
@@ -21,42 +18,29 @@ using namespace pvtui;
 
 int main(int argc, char *argv[]) {
 
-    // Parse command line arguments and macros
-    pvtui::ArgParser args(argc, argv);
+    Tui app(argc, argv);
 
-    if (not args.macros_present({"P"})) {
+    if (not app.args.macros_present({"P"})) {
 	printf("Missing required macros\nRequired macros: P\n");
 	return EXIT_FAILURE;
     }
-    std::string P = args.macros.at("P");
-
-    // Create the FTXUI screen. Interactive and uses the full terminal screen
-    auto screen = ScreenInteractive::Fullscreen();
-
-    // Instantiate EPICS PVA client
-    // Start CAClientFactory so we can see CA only PVs
-    epics::pvAccess::ca::CAClientFactory::start();
-    pvac::ClientProvider provider("ca");
-
-    // PVGroup to manage all PVs for displays
-    PVGroup pvgroup(provider);
+    std::string P = app.args.macros.at("P");
 
     // Create all the widgets
-    InputWidget string1(pvgroup, P+"string", PVPutType::String);
-    InputWidget float1(pvgroup, P+"float", PVPutType::Double);
-    InputWidget long1(pvgroup, P+"long", PVPutType::Integer);
+    InputWidget string1(app, P+"string", PVPutType::String);
+    InputWidget float1(app, P+"float", PVPutType::Double);
+    InputWidget long1(app, P+"long", PVPutType::Integer);
 
-    VarWidget<std::string> string1_rbv(pvgroup, P+"string");
-    VarWidget<double> float1_rbv(pvgroup, P+"float");
-    VarWidget<int> long1_rbv(pvgroup, P+"long");
+    VarWidget<std::string> string1_rbv(app, P+"string");
+    VarWidget<std::string> float1_rbv(app, P+"float");
+    VarWidget<std::string> long1_rbv(app, P+"long");
 
-    ChoiceWidget enum1_h(pvgroup, P+"enum", ChoiceStyle::Horizontal);
-    ChoiceWidget enum1_v(pvgroup, P+"enum", ChoiceStyle::Vertical);
-    ChoiceWidget enum1_d(pvgroup, P+"enum", ChoiceStyle::Dropdown);
+    ChoiceWidget enum1_h(app, P+"enum", ChoiceStyle::Horizontal);
+    ChoiceWidget enum1_v(app, P+"enum", ChoiceStyle::Vertical);
+    ChoiceWidget enum1_d(app, P+"enum", ChoiceStyle::Dropdown);
 
-    ButtonWidget plus(pvgroup, P+"add1.PROC", " + ");
-    ButtonWidget minus(pvgroup, P+"subtract1.PROC", " - ");
-
+    ButtonWidget plus(app, P+"add1.PROC", " + ");
+    ButtonWidget minus(app, P+"subtract1.PROC", " - ");
 
     // ftxui container to define interactivity of components
     auto main_container = Container::Vertical({
@@ -122,9 +106,9 @@ int main(int argc, char *argv[]) {
                     separator() | color(Color::Black),
                     text(string1_rbv.value()) | EPICSColor::readback(string1_rbv),
                     separatorEmpty(),
-                    text(std::to_string(float1_rbv.value())) | EPICSColor::readback(float1_rbv),
+                    text(float1_rbv.value()) | EPICSColor::readback(float1_rbv),
                     separatorEmpty(),
-                    text(std::to_string(long1_rbv.value())) | EPICSColor::readback(long1_rbv),
+                    text(long1_rbv.value()) | EPICSColor::readback(long1_rbv),
                     separatorEmpty(),
                     text("Index = " + std::to_string(enum1_h.value().index)) | EPICSColor::readback(enum1_h),
                     text("Choice = " + enum1_h.value().choice) | EPICSColor::readback(enum1_h),
@@ -135,15 +119,5 @@ int main(int argc, char *argv[]) {
     });
 
     // Main loop
-    constexpr int POLL_PERIOD_MS = 100;
-    Loop loop(&screen, main_renderer);
-    while (!loop.HasQuitted()) {
-        // update monitored variables in the PVGroup, if new data post an ftxui event
-        if (pvgroup.sync()) {
-            screen.PostEvent(Event::Custom);
-        }
-        // run the ftxui main loop once and sleep
-        loop.RunOnce();
-        std::this_thread::sleep_for(std::chrono::milliseconds(POLL_PERIOD_MS));
-    }
+    app.run(main_renderer);
 }

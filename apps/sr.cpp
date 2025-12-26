@@ -69,51 +69,39 @@ static const std::unordered_map<int, Element> shutter_status_text = {
 
 int main(int argc, char *argv[]) {
 
-    // Parse command line arguments and macros
-    pvtui::ArgParser args(argc, argv);
-
-    if (args.help(CLI_HELP_MSG)) return EXIT_SUCCESS;
-
-    // Create the FTXUI screen. Interactive and uses the full terminal screen
-    auto screen = ScreenInteractive::Fullscreen();
-
-    // Instantiate EPICS client
-    epics::pvAccess::ca::CAClientFactory::start();
-    pvac::ClientProvider provider("ca");
-
-    // PVGroup to manage all PVs for this display
-    PVGroup pvgroup(provider);
+    Tui app(argc, argv);
+    if (app.args.help(CLI_HELP_MSG)) return EXIT_SUCCESS;
 
     // Widgets for each PV we want on the display
     // This particular display has no interactive elements
-    VarWidget<std::string> time_and_date(pvgroup, "S:IOC:timeOfDayForm1SI");
-    VarWidget<std::string> current(pvgroup, "S-DCCT:CurrentM");
-    VarWidget<int> lifetime(pvgroup, "S-DCCT:LifetimeM");
-    VarWidget<PVEnum> injection_status(pvgroup, "S-INJ:InjectionOperationM");
-    VarWidget<std::string> injection_period(pvgroup, "S-INJ:InjectionPeriodCounterM");
-    VarWidget<PVEnum> desired_mode(pvgroup, "S:DesiredMode");
-    VarWidget<PVEnum> actual_mode(pvgroup, "S:ActualMode");
-    VarWidget<PVEnum> shutter_status(pvgroup, "RF-ACIS:FePermit:Sect1To35IdM");
-    VarWidget<int> num_shutters_open(pvgroup, "NoOfShuttersOpenA");
-    VarWidget<std::string> operators(pvgroup, "OPS:message1");
-    VarWidget<std::string> floor_coord(pvgroup, "OPS:message2");
-    VarWidget<std::string> fill_patt(pvgroup, "OPS:message3");
-    VarWidget<std::string> dump_reason(pvgroup, "OPS:message5");
-    VarWidget<std::string> dump_reason_cont(pvgroup, "OPS:message16");
-    VarWidget<std::string> prob_info(pvgroup, "OPS:message4");
-    VarWidget<std::string> prob_info_cont(pvgroup, "OPS:message14");
-    VarWidget<std::string> next_fill(pvgroup, "OPS:message6");
-    VarWidget<std::string> next_fill_cont(pvgroup, "OPS:message17");
-    VarWidget<std::string> next_update(pvgroup, "OPS:message18");
+    VarWidget<std::string> time_and_date(app, "S:IOC:timeOfDayForm1SI");
+    VarWidget<std::string> current(app, "S-DCCT:CurrentM");
+    VarWidget<int> lifetime(app, "S-DCCT:LifetimeM");
+    VarWidget<PVEnum> injection_status(app, "S-INJ:InjectionOperationM");
+    VarWidget<std::string> injection_period(app, "S-INJ:InjectionPeriodCounterM");
+    VarWidget<PVEnum> desired_mode(app, "S:DesiredMode");
+    VarWidget<PVEnum> actual_mode(app, "S:ActualMode");
+    VarWidget<PVEnum> shutter_status(app, "RF-ACIS:FePermit:Sect1To35IdM");
+    VarWidget<int> num_shutters_open(app, "NoOfShuttersOpenA");
+    VarWidget<std::string> operators(app, "OPS:message1");
+    VarWidget<std::string> floor_coord(app, "OPS:message2");
+    VarWidget<std::string> fill_patt(app, "OPS:message3");
+    VarWidget<std::string> dump_reason(app, "OPS:message5");
+    VarWidget<std::string> dump_reason_cont(app, "OPS:message16");
+    VarWidget<std::string> prob_info(app, "OPS:message4");
+    VarWidget<std::string> prob_info_cont(app, "OPS:message14");
+    VarWidget<std::string> next_fill(app, "OPS:message6");
+    VarWidget<std::string> next_fill_cont(app, "OPS:message17");
+    VarWidget<std::string> next_update(app, "OPS:message18");
 
     // VarWidget does not work right here since there isn't a way to preallocate 1440
     std::vector<double> user_ops_current(1440, 0.0);
-    pvgroup.add("S:UserOpsCurrent");
-    pvgroup.set_monitor("S:UserOpsCurrent", user_ops_current);
+    app.pvgroup.add("S:UserOpsCurrent");
+    app.pvgroup.set_monitor("S:UserOpsCurrent", user_ops_current);
 
     std::vector<double> other_current(1440, 0.0);
-    pvgroup.add("S:OtherCurrent");
-    pvgroup.set_monitor("S:OtherCurrent", other_current);
+    app.pvgroup.add("S:OtherCurrent");
+    app.pvgroup.set_monitor("S:OtherCurrent", other_current);
 
     auto plot1_renderer = Renderer([&] {
         const double CURR_MAX = 200;
@@ -149,7 +137,7 @@ int main(int argc, char *argv[]) {
     auto main_container = Container::Vertical({});
     main_container |= CatchEvent([&](Event event) {
         if (event == Event::Character('q')) {
-            screen.Exit();
+            app.screen.Exit();
             return true;
         }
         return false;
@@ -224,16 +212,7 @@ int main(int argc, char *argv[]) {
         });
     });
 
-    // Custom main loop
-    constexpr int POLL_PERIOD_MS = 100;
-    Loop loop(&screen, main_renderer);
-    while (!loop.HasQuitted()) {
-        if (pvgroup.sync()) {
-            screen.PostEvent(Event::Custom);
-        }
-        loop.RunOnce();
-        std::this_thread::sleep_for(std::chrono::milliseconds(POLL_PERIOD_MS));
-    }
+    app.run(main_renderer);
 
     return 0;
 }

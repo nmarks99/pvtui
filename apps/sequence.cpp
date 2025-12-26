@@ -36,12 +36,12 @@ For more details, visit: https://github.com/nmarks99/pvtui
 // except for the PV names
 class SequenceRow : public DisplayBase {
   public:
-    SequenceRow(PVGroup &pvgroup, const pvtui::ArgParser &args, const std::string &row_name)
-	: DisplayBase(pvgroup),
-	dolx(pvgroup, args, std::string("$(P)$(S).DOL")+row_name, pvtui::PVPutType::String),
-	dlyx(pvgroup, args, std::string("$(P)$(S).DLY")+row_name, pvtui::PVPutType::Double),
-	dox(pvgroup, args, std::string("$(P)$(S).DO")+row_name, pvtui::PVPutType::Double),
-	lnkx(pvgroup, args, std::string("$(P)$(S).LNK")+row_name, pvtui::PVPutType::String)
+    SequenceRow(Tui &app, const std::string &row_name)
+	: DisplayBase(app),
+	dolx(app, std::string("$(P)$(S).DOL")+row_name, pvtui::PVPutType::String),
+	dlyx(app, std::string("$(P)$(S).DLY")+row_name, pvtui::PVPutType::Double),
+	dox(app, std::string("$(P)$(S).DO")+row_name, pvtui::PVPutType::Double),
+	lnkx(app, std::string("$(P)$(S).LNK")+row_name, pvtui::PVPutType::String)
     {}
 
     ~SequenceRow() override = default;
@@ -85,36 +85,23 @@ class SequenceRow : public DisplayBase {
 
 int main(int argc, char *argv[]) {
 
-    // Parse command line arguments and macros
-    pvtui::ArgParser args(argc, argv);
-
-    if (args.help(CLI_HELP_MSG)) return EXIT_SUCCESS;
-
-    if (not args.macros_present({"P", "S"})) {
+    Tui app(argc, argv);
+    if (app.args.help(CLI_HELP_MSG)) return EXIT_SUCCESS;
+    if (not app.args.macros_present({"P", "S"})) {
 	printf("Missing required macros\nRequired macros: P, S\n");
 	return EXIT_FAILURE;
     }
 
-    // Create the FTXUI screen. Interactive and uses the full terminal screen
-    auto screen = ScreenInteractive::Fullscreen();
-
-    // Instantiate EPICS client
-    epics::pvAccess::ca::CAClientFactory::start();
-    pvac::ClientProvider provider(args.provider);
-
-    // PVGroup to manage all PVs in the display
-    PVGroup pvgroup(provider);
-
-    ChoiceWidget scan(pvgroup, args, "$(P)$(S).SCAN", ChoiceStyle::Dropdown);
-    ButtonWidget proc(pvgroup, args, "$(P)$(S).PROC", " PROC ");
-    InputWidget desc(pvgroup, args, "$(P)$(S).DESC", PVPutType::String);
-    InputWidget prec(pvgroup, args, "$(P)$(S).PREC", PVPutType::Integer);
-    InputWidget flnk(pvgroup, args, "$(P)$(S).FLNK", PVPutType::String);
+    ChoiceWidget scan(app, "$(P)$(S).SCAN", ChoiceStyle::Dropdown);
+    ButtonWidget proc(app, "$(P)$(S).PROC", " PROC ");
+    InputWidget desc(app, "$(P)$(S).DESC", PVPutType::String);
+    InputWidget prec(app, "$(P)$(S).PREC", PVPutType::Integer);
+    InputWidget flnk(app, "$(P)$(S).FLNK", PVPutType::String);
 
     // add a row for transform record fields A through P (e.g. INPA, CLCA...INPA, CLCP)
     std::vector<std::unique_ptr<DisplayBase>> rows;
     for (int i = 0; i < 10; i++) {
-	rows.emplace_back(std::make_unique<SequenceRow>(pvgroup, args, std::to_string(i)));
+	rows.emplace_back(std::make_unique<SequenceRow>(app, std::to_string(i)));
     }
 
     // Main container to define interactivity of components
@@ -192,16 +179,8 @@ int main(int argc, char *argv[]) {
 	}) | center | bgcolor(Color::RGB(196,196,196));
     });
 
-    // Custom main loop
-    constexpr int POLL_PERIOD_MS = 100;
-    Loop loop(&screen, main_renderer);
-    while (!loop.HasQuitted()) {
-	if (pvgroup.sync()) {
-	    screen.PostEvent(Event::Custom);
-	}
-        loop.RunOnce();
-        std::this_thread::sleep_for(std::chrono::milliseconds(POLL_PERIOD_MS));
-    }
+
+    app.run(main_renderer);
 
     return EXIT_SUCCESS;
 }
