@@ -1,7 +1,7 @@
 .. _applications:
 
-Applications
-------------
+Included Applications
+---------------------
 Packaged with the library is a collection of several ready to use TUIs including
 
 * motor record

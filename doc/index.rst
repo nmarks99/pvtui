@@ -22,6 +22,7 @@ Contents
 
     applications
     building
+    tutorial
 
 
 Indices and tables
