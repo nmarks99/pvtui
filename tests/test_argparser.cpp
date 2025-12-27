@@ -1,7 +1,6 @@
 #include <iostream>
 #include <pvtui/pvtui.hpp>
 
-
 int main() {
 
     std::cout << "[pvtui::ArgParser] Running tests...\n";
@@ -57,6 +56,13 @@ int main() {
 	assert(parser.macros_present({"MOTOR", "PREF"}));
 	assert(parser.replace("$(PREF)") == "MyPrefix:");
 	assert(parser.replace("$(MOTOR)") == "m1");
+    }
+
+    {
+	char arg0[] = "ArgParser test";
+	char *args[] = {arg0, nullptr};
+	pvtui::ArgParser parser(1, args);
+	assert(parser.macros.size() == 0);
     }
 
     std::cout << "[pvtui::ArgParser] All tests passed" << std::endl;

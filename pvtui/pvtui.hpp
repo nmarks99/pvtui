@@ -134,27 +134,32 @@ class ArgParser {
  * This class holds the ArgParser, PVGroup, pvac::ClientProvider,
  * and ftxui::ScreenInteractive to reduce boilerplate in PVTUI applications.
  */
-struct Tui {
-    Tui(int argc, char *argv[]);
+struct App {
+    App(int argc, char *argv[]);
 
+    /**
+     * @brief Runs the main FTXUI loop
+     * @param renderer The ftxui::Component which defines the application layout
+     * @param poll_period_ms Render loop polling period in milliseconds
+     */
     void run(const ftxui::Component &renderer, int poll_period_ms = 100);
 
-    using MainLoop = std::function<void(Tui &, const ftxui::Component &, int)>;
-    MainLoop main_loop = [](Tui &tui, const ftxui::Component &renderer, int ms) {
-	ftxui::Loop loop(&tui.screen, renderer);
+    ///< The main loop function to run with App::run. Can be redefined by the user
+    std::function<void(App &, const ftxui::Component &, int)> main_loop = [](App &app, const ftxui::Component &renderer, int ms) {
+	ftxui::Loop loop(&app.screen, renderer);
         while (!loop.HasQuitted()) {
-            if (tui.pvgroup.sync()) {
-                tui.screen.PostEvent(ftxui::Event::Custom);
+            if (app.pvgroup.sync()) {
+                app.screen.PostEvent(ftxui::Event::Custom);
             }
             loop.RunOnce();
             std::this_thread::sleep_for(std::chrono::milliseconds(ms));
         }
     };
 
-    pvtui::ArgParser args;
-    pvac::ClientProvider provider;
-    PVGroup pvgroup;
-    ftxui::ScreenInteractive screen;
+    pvtui::ArgParser args;           ///< pvtui::ArgParser to store the cmd line arguments
+    pvac::ClientProvider provider;   ///< EPICS client provider
+    PVGroup pvgroup;                 ///< pvtui::PVGroup to manage PVs used in the application
+    ftxui::ScreenInteractive screen; ///< screen instance for FTXUI rendering
 };
 
 /**
@@ -240,7 +245,7 @@ class InputWidget : public WidgetBase {
     /**
      * @brief TODO.
      */
-    InputWidget(Tui &tui, const std::string &pv_name, PVPutType put_type);
+    InputWidget(App &tui, const std::string &pv_name, PVPutType put_type);
 
     /**
      * @brief Gets the current value of the string displayed in the UI.
@@ -281,7 +286,7 @@ class ButtonWidget : public WidgetBase {
     /**
      * @brief TODO.
      */
-    ButtonWidget(Tui &tui, const std::string &pv_name, const std::string &label,
+    ButtonWidget(App &tui, const std::string &pv_name, const std::string &label,
                  int press_val = 1);
 };
 
@@ -317,7 +322,7 @@ template <typename T> class VarWidget : public WidgetBase {
     /**
      * @brief TODO.
      */
-    VarWidget(Tui &tui, const std::string &pv_name) : WidgetBase(tui.pvgroup, tui.args, pv_name) {
+    VarWidget(App &tui, const std::string &pv_name) : WidgetBase(tui.pvgroup, tui.args, pv_name) {
         tui.pvgroup.set_monitor(pv_name_, value_);
     }
 
@@ -364,7 +369,7 @@ class ChoiceWidget : public WidgetBase {
     /**
      * @brief TODO.
      */
-    ChoiceWidget(Tui &tui, const std::string &pv_name, ChoiceStyle style);
+    ChoiceWidget(App &tui, const std::string &pv_name, ChoiceStyle style);
 
     /**
      * @brief Gets the current enum value displayed in the UI.

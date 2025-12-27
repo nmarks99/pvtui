@@ -33,7 +33,7 @@ For more details, visit: https://github.com/nmarks99/pvtui
 
 int main(int argc, char *argv[]) {
 
-    Tui app(argc, argv);
+    App app(argc, argv);
 
     if (app.args.help(CLI_HELP_MSG)) return EXIT_SUCCESS;
 

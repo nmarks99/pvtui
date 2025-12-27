@@ -37,7 +37,7 @@ For more details, visit: https://github.com/nmarks99/pvtui
 // except for the PV names
 class TransformRow : public DisplayBase {
   public:
-    TransformRow(Tui &app, const std::string &row_name)
+    TransformRow(App &app, const std::string &row_name)
 	: DisplayBase(app),
 	cmtx(app, std::string("$(P)$(T).CMT")+row_name, pvtui::PVPutType::String),
 	inpx(app, std::string("$(P)$(T).INP")+row_name, pvtui::PVPutType::String),
@@ -93,7 +93,7 @@ class TransformRow : public DisplayBase {
 
 int main(int argc, char *argv[]) {
 
-    Tui app(argc, argv);
+    App app(argc, argv);
     if (app.args.help(CLI_HELP_MSG)) return EXIT_SUCCESS;
     if (not app.args.macros_present({"P", "T"})) {
 	printf("Missing required macros\nRequired macros: P, T\n");

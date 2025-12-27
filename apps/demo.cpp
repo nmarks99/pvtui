@@ -18,7 +18,7 @@ using namespace pvtui;
 
 int main(int argc, char *argv[]) {
 
-    Tui app(argc, argv);
+    App app(argc, argv);
 
     if (not app.args.macros_present({"P"})) {
 	printf("Missing required macros\nRequired macros: P\n");

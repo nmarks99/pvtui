@@ -53,16 +53,10 @@ record(aao, "$(P)string_array") {
     field(NELM, 10)
 }
 
-record(calcout, "$(P)calcout1") {}
+record(calcout, "$(P)calcout1") {
+    field(PREC, 4)
+}
 
 record(seq, "$(P)seq1") {
     field(PREC, 2)
-}
-
-record(asyn,"$(P)asyn1") {
-    field(DTYP,"asynRecordDevice")
-    field(PORT,"$(ASYN_PORT=dummy)")
-    field(ADDR,"0")
-    field(OMAX,"256")
-    field(IMAX,"256")
 }

@@ -36,7 +36,7 @@ For more details, visit: https://github.com/nmarks99/pvtui
 // except for the PV names
 class SequenceRow : public DisplayBase {
   public:
-    SequenceRow(Tui &app, const std::string &row_name)
+    SequenceRow(App &app, const std::string &row_name)
 	: DisplayBase(app),
 	dolx(app, std::string("$(P)$(S).DOL")+row_name, pvtui::PVPutType::String),
 	dlyx(app, std::string("$(P)$(S).DLY")+row_name, pvtui::PVPutType::Double),
@@ -85,7 +85,7 @@ class SequenceRow : public DisplayBase {
 
 int main(int argc, char *argv[]) {
 
-    Tui app(argc, argv);
+    App app(argc, argv);
     if (app.args.help(CLI_HELP_MSG)) return EXIT_SUCCESS;
     if (not app.args.macros_present({"P", "S"})) {
 	printf("Missing required macros\nRequired macros: P, S\n");
