@@ -230,6 +230,7 @@ class InputWidget : public WidgetBase {
      * @param args ArgParser for macro replacement.
      * @param pv_name The PV name with macros, e.g. "$(P)$(M).VAL".
      * @param put_type Specifies how the input value is written to the PV.
+     * @param tf transformation function to be applied to the Component
      */
     InputWidget(PVGroup &pvgroup, const ArgParser &args, const std::string &pv_name,
                 PVPutType put_type, InputTransform tf = nullptr);
