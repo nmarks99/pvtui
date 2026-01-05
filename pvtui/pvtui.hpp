@@ -228,6 +228,7 @@ class InputWidget : public WidgetBase {
      * @param args ArgParser for macro replacement.
      * @param pv_name The PV name with macros, e.g. "$(P)$(M).VAL".
      * @param put_type Specifies how the input value is written to the PV.
+     * @param tf optional ftxui transformation function
      */
     InputWidget(PVGroup& pvgroup, const ArgParser& args, const std::string& pv_name, PVPutType put_type,
                 InputTransform tf = nullptr);
@@ -242,6 +243,7 @@ class InputWidget : public WidgetBase {
 
     /**
      * @brief Constructs an InputWidget from an App class
+     * @param app A reference to the App.
      * @param pv_name The PV name.
      * @param put_type Specifies how the input value is written to the PV.
      */
@@ -284,6 +286,7 @@ class ButtonWidget : public WidgetBase {
 
     /**
      * @brief Constructs a ButtonWidget from an App class
+     * @param app A reference to the App.
      * @param pv_name The PV name.
      * @param label The text displayed on the button.
      * @param press_val The value written to the PV on press.
@@ -322,6 +325,7 @@ template <typename T> class VarWidget : public WidgetBase {
 
     /**
      * @brief Constructs a VarWidget from an App class
+     * @param app A reference to the App.
      * @param pv_name The PV name.
      */
     VarWidget(App& app, const std::string& pv_name) : WidgetBase(app.pvgroup, app.args, pv_name) {
