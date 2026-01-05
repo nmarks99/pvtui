@@ -1,15 +1,15 @@
 #pragma once
 
+#include <chrono>
 #include <string>
+#include <thread>
 #include <unordered_map>
 #include <vector>
-#include <thread>
-#include <chrono>
 
 #include <ftxui/component/component_options.hpp>
-#include <ftxui/component/screen_interactive.hpp>
 #include <ftxui/component/event.hpp>
 #include <ftxui/component/loop.hpp>
+#include <ftxui/component/screen_interactive.hpp>
 #include <ftxui/dom/elements.hpp>
 #include <ftxui/screen/color.hpp>
 
@@ -67,28 +67,27 @@ class ArgParser {
      * @param argc Argument count.
      * @param argv Argument values.
      */
-    ArgParser(int argc, char *argv[]);
+    ArgParser(int argc, char* argv[]);
 
     /**
      * @brief Checks if all specified macros are present in the parsed arguments.
      * @param macro_list A list of macro names to check.
      * @return True if all macros are present, false otherwise.
      */
-    bool macros_present(const std::vector<std::string> &macro_list) const;
+    bool macros_present(const std::vector<std::string>& macro_list) const;
 
     /**
      * @brief Prints a help message and returns true if help flags given
      * @param msg The help message, as a type streamable to std::cout
      * @return True if help flag present, false otherwise
      */
-    template <typename T>
-    bool help(const T &msg) {
-	if (flag("help") or flag("h")) {
-	    std::cout << msg << std::endl;
-	    return true;
-	} else {
-	    return false;
-	}
+    template <typename T> bool help(const T& msg) {
+        if (flag("help") or flag("h")) {
+            std::cout << msg << std::endl;
+            return true;
+        } else {
+            return false;
+        }
     }
 
     /**
@@ -96,17 +95,17 @@ class ArgParser {
      * @param f The flag name (e.g., "-h", "--version").
      * @return True if the flag is present, false otherwise.
      */
-    bool flag(const std::string &f) const;
+    bool flag(const std::string& f) const;
 
     /**
      * @brief Replaces macros in a string with their corresponding values.
      * @param str A string with macros like $(P), $(R), etc.
      * @return A new string with all macros replaced by their values.
      */
-    std::string replace(const std::string &str) const;
+    std::string replace(const std::string& str) const;
 
     std::unordered_map<std::string, std::string> macros; ///< Parsed macros (e.g., "P=VAL").
-    std::string provider = "ca"; ///< The EPICS provider type (e.g., "ca", "pva").
+    std::string provider = "ca";                         ///< The EPICS provider type (e.g., "ca", "pva").
 
   private:
     argh::parser cmdl_; ///< Internal argh parser instance.
@@ -117,7 +116,7 @@ class ArgParser {
      * @param delimiter The character to split by.
      * @return A vector of substrings.
      */
-    std::vector<std::string> split_string(const std::string &input, char delimiter);
+    std::vector<std::string> split_string(const std::string& input, char delimiter);
 
     /**
      * @brief Creates a map of macro names to values from a string similar to MEDM or caQtDM.
@@ -127,7 +126,6 @@ class ArgParser {
     std::unordered_map<std::string, std::string> get_macro_dict(std::string all_macros);
 };
 
-
 /**
  * @brief Convenience struct for managing a TUI application
  *
@@ -135,26 +133,27 @@ class ArgParser {
  * and ftxui::ScreenInteractive to reduce boilerplate in PVTUI applications.
  */
 struct App {
-    App(int argc, char *argv[]);
+    App(int argc, char* argv[]);
 
     /**
      * @brief Runs the main FTXUI loop
      * @param renderer The ftxui::Component which defines the application layout
      * @param poll_period_ms Render loop polling period in milliseconds
      */
-    void run(const ftxui::Component &renderer, int poll_period_ms = 100);
+    void run(const ftxui::Component& renderer, int poll_period_ms = 100);
 
     ///< The main loop function to run with App::run. Can be redefined by the user
-    std::function<void(App &, const ftxui::Component &, int)> main_loop = [](App &app, const ftxui::Component &renderer, int ms) {
-	ftxui::Loop loop(&app.screen, renderer);
-        while (!loop.HasQuitted()) {
-            if (app.pvgroup.sync()) {
-                app.screen.PostEvent(ftxui::Event::Custom);
+    std::function<void(App&, const ftxui::Component&, int)> main_loop =
+        [](App& app, const ftxui::Component& renderer, int ms) {
+            ftxui::Loop loop(&app.screen, renderer);
+            while (!loop.HasQuitted()) {
+                if (app.pvgroup.sync()) {
+                    app.screen.PostEvent(ftxui::Event::Custom);
+                }
+                loop.RunOnce();
+                std::this_thread::sleep_for(std::chrono::milliseconds(ms));
             }
-            loop.RunOnce();
-            std::this_thread::sleep_for(std::chrono::milliseconds(ms));
-        }
-    };
+        };
 
     pvtui::ArgParser args;           ///< pvtui::ArgParser to store the cmd line arguments
     pvac::ClientProvider provider;   ///< EPICS client provider
@@ -200,16 +199,16 @@ class WidgetBase {
      * @param args The ArgParser for macro expansion.
      * @param pv_name The macro-style PV name (e.g., "$(P)$(R)VAL").
      */
-    WidgetBase(PVGroup &pvgroup, const ArgParser &args, const std::string &pv_name);
+    WidgetBase(PVGroup& pvgroup, const ArgParser& args, const std::string& pv_name);
 
     /**
      * @brief Constructs a WidgetBase with a fully-expanded PV name.
      * @param pvgroup The PVGroup used to manage PVs for this widget.
      * @param pv_name The fully-expanded PV name.
      */
-    WidgetBase(PVGroup &pvgroup, const std::string &pv_name);
+    WidgetBase(PVGroup& pvgroup, const std::string& pv_name);
 
-    PVGroup &pvgroup_;                                      ///< The PVGroup
+    PVGroup& pvgroup_;                                      ///< The PVGroup
     std::string pv_name_;                                   ///< The PV name.
     ftxui::Component component_;                            ///< Underlying FTXUI component.
     bool connected_;                                        ///< Boolean for PV connection status
@@ -223,7 +222,6 @@ class WidgetBase {
  */
 class InputWidget : public WidgetBase {
   public:
-
     /**
      * @brief Constructs an InputWidget with macro expansion.
      * @param pvgroup The PVGroup managing the PVs used in this widget.
@@ -231,8 +229,8 @@ class InputWidget : public WidgetBase {
      * @param pv_name The PV name with macros, e.g. "$(P)$(M).VAL".
      * @param put_type Specifies how the input value is written to the PV.
      */
-    InputWidget(PVGroup &pvgroup, const ArgParser &args, const std::string &pv_name,
-                PVPutType put_type, InputTransform tf = nullptr);
+    InputWidget(PVGroup& pvgroup, const ArgParser& args, const std::string& pv_name, PVPutType put_type,
+                InputTransform tf = nullptr);
 
     /**
      * @brief Constructs an InputWidget with an already expanded PV name.
@@ -240,12 +238,14 @@ class InputWidget : public WidgetBase {
      * @param pv_name The PV name.
      * @param put_type Specifies how the input value is written to the PV.
      */
-    InputWidget(PVGroup &pvgroup, const std::string &pv_name, PVPutType put_type);
+    InputWidget(PVGroup& pvgroup, const std::string& pv_name, PVPutType put_type);
 
     /**
-     * @brief TODO.
+     * @brief Constructs an InputWidget from an App class
+     * @param pv_name The PV name.
+     * @param put_type Specifies how the input value is written to the PV.
      */
-    InputWidget(App &tui, const std::string &pv_name, PVPutType put_type);
+    InputWidget(App& app, const std::string& pv_name, PVPutType put_type);
 
     /**
      * @brief Gets the current value of the string displayed in the UI.
@@ -254,7 +254,7 @@ class InputWidget : public WidgetBase {
     std::string value() const;
 
   private:
-    std::string value_;  ///< Value displayed on the UI
+    std::string value_; ///< Value displayed on the UI
 };
 
 /**
@@ -270,8 +270,8 @@ class ButtonWidget : public WidgetBase {
      * @param label The text displayed on the button.
      * @param press_val The value written to the PV on press.
      */
-    ButtonWidget(PVGroup &pvgroup, const ArgParser &args, const std::string &pv_name,
-                 const std::string &label, int press_val = 1);
+    ButtonWidget(PVGroup& pvgroup, const ArgParser& args, const std::string& pv_name,
+                 const std::string& label, int press_val = 1);
 
     /**
      * @brief Constructs a ButtonWidget with an expanded PV name.
@@ -280,14 +280,15 @@ class ButtonWidget : public WidgetBase {
      * @param label The text displayed on the button.
      * @param press_val The value written to the PV on press.
      */
-    ButtonWidget(PVGroup &pvgroup, const std::string &pv_name, const std::string &label,
-                 int press_val = 1);
+    ButtonWidget(PVGroup& pvgroup, const std::string& pv_name, const std::string& label, int press_val = 1);
 
     /**
-     * @brief TODO.
+     * @brief Constructs a ButtonWidget from an App class
+     * @param pv_name The PV name.
+     * @param label The text displayed on the button.
+     * @param press_val The value written to the PV on press.
      */
-    ButtonWidget(App &tui, const std::string &pv_name, const std::string &label,
-                 int press_val = 1);
+    ButtonWidget(App& app, const std::string& pv_name, const std::string& label, int press_val = 1);
 };
 
 /**
@@ -305,7 +306,7 @@ template <typename T> class VarWidget : public WidgetBase {
      * @param args ArgParser for macro replacement.
      * @param pv_name The PV name with macros, e.g. "$(P)$(M).VAL".
      */
-    VarWidget(PVGroup &pvgroup, const ArgParser &args, const std::string &pv_name)
+    VarWidget(PVGroup& pvgroup, const ArgParser& args, const std::string& pv_name)
         : WidgetBase(pvgroup, args, pv_name) {
         pvgroup.set_monitor(pv_name_, value_);
     }
@@ -315,15 +316,16 @@ template <typename T> class VarWidget : public WidgetBase {
      * @param pvgroup The PVGroup managing the PVs used in this widget.
      * @param pv_name The PV name.
      */
-    VarWidget(PVGroup &pvgroup, const std::string &pv_name) : WidgetBase(pvgroup, pv_name) {
+    VarWidget(PVGroup& pvgroup, const std::string& pv_name) : WidgetBase(pvgroup, pv_name) {
         pvgroup.set_monitor(pv_name_, value_);
     }
 
     /**
-     * @brief TODO.
+     * @brief Constructs a VarWidget from an App class
+     * @param pv_name The PV name.
      */
-    VarWidget(App &tui, const std::string &pv_name) : WidgetBase(tui.pvgroup, tui.args, pv_name) {
-        tui.pvgroup.set_monitor(pv_name_, value_);
+    VarWidget(App& app, const std::string& pv_name) : WidgetBase(app.pvgroup, app.args, pv_name) {
+        app.pvgroup.set_monitor(pv_name_, value_);
     }
 
     /**
@@ -355,8 +357,7 @@ class ChoiceWidget : public WidgetBase {
      * @param pv_name The PV name with macros, e.g. "$(P)$(M).VAL".
      * @param style Layout style (vertical, horizontal, dropdown).
      */
-    ChoiceWidget(PVGroup &pvgroup, const ArgParser &args, const std::string &pv_name,
-                 ChoiceStyle style);
+    ChoiceWidget(PVGroup& pvgroup, const ArgParser& args, const std::string& pv_name, ChoiceStyle style);
 
     /**
      * @brief Constructs a ChoiceWidget with a PV name without macros.
@@ -364,12 +365,15 @@ class ChoiceWidget : public WidgetBase {
      * @param pv_name The PV name.
      * @param style Layout style (vertical, horizontal, dropdown).
      */
-    ChoiceWidget(PVGroup &pvgroup, const std::string &pv_name, ChoiceStyle style);
+    ChoiceWidget(PVGroup& pvgroup, const std::string& pv_name, ChoiceStyle style);
 
     /**
-     * @brief TODO.
+     * @brief Constructs a ChoiceWidget from an App class
+     * @param app A reference to the App.
+     * @param pv_name The PV name.
+     * @param style Layout style (vertical, horizontal, dropdown).
      */
-    ChoiceWidget(App &tui, const std::string &pv_name, ChoiceStyle style);
+    ChoiceWidget(App& app, const std::string& pv_name, ChoiceStyle style);
 
     /**
      * @brief Gets the current enum value displayed in the UI.
@@ -391,21 +395,19 @@ using namespace ftxui;
 
 static const Decorator WHITE_ON_WHITE = bgcolor(Color::White) | color(Color::White);
 
-inline Decorator edit(const WidgetBase &w) {
+inline Decorator edit(const WidgetBase& w) {
     return w.connected() ? bgcolor(Color::RGB(87, 202, 228)) | color(Color::Black) : WHITE_ON_WHITE;
 }
-inline Decorator menu(const WidgetBase &w) {
+inline Decorator menu(const WidgetBase& w) {
     return w.connected() ? bgcolor(Color::RGB(16, 105, 25)) | color(Color::White) : WHITE_ON_WHITE;
 }
-inline Decorator readback(const WidgetBase &w) {
-    return w.connected() ? bgcolor(Color::RGB(196, 196, 196)) | color(Color::DarkBlue)
-                         : WHITE_ON_WHITE;
+inline Decorator readback(const WidgetBase& w) {
+    return w.connected() ? bgcolor(Color::RGB(196, 196, 196)) | color(Color::DarkBlue) : WHITE_ON_WHITE;
 }
-inline Decorator link(const WidgetBase &w) {
-    return w.connected() ? bgcolor(Color::RGB(148, 148, 228)) | color(Color::Black)
-                         : WHITE_ON_WHITE;
+inline Decorator link(const WidgetBase& w) {
+    return w.connected() ? bgcolor(Color::RGB(148, 148, 228)) | color(Color::Black) : WHITE_ON_WHITE;
 }
-inline Decorator custom(const WidgetBase &w, Decorator style) {
+inline Decorator custom(const WidgetBase& w, Decorator style) {
     return w.connected() ? style : WHITE_ON_WHITE;
 }
 inline Decorator background() { return bgcolor(Color::RGB(196, 196, 196)); }

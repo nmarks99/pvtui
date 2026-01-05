@@ -3,19 +3,19 @@
 
 namespace pvtui {
 
-void ConnectionMonitor::connectEvent(const pvac::ConnectEvent &event) {
+void ConnectionMonitor::connectEvent(const pvac::ConnectEvent& event) {
     connected_.store(event.connected, std::memory_order_relaxed);
 }
 
 bool ConnectionMonitor::connected() const { return connected_.load(std::memory_order_relaxed); }
 
-PVHandler::PVHandler(pvac::ClientProvider &provider, const std::string &pv_name)
+PVHandler::PVHandler(pvac::ClientProvider& provider, const std::string& pv_name)
     : channel(provider.connect(pv_name)), name(pv_name), monitor_(channel.monitor(this)),
       connection_monitor_(std::make_shared<ConnectionMonitor>()) {
     channel.addConnectListener(connection_monitor_.get());
 }
 
-void PVHandler::monitorEvent(const pvac::MonitorEvent &evt) {
+void PVHandler::monitorEvent(const pvac::MonitorEvent& evt) {
     switch (evt.event) {
     case pvac::MonitorEvent::Data:
         while (monitor_.poll()) {
@@ -33,7 +33,7 @@ void PVHandler::monitorEvent(const pvac::MonitorEvent &evt) {
 
 bool PVHandler::connected() const { return connection_monitor_->connected(); }
 
-void PVHandler::get_monitored_variable(const epics::pvData::PVStructure *pfield) {
+void PVHandler::get_monitored_variable(const epics::pvData::PVStructure* pfield) {
     namespace pvd = epics::pvData;
 
     MonitorVar incoming;
@@ -46,13 +46,13 @@ void PVHandler::get_monitored_variable(const epics::pvData::PVStructure *pfield)
 
     // get the display precision
     constexpr int DEFAULT_PRECISION = 4;
+    static std::regex fmt_regex(R"(F\d+\.(\d+))");
     int precision = DEFAULT_PRECISION;
     auto display_struct = pfield->getSubField<pvd::PVStructure>("display");
     if (display_struct) {
         auto format_field = display_struct->getSubField<pvd::PVString>("format");
         if (format_field) {
             std::string prec_str = format_field->get();
-            std::regex fmt_regex(R"(F\d+\.(\d+))");
             std::smatch match;
             if (std::regex_match(prec_str, match, fmt_regex) && match.size() == 2) {
                 precision = std::stoi(match[1]);
@@ -62,7 +62,7 @@ void PVHandler::get_monitored_variable(const epics::pvData::PVStructure *pfield)
 
     bool success = false;
     std::visit(
-        [&](auto &var) {
+        [&](auto& var) {
             using VarType = std::decay_t<decltype(var)>;
 
             if constexpr (std::is_same_v<VarType, int>) {
@@ -157,43 +157,44 @@ void PVHandler::get_monitored_variable(const epics::pvData::PVStructure *pfield)
         incoming);
 
     if (success) {
-        const std::lock_guard<std::mutex> lock(mutex_);
-        monitor_var_internal_ = std::move(incoming);
-        new_data_ = true;
+        {
+            const std::lock_guard<std::mutex> lock(mutex_);
+            monitor_var_internal_ = std::move(incoming);
+        }
+        new_data_.store(true, std::memory_order_release);
     }
 }
 
 bool PVHandler::sync() {
-    const std::lock_guard<std::mutex> lock(mutex_);
-
-    if (!new_data_)
+    if (!new_data_.load(std::memory_order_acquire))
         return false;
 
-    for (auto &task : sync_tasks_) {
+    const std::lock_guard<std::mutex> lock(mutex_);
+    for (auto& task : sync_tasks_) {
         task(monitor_var_internal_);
     }
 
-    new_data_ = false;
+    new_data_.store(false, std::memory_order_relaxed);
     return true;
 }
 
-PVGroup::PVGroup(pvac::ClientProvider &provider, const std::vector<std::string> &pv_names)
+PVGroup::PVGroup(pvac::ClientProvider& provider, const std::vector<std::string>& pv_names)
     : provider_(provider) {
-    for (const auto &name : pv_names) {
+    for (const auto& name : pv_names) {
         this->add(name);
     }
 }
 
-PVGroup::PVGroup(pvac::ClientProvider &provider) : provider_(provider) {}
+PVGroup::PVGroup(pvac::ClientProvider& provider) : provider_(provider) {}
 
-void PVGroup::add(const std::string &pv_name) {
+void PVGroup::add(const std::string& pv_name) {
     std::lock_guard<std::mutex> lock(mutex_);
     if (!pv_map.count(pv_name)) {
         pv_map.emplace(pv_name, std::make_shared<PVHandler>(provider_, pv_name));
     }
 }
 
-PVHandler &PVGroup::get_pv(const std::string &pv_name) {
+PVHandler& PVGroup::get_pv(const std::string& pv_name) {
     auto it = pv_map.find(pv_name);
     if (it == pv_map.end()) {
         throw std::runtime_error(pv_name + " not registered in PVGroup");
@@ -201,7 +202,7 @@ PVHandler &PVGroup::get_pv(const std::string &pv_name) {
     return *it->second;
 }
 
-std::shared_ptr<PVHandler> PVGroup::get_pv_shared(const std::string &pv_name) {
+std::shared_ptr<PVHandler> PVGroup::get_pv_shared(const std::string& pv_name) {
     auto it = pv_map.find(pv_name);
     if (it == pv_map.end()) {
         throw std::runtime_error(pv_name + " not registered in PVGroup");
@@ -209,12 +210,12 @@ std::shared_ptr<PVHandler> PVGroup::get_pv_shared(const std::string &pv_name) {
     return it->second;
 }
 
-PVHandler &PVGroup::operator[](const std::string &pv_name) { return this->get_pv(pv_name); }
+PVHandler& PVGroup::operator[](const std::string& pv_name) { return this->get_pv(pv_name); }
 
 bool PVGroup::sync() {
     std::lock_guard<std::mutex> lock(mutex_);
     bool new_data = false;
-    for (auto &[name, pv] : pv_map) {
+    for (auto& [name, pv] : pv_map) {
         if (pv->sync()) {
             new_data = true;
         }
