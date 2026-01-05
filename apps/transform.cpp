@@ -43,7 +43,8 @@ class TransformRow : public DisplayBase {
 	inpx(app, std::string("$(P)$(T).INP")+row_name, pvtui::PVPutType::String),
 	clcx(app, std::string("$(P)$(T).CLC")+row_name, pvtui::PVPutType::String),
 	valx(app, std::string("$(P)$(T).")+row_name, pvtui::PVPutType::Double),
-	outx(app, std::string("$(P)$(T).OUT")+row_name, pvtui::PVPutType::String)
+	outx(app, std::string("$(P)$(T).OUT")+row_name, pvtui::PVPutType::String),
+	row_name_(row_name)
     {}
 
     ~TransformRow() override = default;
@@ -60,6 +61,8 @@ class TransformRow : public DisplayBase {
 
     ftxui::Element get_renderer() override {
 	return hbox({
+	    text(" " + row_name_ + " ") | color(Color::Black),
+	    separator() | color(Color::Black),
 	    cmtx.component()->Render()
 		| size(WIDTH, EQUAL, 15)
 		| EPICSColor::edit(cmtx),
@@ -88,6 +91,7 @@ class TransformRow : public DisplayBase {
     InputWidget clcx;
     InputWidget valx;
     InputWidget outx;
+    std::string row_name_;
 };
 
 
@@ -151,6 +155,10 @@ int main(int argc, char *argv[]) {
 	    }),
 	    separatorEmpty(),
 	    hbox({
+		filler()
+		    | size(WIDTH, EQUAL, 3)
+		    | color(Color::Black),
+		separator() | color(Color::Black),
 		text("Comment")
 		    | color(Color::Black)
 		    | size(WIDTH, EQUAL, 15),
