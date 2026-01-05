@@ -20,7 +20,7 @@ class DisplayBase {
 
     /**
      * @brief Constructs a DisplayBase object.
-     * @param app A reference to an App class for managing the application
+     * @param app A reference to the app.
      */
     DisplayBase(pvtui::App &app) : pvgroup(app.pvgroup) {}
 
