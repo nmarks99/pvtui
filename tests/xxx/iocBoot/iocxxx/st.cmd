@@ -23,6 +23,8 @@ dbLoadTemplate("motorSim.substitutions", "P=$(PREFIX), DTYP='asynMotor', PORT=$(
 
 # An asyn record which connects to test_server.py (requires asyn module)
 drvAsynIPPortConfigure("TEST_PORT", "localhost:5000", 0, 0, 0)
+asynOctetSetOutputEos("TEST_PORT", 0, "\r\n")
+asynOctetSetInputEos("TEST_PORT", 0, "\r\n")
 dbLoadRecords("$(ASYN)/db/asynRecord.db", "P=$(PREFIX),R=asyn1,PORT=TEST_PORT,ADDR=0,OMAX=256,IMAX=256")
 
 # transform record (requires calc module)
