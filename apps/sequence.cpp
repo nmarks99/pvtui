@@ -41,7 +41,8 @@ class SequenceRow : public DisplayBase {
 	dolx(app, std::string("$(P)$(S).DOL")+row_name, pvtui::PVPutType::String),
 	dlyx(app, std::string("$(P)$(S).DLY")+row_name, pvtui::PVPutType::Double),
 	dox(app, std::string("$(P)$(S).DO")+row_name, pvtui::PVPutType::Double),
-	lnkx(app, std::string("$(P)$(S).LNK")+row_name, pvtui::PVPutType::String)
+	lnkx(app, std::string("$(P)$(S).LNK")+row_name, pvtui::PVPutType::String),
+	row_name_(row_name)
     {}
 
     ~SequenceRow() override = default;
@@ -57,6 +58,8 @@ class SequenceRow : public DisplayBase {
 
     ftxui::Element get_renderer() override {
 	return hbox({
+	    text(" " + row_name_ + " ") | color(Color::Black),
+	    separator() | color(Color::Black),
 	    dolx.component()->Render()
 		| size(WIDTH, EQUAL, 20)
 		| EPICSColor::link(dolx),
@@ -80,6 +83,7 @@ class SequenceRow : public DisplayBase {
     InputWidget dlyx;
     InputWidget dox;
     InputWidget lnkx;
+    std::string row_name_;
 };
 
 
@@ -140,6 +144,10 @@ int main(int argc, char *argv[]) {
 	    }),
 	    separatorEmpty(),
 	    hbox({
+		filler()
+		    | size(WIDTH, EQUAL, 3)
+		    | color(Color::Black),
+		separator() | color(Color::Black),
 		text("DOLx")
 		    | color(Color::Black)
 		    | size(WIDTH, EQUAL, 20),
