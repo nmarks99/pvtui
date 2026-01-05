@@ -2,7 +2,9 @@
 
 Included Applications
 #####################
-Packaged with the library is a collection of several ready to use TUIs including
+
+Packaged with the library is a collection of ready to use TUIs which are shown below.
+Most of these UIs are heavily inspired by MEDM screens included in synApps.
 
 motor record
 ============
@@ -52,7 +54,18 @@ transform record
 sequence record
 ===============
 
+    .. image:: img/pvtui_sequence.gif
+       :alt: pvtui_sequence
+       :width: 400px
+       :align: center
+
 
 APS storage ring status
 =======================
 
+*If you're at the APS...*
+
+    .. image:: img/pvtui_sr.png
+       :alt: pvtui_sr
+       :width: 400px
+       :align: center
