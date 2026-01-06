@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Tutorial: Creating an App &#8212; PVTUI 0.1.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=d1102ebc" />
+    <link rel="stylesheet" type="text/css" href="_static/basic.css?v=b08954a9" />
+    <link rel="stylesheet" type="text/css" href="_static/alabaster.css?v=27fed22d" />
+    <script src="_static/documentation_options.js?v=01f34227"></script>
+    <script src="_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="API Reference" href="api.html" />
+    <link rel="prev" title="Building from Source" href="building.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="tutorial-creating-an-app">
+<span id="tutorial"></span><h1>Tutorial: Creating an App<a class="headerlink" href="#tutorial-creating-an-app" title="Link to this heading">¶</a></h1>
+<p>This page will provide a brief tutorial on creating a new PVTUI application. In this tutorial we will
+create a TUI for the following EPICS database:</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="n">record</span><span class="p">(</span><span class="n">ao</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;$(P)Value&quot;</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="n">field</span><span class="p">(</span><span class="n">DESC</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;Tutorial!&quot;</span><span class="p">)</span>
+<span class="w">    </span><span class="n">field</span><span class="p">(</span><span class="n">VAL</span><span class="p">,</span><span class="w"> </span><span class="mf">0.0</span><span class="p">)</span>
+<span class="p">}</span>
+
+<span class="n">record</span><span class="p">(</span><span class="n">ao</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;$(P)TweakVal&quot;</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="n">field</span><span class="p">(</span><span class="n">VAL</span><span class="p">,</span><span class="w"> </span><span class="mf">1.0</span><span class="p">)</span>
+<span class="p">}</span>
+
+<span class="n">record</span><span class="p">(</span><span class="n">calcout</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;$(P)TweakFwd&quot;</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="n">field</span><span class="p">(</span><span class="n">INPA</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;$(P)Value.VAL&quot;</span><span class="p">)</span>
+<span class="w">    </span><span class="n">field</span><span class="p">(</span><span class="n">INPB</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;$(P)TweakVal.VAL&quot;</span><span class="p">)</span>
+<span class="w">    </span><span class="n">field</span><span class="p">(</span><span class="n">CALC</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;A + B&quot;</span><span class="p">)</span>
+<span class="w">    </span><span class="n">field</span><span class="p">(</span><span class="n">OUT</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;$(P)Value.VAL PP&quot;</span><span class="p">)</span>
+<span class="p">}</span>
+
+<span class="n">record</span><span class="p">(</span><span class="n">calcout</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;$(P)TweakRev&quot;</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="n">field</span><span class="p">(</span><span class="n">INPA</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;$(P)Value.VAL&quot;</span><span class="p">)</span>
+<span class="w">    </span><span class="n">field</span><span class="p">(</span><span class="n">INPB</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;$(P)TweakVal.VAL&quot;</span><span class="p">)</span>
+<span class="w">    </span><span class="n">field</span><span class="p">(</span><span class="n">CALC</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;A - B&quot;</span><span class="p">)</span>
+<span class="w">    </span><span class="n">field</span><span class="p">(</span><span class="n">OUT</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;$(P)Value.VAL PP&quot;</span><span class="p">)</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>For this tutorial we will create a simple UI which has buttons to trigger the TweakFwd and TweakRev records as well as an input for
+the Value.VAL and Value.DESC. Lets start by instantiating the widgets we will need.</p>
+<p>We will start with the below code, which is a good starting point for most applications.</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;pvtui/pvtui.hpp&gt;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;ftxui/component/component.hpp&gt;</span>
+
+<span class="k">using</span><span class="w"> </span><span class="k">namespace</span><span class="w"> </span><span class="nn">ftxui</span><span class="p">;</span>
+<span class="k">using</span><span class="w"> </span><span class="k">namespace</span><span class="w"> </span><span class="nn">pvtui</span><span class="p">;</span>
+
+<span class="kt">int</span><span class="w"> </span><span class="nf">main</span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">argc</span><span class="p">,</span><span class="w"> </span><span class="kt">char</span><span class="w"> </span><span class="o">*</span><span class="n">argv</span><span class="p">[])</span><span class="w"> </span><span class="p">{</span>
+
+<span class="w">    </span><span class="c1">// Instantiate an App to manage everything</span>
+<span class="w">    </span><span class="n">App</span><span class="w"> </span><span class="n">app</span><span class="p">(</span><span class="n">argc</span><span class="p">,</span><span class="w"> </span><span class="n">argv</span><span class="p">);</span>
+
+<span class="w">    </span><span class="c1">// Check for required macros if desired</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="k">not</span><span class="w"> </span><span class="n">app</span><span class="p">.</span><span class="n">args</span><span class="p">.</span><span class="n">macros_present</span><span class="p">({</span><span class="s">&quot;P&quot;</span><span class="p">}))</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="n">std</span><span class="o">::</span><span class="n">cerr</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;Missing required macros</span><span class="se">\n</span><span class="s">Required macros: P</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">;</span>
+<span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="n">EXIT_FAILURE</span><span class="p">;</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="c1">// Create all the widgets we need</span>
+<span class="w">    </span><span class="c1">// InputWidget desc(app, &quot;$(P)pvname.DESC&quot;, PVPutType::String);</span>
+
+<span class="w">    </span><span class="c1">// ftxui container to define interactivity of components</span>
+<span class="w">    </span><span class="k">auto</span><span class="w"> </span><span class="n">main_container</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Container</span><span class="o">::</span><span class="n">Vertical</span><span class="p">({</span>
+<span class="w">        </span><span class="c1">// include all the interactive widgets here</span>
+<span class="w">        </span><span class="c1">// desc.component(),</span>
+<span class="w">    </span><span class="p">});</span>
+
+<span class="w">    </span><span class="c1">// ftxui renderer defines the visual layout</span>
+<span class="w">    </span><span class="k">auto</span><span class="w"> </span><span class="n">main_renderer</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Renderer</span><span class="p">(</span><span class="n">main_container</span><span class="p">,</span><span class="w"> </span><span class="p">[</span><span class="o">&amp;</span><span class="p">]</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="c1">// define the visual layout of the application</span>
+<span class="w">        </span><span class="c1">// return hbox({ // e.g.</span>
+<span class="w">        </span><span class="c1">//    desc.component()-&gt;Render()</span>
+<span class="w">        </span><span class="c1">// })</span>
+<span class="w">    </span><span class="p">});</span>
+
+<span class="w">    </span><span class="c1">// Run the main loop</span>
+<span class="w">    </span><span class="n">app</span><span class="p">.</span><span class="n">run</span><span class="p">(</span><span class="n">main_renderer</span><span class="p">);</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>Depending on your needs, you might need to modify the required macros check, but otherwise the above should apply to most
+basic TUIs.</p>
+<p>First we will define the widgets we need.</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="c1">// Create all the widgets we need</span>
+<span class="n">InputWidget</span><span class="w"> </span><span class="n">desc</span><span class="p">(</span><span class="n">app</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;$(P)Value.DESC&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">PVPutType</span><span class="o">::</span><span class="n">String</span><span class="p">);</span>
+<span class="n">InputWidget</span><span class="w"> </span><span class="n">val</span><span class="p">(</span><span class="n">app</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;$(P)Value.VAL&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">PVPutType</span><span class="o">::</span><span class="n">Double</span><span class="p">);</span>
+<span class="n">InputWidget</span><span class="w"> </span><span class="n">twv</span><span class="p">(</span><span class="n">app</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;$(P)TweakVal.VAL&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">PVPutType</span><span class="o">::</span><span class="n">Double</span><span class="p">);</span>
+<span class="n">ButtonWidget</span><span class="w"> </span><span class="n">twf</span><span class="p">(</span><span class="n">app</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;$(P)TweakFwd.PROC&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot; + &quot;</span><span class="p">);</span>
+<span class="n">ButtonWidget</span><span class="w"> </span><span class="n">twr</span><span class="p">(</span><span class="n">app</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;$(P)TweakRev.PROC&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot; - &quot;</span><span class="p">);</span>
+</pre></div>
+</div>
+<p>Any widget that a user can interact with must be added to a ftxui::Container, so we’ll do that now.
+Don’t worry too much about this. For most PVTUI apps, simply putting all the components in a
+Container::Vertical is all you need to do.</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="c1">// ftxui container to define interactivity of components</span>
+<span class="k">auto</span><span class="w"> </span><span class="n">main_container</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Container</span><span class="o">::</span><span class="n">Vertical</span><span class="p">({</span>
+<span class="w">    </span><span class="n">desc</span><span class="p">.</span><span class="n">component</span><span class="p">(),</span>
+<span class="w">    </span><span class="n">val</span><span class="p">.</span><span class="n">component</span><span class="p">(),</span>
+<span class="w">    </span><span class="n">twf</span><span class="p">.</span><span class="n">component</span><span class="p">(),</span>
+<span class="w">    </span><span class="n">twr</span><span class="p">.</span><span class="n">component</span><span class="p">(),</span>
+<span class="w">    </span><span class="n">twv</span><span class="p">.</span><span class="n">component</span><span class="p">(),</span>
+<span class="p">});</span>
+</pre></div>
+</div>
+<p>Everything up to this point can mostly be considered to be boilerplate. Now we will do the <em>hard</em> part of defining the
+visual layout of the TUI. Some may find the syntax a bit different at first glace, but it is very nice when you
+get used to it. For more details on this part, consult the <a class="reference external" href="https://github.com/ArthurSonzogni/FTXUI">FTXUI</a>
+documentation and example code.</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="c1">// ftxui renderer defines the visual layout</span>
+<span class="k">auto</span><span class="w"> </span><span class="n">main_renderer</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">ftxui</span><span class="o">::</span><span class="n">Renderer</span><span class="p">(</span><span class="n">main_container</span><span class="p">,</span><span class="w"> </span><span class="p">[</span><span class="o">&amp;</span><span class="p">]</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">vbox</span><span class="p">({</span>
+
+<span class="w">        </span><span class="n">hbox</span><span class="p">({</span>
+<span class="w">            </span><span class="n">text</span><span class="p">(</span><span class="s">&quot;DESC: &quot;</span><span class="p">),</span>
+<span class="w">            </span><span class="n">desc</span><span class="p">.</span><span class="n">component</span><span class="p">()</span><span class="o">-&gt;</span><span class="n">Render</span><span class="p">()</span>
+<span class="w">                </span><span class="o">|</span><span class="w"> </span><span class="n">size</span><span class="p">(</span><span class="n">WIDTH</span><span class="p">,</span><span class="w"> </span><span class="n">EQUAL</span><span class="p">,</span><span class="w"> </span><span class="mi">15</span><span class="p">)</span>
+<span class="w">                </span><span class="o">|</span><span class="w"> </span><span class="n">EPICSColor</span><span class="o">::</span><span class="n">edit</span><span class="p">(</span><span class="n">desc</span><span class="p">),</span>
+<span class="w">        </span><span class="p">}),</span>
+
+<span class="w">        </span><span class="n">separator</span><span class="p">(),</span>
+
+<span class="w">        </span><span class="n">hbox</span><span class="p">({</span>
+<span class="w">            </span><span class="n">text</span><span class="p">(</span><span class="s">&quot;VAL: &quot;</span><span class="p">),</span>
+<span class="w">            </span><span class="n">val</span><span class="p">.</span><span class="n">component</span><span class="p">()</span><span class="o">-&gt;</span><span class="n">Render</span><span class="p">()</span>
+<span class="w">                </span><span class="o">|</span><span class="w"> </span><span class="n">size</span><span class="p">(</span><span class="n">WIDTH</span><span class="p">,</span><span class="w"> </span><span class="n">EQUAL</span><span class="p">,</span><span class="w"> </span><span class="mi">11</span><span class="p">)</span>
+<span class="w">                </span><span class="o">|</span><span class="w"> </span><span class="n">EPICSColor</span><span class="o">::</span><span class="n">edit</span><span class="p">(</span><span class="n">val</span><span class="p">),</span>
+<span class="w">        </span><span class="p">}),</span>
+
+<span class="w">        </span><span class="n">separatorEmpty</span><span class="p">(),</span>
+
+<span class="w">        </span><span class="n">hbox</span><span class="p">({</span>
+<span class="w">            </span><span class="n">twr</span><span class="p">.</span><span class="n">component</span><span class="p">()</span><span class="o">-&gt;</span><span class="n">Render</span><span class="p">(),</span>
+<span class="w">            </span><span class="n">separatorEmpty</span><span class="p">(),</span>
+<span class="w">            </span><span class="n">twv</span><span class="p">.</span><span class="n">component</span><span class="p">()</span><span class="o">-&gt;</span><span class="n">Render</span><span class="p">()</span>
+<span class="w">                </span><span class="o">|</span><span class="w"> </span><span class="n">size</span><span class="p">(</span><span class="n">WIDTH</span><span class="p">,</span><span class="w"> </span><span class="n">EQUAL</span><span class="p">,</span><span class="w"> </span><span class="mi">5</span><span class="p">)</span>
+<span class="w">                </span><span class="o">|</span><span class="w"> </span><span class="n">EPICSColor</span><span class="o">::</span><span class="n">edit</span><span class="p">(</span><span class="n">twv</span><span class="p">),</span>
+<span class="w">            </span><span class="n">separatorEmpty</span><span class="p">(),</span>
+<span class="w">            </span><span class="n">twf</span><span class="p">.</span><span class="n">component</span><span class="p">()</span><span class="o">-&gt;</span><span class="n">Render</span><span class="p">(),</span>
+<span class="w">        </span><span class="p">})</span>
+
+<span class="w">    </span><span class="p">})</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="n">size</span><span class="p">(</span><span class="n">WIDTH</span><span class="p">,</span><span class="w"> </span><span class="n">EQUAL</span><span class="p">,</span><span class="w"> </span><span class="mi">20</span><span class="p">);</span>
+<span class="p">});</span>
+</pre></div>
+</div>
+<p>Looking through the above code, you’ll see we create a top level vbox (“vertical box”) with hbox’s (“horizontal box”) inside.
+For each widget we call its Render() function then apply styles to it with the <code class="docutils literal notranslate"><span class="pre">|</span></code> operator. You’ll also notice the
+<code class="docutils literal notranslate"><span class="pre">EPICSColor</span></code> namespace which defines some convenience functions for applying standard color schemes which also change if
+connection to the PV is lost. Following the style of MEDM, widgets with <code class="docutils literal notranslate"><span class="pre">EPICSColor</span></code> will be rendered as white for both the
+foreground and background if the underlying PV is disconnected. After defining the renderer, call <code class="docutils literal notranslate"><span class="pre">app.run(main_renderer)</span></code> to run the main application loop.</p>
+<p>Load the test database in an IOC with a <code class="docutils literal notranslate"><span class="pre">P</span></code> macro of your choosing, e.g. <code class="docutils literal notranslate"><span class="pre">softIoc</span> <span class="pre">-m</span> <span class="pre">&quot;P=MyIoc:&quot;</span> <span class="pre">-d</span> <span class="pre">test.db</span></code>.
+Then compile and run the PVTUI application: <code class="docutils literal notranslate"><span class="pre">./test_pvtui</span> <span class="pre">--macro</span> <span class="pre">&quot;P=MyIoc:</span></code></p>
+<p>You should have a PVTUI application as in the screenshot below.
+Clicking plus or minus will add/subtract the TweakVal to Value.</p>
+<blockquote>
+<div><a class="reference internal image-reference" href="_images/test_pvtui.png"><img alt="test_pvtui" class="align-center" src="_images/test_pvtui.png" style="width: 400px;" />
+</a>
+</div></blockquote>
+<p>and if the PVs are not connected, it will look like this:</p>
+<blockquote>
+<div><a class="reference internal image-reference" href="_images/test_pvtui_down.png"><img alt="test_pvtui_down" class="align-center" src="_images/test_pvtui_down.png" style="width: 400px;" />
+</a>
+</div></blockquote>
+<p>That’s it. Below the full code is provided.
+At this point you might still be missing some details needed to make more complex applications. The best way to
+learn is by looking through the provided applications here, and also in the FTXUI repository.</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;pvtui/pvtui.hpp&gt;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;ftxui/component/component.hpp&gt;</span>
+
+<span class="k">using</span><span class="w"> </span><span class="k">namespace</span><span class="w"> </span><span class="nn">ftxui</span><span class="p">;</span>
+<span class="k">using</span><span class="w"> </span><span class="k">namespace</span><span class="w"> </span><span class="nn">pvtui</span><span class="p">;</span>
+
+<span class="kt">int</span><span class="w"> </span><span class="nf">main</span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">argc</span><span class="p">,</span><span class="w"> </span><span class="kt">char</span><span class="w"> </span><span class="o">*</span><span class="n">argv</span><span class="p">[])</span><span class="w"> </span><span class="p">{</span>
+
+<span class="w">    </span><span class="c1">// Instantiate an App to manage everything</span>
+<span class="w">    </span><span class="n">App</span><span class="w"> </span><span class="n">app</span><span class="p">(</span><span class="n">argc</span><span class="p">,</span><span class="w"> </span><span class="n">argv</span><span class="p">);</span>
+
+<span class="w">    </span><span class="c1">// Check for required macros if desired</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="k">not</span><span class="w"> </span><span class="n">app</span><span class="p">.</span><span class="n">args</span><span class="p">.</span><span class="n">macros_present</span><span class="p">({</span><span class="s">&quot;P&quot;</span><span class="p">}))</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="n">printf</span><span class="p">(</span><span class="s">&quot;Missing required macro P</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">);</span>
+<span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="n">EXIT_FAILURE</span><span class="p">;</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="c1">// Create all the widgets</span>
+<span class="w">    </span><span class="n">InputWidget</span><span class="w"> </span><span class="n">desc</span><span class="p">(</span><span class="n">app</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;$(P)Value.DESC&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">PVPutType</span><span class="o">::</span><span class="n">String</span><span class="p">);</span>
+<span class="w">    </span><span class="n">InputWidget</span><span class="w"> </span><span class="n">val</span><span class="p">(</span><span class="n">app</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;$(P)Value.VAL&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">PVPutType</span><span class="o">::</span><span class="n">Double</span><span class="p">);</span>
+<span class="w">    </span><span class="n">InputWidget</span><span class="w"> </span><span class="n">twv</span><span class="p">(</span><span class="n">app</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;$(P)TweakVal.VAL&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">PVPutType</span><span class="o">::</span><span class="n">Double</span><span class="p">);</span>
+<span class="w">    </span><span class="n">ButtonWidget</span><span class="w"> </span><span class="n">twf</span><span class="p">(</span><span class="n">app</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;$(P)TweakFwd.PROC&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot; + &quot;</span><span class="p">);</span>
+<span class="w">    </span><span class="n">ButtonWidget</span><span class="w"> </span><span class="n">twr</span><span class="p">(</span><span class="n">app</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;$(P)TweakRev.PROC&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot; - &quot;</span><span class="p">);</span>
+
+<span class="w">    </span><span class="c1">// ftxui container to define interactivity of components</span>
+<span class="w">    </span><span class="k">auto</span><span class="w"> </span><span class="n">main_container</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Container</span><span class="o">::</span><span class="n">Vertical</span><span class="p">({</span>
+<span class="w">        </span><span class="n">desc</span><span class="p">.</span><span class="n">component</span><span class="p">(),</span>
+<span class="w">        </span><span class="n">val</span><span class="p">.</span><span class="n">component</span><span class="p">(),</span>
+<span class="w">        </span><span class="n">twf</span><span class="p">.</span><span class="n">component</span><span class="p">(),</span>
+<span class="w">        </span><span class="n">twr</span><span class="p">.</span><span class="n">component</span><span class="p">(),</span>
+<span class="w">        </span><span class="n">twv</span><span class="p">.</span><span class="n">component</span><span class="p">(),</span>
+<span class="w">    </span><span class="p">});</span>
+
+<span class="w">    </span><span class="c1">// ftxui renderer defines the visual layout</span>
+<span class="w">    </span><span class="k">auto</span><span class="w"> </span><span class="n">main_renderer</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">ftxui</span><span class="o">::</span><span class="n">Renderer</span><span class="p">(</span><span class="n">main_container</span><span class="p">,</span><span class="w"> </span><span class="p">[</span><span class="o">&amp;</span><span class="p">]</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="n">vbox</span><span class="p">({</span>
+
+<span class="w">            </span><span class="n">hbox</span><span class="p">({</span>
+<span class="w">                </span><span class="n">text</span><span class="p">(</span><span class="s">&quot;DESC: &quot;</span><span class="p">),</span>
+<span class="w">                </span><span class="n">desc</span><span class="p">.</span><span class="n">component</span><span class="p">()</span><span class="o">-&gt;</span><span class="n">Render</span><span class="p">()</span>
+<span class="w">                    </span><span class="o">|</span><span class="w"> </span><span class="n">size</span><span class="p">(</span><span class="n">WIDTH</span><span class="p">,</span><span class="w"> </span><span class="n">EQUAL</span><span class="p">,</span><span class="w"> </span><span class="mi">15</span><span class="p">)</span>
+<span class="w">                    </span><span class="o">|</span><span class="w"> </span><span class="n">EPICSColor</span><span class="o">::</span><span class="n">edit</span><span class="p">(</span><span class="n">desc</span><span class="p">),</span>
+<span class="w">            </span><span class="p">}),</span>
+
+<span class="w">            </span><span class="n">separator</span><span class="p">(),</span>
+
+<span class="w">            </span><span class="n">hbox</span><span class="p">({</span>
+<span class="w">                </span><span class="n">text</span><span class="p">(</span><span class="s">&quot;VAL: &quot;</span><span class="p">),</span>
+<span class="w">                </span><span class="n">val</span><span class="p">.</span><span class="n">component</span><span class="p">()</span><span class="o">-&gt;</span><span class="n">Render</span><span class="p">()</span>
+<span class="w">                    </span><span class="o">|</span><span class="w"> </span><span class="n">size</span><span class="p">(</span><span class="n">WIDTH</span><span class="p">,</span><span class="w"> </span><span class="n">EQUAL</span><span class="p">,</span><span class="w"> </span><span class="mi">11</span><span class="p">)</span>
+<span class="w">                    </span><span class="o">|</span><span class="w"> </span><span class="n">EPICSColor</span><span class="o">::</span><span class="n">edit</span><span class="p">(</span><span class="n">val</span><span class="p">),</span>
+<span class="w">            </span><span class="p">}),</span>
+
+<span class="w">            </span><span class="n">separatorEmpty</span><span class="p">(),</span>
+
+<span class="w">            </span><span class="n">hbox</span><span class="p">({</span>
+<span class="w">                </span><span class="n">twr</span><span class="p">.</span><span class="n">component</span><span class="p">()</span><span class="o">-&gt;</span><span class="n">Render</span><span class="p">(),</span>
+<span class="w">                </span><span class="n">separatorEmpty</span><span class="p">(),</span>
+<span class="w">                </span><span class="n">twv</span><span class="p">.</span><span class="n">component</span><span class="p">()</span><span class="o">-&gt;</span><span class="n">Render</span><span class="p">()</span>
+<span class="w">                    </span><span class="o">|</span><span class="w"> </span><span class="n">size</span><span class="p">(</span><span class="n">WIDTH</span><span class="p">,</span><span class="w"> </span><span class="n">EQUAL</span><span class="p">,</span><span class="w"> </span><span class="mi">5</span><span class="p">)</span>
+<span class="w">                    </span><span class="o">|</span><span class="w"> </span><span class="n">EPICSColor</span><span class="o">::</span><span class="n">edit</span><span class="p">(</span><span class="n">twv</span><span class="p">),</span>
+<span class="w">                </span><span class="n">separatorEmpty</span><span class="p">(),</span>
+<span class="w">                </span><span class="n">twf</span><span class="p">.</span><span class="n">component</span><span class="p">()</span><span class="o">-&gt;</span><span class="n">Render</span><span class="p">(),</span>
+<span class="w">            </span><span class="p">})</span>
+
+<span class="w">        </span><span class="p">})</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="n">size</span><span class="p">(</span><span class="n">WIDTH</span><span class="p">,</span><span class="w"> </span><span class="n">EQUAL</span><span class="p">,</span><span class="w"> </span><span class="mi">20</span><span class="p">);</span>
+<span class="w">    </span><span class="p">});</span>
+
+<span class="w">    </span><span class="c1">// Run the main loop</span>
+<span class="w">    </span><span class="n">app</span><span class="p">.</span><span class="n">run</span><span class="p">(</span><span class="n">main_renderer</span><span class="p">);</span>
+
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">EXIT_SUCCESS</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">PVTUI</a></h1>
+
+
+
+
+
+
+
+
+
+<search id="searchbox" style="display: none" role="search">
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Search"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script><h3>Navigation</h3>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="applications.html">Included Applications</a></li>
+<li class="toctree-l1"><a class="reference internal" href="building.html">Building from Source</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Tutorial: Creating an App</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api.html">API Reference</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="building.html" title="previous chapter">Building from Source</a></li>
+      <li>Next: <a href="api.html" title="next chapter">API Reference</a></li>
+  </ul></li>
+</ul>
+</div>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2026 Nick Marks.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 9.1.0</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 1.0.0</a>
+      
+      |
+      <a href="_sources/tutorial.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>
