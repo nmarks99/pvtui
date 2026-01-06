@@ -1,9 +1,9 @@
 #pragma once
 #include <ftxui/component/component_base.hpp>
-#include <pvtui/pvtui.hpp>
 #include <pvtui/pvgroup.hpp>
-#include <pv/caProvider.h>
-#include <pva/client.h>
+#include <pvtui/pvtui.hpp>
+
+namespace pvtui {
 
 /**
  * @brief Base class for PVTUI displays
@@ -16,13 +16,13 @@ class DisplayBase {
      * @brief Constructs a DisplayBase object.
      * @param pvgroup A reference to the PVGroup managing the PVs for this display.
      */
-    DisplayBase(pvtui::PVGroup &pvgroup) : pvgroup(pvgroup) {}
+    DisplayBase(pvtui::PVGroup& pvgroup) : pvgroup(pvgroup) {}
 
     /**
      * @brief Constructs a DisplayBase object.
      * @param app A reference to the app.
      */
-    DisplayBase(pvtui::App &app) : pvgroup(app.pvgroup) {}
+    DisplayBase(pvtui::App& app) : pvgroup(app.pvgroup) {}
 
     /**
      * @brief Destroys the DisplayBase object.
@@ -49,5 +49,7 @@ class DisplayBase {
     virtual ftxui::Component get_container() = 0;
 
   protected:
-    pvtui::PVGroup &pvgroup; ///< Reference to the PVGroup instance.
+    pvtui::PVGroup& pvgroup; ///< Reference to the PVGroup instance.
 };
+
+} // namespace pvtui

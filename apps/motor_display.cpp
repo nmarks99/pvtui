@@ -5,7 +5,7 @@
 ftxui::Decorator ColorDisabled = bgcolor(ftxui::Color::DarkRed) | color(ftxui::Color::Black);
 
 SmallMotorDisplay::SmallMotorDisplay(pvtui::PVGroup &pvgroup, const pvtui::ArgParser &args)
-    : DisplayBase(pvgroup), args(args),
+    : pvtui::DisplayBase(pvgroup), args(args),
     desc(pvgroup, args, "$(P)$(M).DESC", pvtui::PVPutType::String),
     val(pvgroup, args, "$(P)$(M).VAL", pvtui::PVPutType::Double),
     twr(pvgroup, args, "$(P)$(M).TWR", " < "),
@@ -96,7 +96,7 @@ ftxui::Element SmallMotorDisplay::get_renderer() {
 }
 
 MediumMotorDisplay::MediumMotorDisplay(pvtui::PVGroup &pvgroup, const pvtui::ArgParser &args)
-    : DisplayBase(pvgroup), args(args),
+    : pvtui::DisplayBase(pvgroup), args(args),
     desc(pvgroup, args, "$(P)$(M).DESC", pvtui::PVPutType::String),
     val(pvgroup, args, "$(P)$(M).VAL", pvtui::PVPutType::Double),
     twr(pvgroup, args, "$(P)$(M).TWR", " < "),
@@ -218,7 +218,7 @@ ftxui::Element MediumMotorDisplay::get_renderer() {
 }
 
 AllMotorDisplay::AllMotorDisplay(pvtui::PVGroup &pvgroup, const pvtui::ArgParser &args)
-    : DisplayBase(pvgroup), args(args),
+    : pvtui::DisplayBase(pvgroup), args(args),
     desc(pvgroup, args, "$(P)$(M).DESC", pvtui::PVPutType::String),
     val(pvgroup, args, "$(P)$(M).VAL", pvtui::PVPutType::Double),
     twr(pvgroup, args, "$(P)$(M).TWR", " < "),

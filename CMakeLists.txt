@@ -109,26 +109,30 @@ set(EPICS_BASE_INCLUDES
 if (BUILD_DOCS)
     find_package(Doxygen REQUIRED)
     find_program(SPHINX_EXECUTABLE sphinx-build)
-
-    if (DOXYGEN_FOUND AND SPHINX_EXECUTABLE)
-        configure_file(
-            ${CMAKE_CURRENT_SOURCE_DIR}/doc/Doxyfile.in
-            ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile @ONLY
-        )
-
-        add_custom_target(
-            doc
-            # 1. Run Doxygen to generate docs/xml
-            COMMAND ${DOXYGEN_EXECUTABLE} ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile
-            # 2. Run Sphinx on the docs folder
-            COMMAND ${SPHINX_EXECUTABLE} -b html
-                    ${CMAKE_CURRENT_SOURCE_DIR}/doc
-		    ${CMAKE_CURRENT_BINARY_DIR}/doc/sphinx
-            WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
-            COMMENT "Generating Doxygen XML and Sphinx HTML"
-            VERBATIM
-        )
+    if (NOT DOXYGEN_FOUND)
+	message(FATAL_ERROR "Could not find doxygen")
     endif()
+    if (NOT SPHINX_EXECUTABLE)
+	message(FATAL_ERROR "Could not find sphinx")
+    endif()
+
+    configure_file(
+	${CMAKE_CURRENT_SOURCE_DIR}/doc/Doxyfile.in
+	${CMAKE_CURRENT_BINARY_DIR}/Doxyfile @ONLY
+    )
+
+    add_custom_target(
+	doc
+	# 1. Run Doxygen to generate docs/xml
+	COMMAND ${DOXYGEN_EXECUTABLE} ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile
+	# 2. Run Sphinx on the docs folder
+	COMMAND ${SPHINX_EXECUTABLE} -b html
+		${CMAKE_CURRENT_SOURCE_DIR}/doc
+		${CMAKE_CURRENT_BINARY_DIR}/doc/sphinx
+	WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+	COMMENT "Generating Doxygen XML and Sphinx HTML"
+	VERBATIM
+    )
 endif()
 # ------------------------------------------------------------------------------
 
