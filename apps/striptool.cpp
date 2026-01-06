@@ -65,10 +65,11 @@ int main(int argc, char *argv[]) {
     // PVGroup to manage all PVs for displays
     PVGroup pvgroup(provider);
 
-    VarWidget<double> m1rbv(pvgroup, "namSoft:m1.RBV");
-    std::this_thread::sleep_for(std::chrono::milliseconds(500));
-    m1rbv.sync();
-    m1rbv.value();
+    VarWidget<double> m1rbv(pvgroup, "nmarks:m1.RBV");
+    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+    pvgroup.sync();
+    // std::cout << "RBV = " << m1rbv.value() << std::endl;
+    // return 1;
 
     // Create vectors to store the data
     // this will need to be done dynamically to be able
@@ -127,9 +128,9 @@ int main(int argc, char *argv[]) {
 
     // Main renderer to define visual layout of components and elements
     auto main_renderer = Renderer(main_container, [&] {
-	return vbox({
+	return hbox({
 	    plot->Render() | (border | (plot->Active() ? color(Color::LightSkyBlue1) : color(Color::White))),
-	    hbox({
+	    vbox({
 		vbox({
 		    text("Axis limits") | underlined,
 		    hbox({
@@ -144,14 +145,18 @@ int main(int argc, char *argv[]) {
 			separatorEmpty(),
 			ymax_inp->Render() | size(WIDTH, EQUAL, 10) | bgcolor(Color::RGB(50,50,50)),
 		    }),
-		    separatorEmpty(),
-		    autoscale_button->Render() | size(WIDTH, EQUAL, 12),
-		}) | borderEmpty,
+		    // separatorEmpty(),
+		    // autoscale_button->Render() | italic | size(WIDTH, EQUAL, 12),
+		}),
+
 		separator(),
-		vbox({
+
+		// Channels
+		hbox({
+		    text(unicode::rectangle(1)) | color(Color::Red),
 		    text("m1.RBV = " + std::to_string(m1rbv.value()))
 		}),
-	    }) | border | size(HEIGHT, EQUAL, 12),
+	    }) | border | size(WIDTH, EQUAL, 30),
 	});
     });
 
