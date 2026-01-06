@@ -129,10 +129,17 @@ class ArgParser {
 /**
  * @brief Convenience struct for managing a TUI application
  *
- * This class holds the ArgParser, PVGroup, pvac::ClientProvider,
+ * This class holds the pvtui::ArgParser, pvtui::PVGroup, pvac::ClientProvider,
  * and ftxui::ScreenInteractive to reduce boilerplate in PVTUI applications.
  */
 struct App {
+
+    /**
+     * @brief Constructs an App which internally manages a pvac::ClientProvider
+     * pvtui::PVGroup, pvtui::ArgParser, and ftxui::ScreenInteractive
+     * @param argc Command line argument count
+     * @param argv Command line arguments
+     */
     App(int argc, char* argv[]);
 
     /**
@@ -142,18 +149,8 @@ struct App {
      */
     void run(const ftxui::Component& renderer, int poll_period_ms = 100);
 
-    ///< The main loop function to run with App::run. Can be redefined by the user
-    std::function<void(App&, const ftxui::Component&, int)> main_loop =
-        [](App& app, const ftxui::Component& renderer, int ms) {
-            ftxui::Loop loop(&app.screen, renderer);
-            while (!loop.HasQuitted()) {
-                if (app.pvgroup.sync()) {
-                    app.screen.PostEvent(ftxui::Event::Custom);
-                }
-                loop.RunOnce();
-                std::this_thread::sleep_for(std::chrono::milliseconds(ms));
-            }
-        };
+    /// @brief The main loop function to run with App::run. Can be redefined by the user
+    std::function<void(App&, const ftxui::Component&, int)> main_loop;
 
     pvtui::ArgParser args;           ///< pvtui::ArgParser to store the cmd line arguments
     pvac::ClientProvider provider;   ///< EPICS client provider
@@ -395,26 +392,43 @@ class ChoiceWidget : public WidgetBase {
  * is drawn as a white rectangle
  */
 namespace EPICSColor {
-using namespace ftxui;
 
-static const Decorator WHITE_ON_WHITE = bgcolor(Color::White) | color(Color::White);
+/// @brief White foreground and background for disconnected widgets
+static const ftxui::Decorator WHITE_ON_WHITE = bgcolor(ftxui::Color::White) | color(ftxui::Color::White);
 
-inline Decorator edit(const WidgetBase& w) {
-    return w.connected() ? bgcolor(Color::RGB(87, 202, 228)) | color(Color::Black) : WHITE_ON_WHITE;
+/// @brief Light blue with black text for editable controls
+inline ftxui::Decorator edit(const WidgetBase& w) {
+    return w.connected() ? ftxui::bgcolor(ftxui::Color::RGB(87, 202, 228)) | ftxui::color(ftxui::Color::Black)
+                         : WHITE_ON_WHITE;
 }
-inline Decorator menu(const WidgetBase& w) {
-    return w.connected() ? bgcolor(Color::RGB(16, 105, 25)) | color(Color::White) : WHITE_ON_WHITE;
+
+/// @brief Dark green with white text for "related display" menus
+inline ftxui::Decorator menu(const WidgetBase& w) {
+    return w.connected() ? ftxui::bgcolor(ftxui::Color::RGB(16, 105, 25)) | ftxui::color(ftxui::Color::White)
+                         : WHITE_ON_WHITE;
 }
-inline Decorator readback(const WidgetBase& w) {
-    return w.connected() ? bgcolor(Color::RGB(196, 196, 196)) | color(Color::DarkBlue) : WHITE_ON_WHITE;
+
+/// @brief Dark blue text on gray background for readbacks
+inline ftxui::Decorator readback(const WidgetBase& w) {
+    return w.connected()
+               ? ftxui::bgcolor(ftxui::Color::RGB(196, 196, 196)) | ftxui::color(ftxui::Color::DarkBlue)
+               : WHITE_ON_WHITE;
 }
-inline Decorator link(const WidgetBase& w) {
-    return w.connected() ? bgcolor(Color::RGB(148, 148, 228)) | color(Color::Black) : WHITE_ON_WHITE;
+
+/// @brief Pinkish/purple with black text for links
+inline ftxui::Decorator link(const WidgetBase& w) {
+    return w.connected()
+               ? ftxui::bgcolor(ftxui::Color::RGB(148, 148, 228)) | ftxui::color(ftxui::Color::Black)
+               : WHITE_ON_WHITE;
 }
-inline Decorator custom(const WidgetBase& w, Decorator style) {
+
+/// @brief A custom color
+inline ftxui::Decorator custom(const WidgetBase& w, ftxui::Decorator style) {
     return w.connected() ? style : WHITE_ON_WHITE;
 }
-inline Decorator background() { return bgcolor(Color::RGB(196, 196, 196)); }
+
+/// @ Default gray background color
+inline ftxui::Decorator background() { return ftxui::bgcolor(ftxui::Color::RGB(196, 196, 196)); }
 } // namespace EPICSColor
 
 } // namespace pvtui

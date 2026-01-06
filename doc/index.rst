@@ -23,6 +23,7 @@ Contents
     applications
     building
     tutorial
+    api
 
 
 Indices and tables
