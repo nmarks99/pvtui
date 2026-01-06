@@ -1,0 +1,34 @@
+name: Build and Deploy Docs
+on:
+  push:
+    branches: [ doc-setup ]
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y doxygen graphviz cmake
+          pip install sphinx breathe
+
+      - name: Build Documentation
+        run: |
+          mkdir build
+          cd build
+          cmake .. -DBUILD_DOCS=ON
+          make doc
+
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          # Path must match where your CMake 'make doc' output ends up
+          publish_dir: ./build/doc/sphinx
