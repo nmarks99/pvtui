@@ -34,42 +34,16 @@ ifdef ASYN
   $(PROD_NAME)_LIBS := asyn $($(PROD_NAME)_LIBS)
 endif
 
-ifdef LUA
-  $(DBD_NAME)_DBD += luaSupport.dbd
-  $(PROD_NAME)_LIBS := lua $($(PROD_NAME)_LIBS)
-endif
-
-ifdef BUSY
-  $(DBD_NAME)_DBD += busySupport.dbd
-  $(PROD_NAME)_LIBS := busy $($(PROD_NAME)_LIBS)
-endif
-
-ifdef SNCSEQ
-  ifeq (seq-2-1, $(findstring seq-2-1, $(SNCSEQ)))
-    $(DBD_NAME)_DBD += devSequencer.dbd
-    $(PROD_NAME)_LIBS := seqDev seq pv $($(PROD_NAME)_LIBS)
-  else ifeq (seq-2.1, $(findstring seq-2.1, $(SNCSEQ)))
-    $(DBD_NAME)_DBD += devSequencer.dbd
-    $(PROD_NAME)_LIBS := seqDev seq pv $($(PROD_NAME)_LIBS)
-  else
-    # seq 2.2.
-    $(PROD_NAME)_LIBS := seq pv $($(PROD_NAME)_LIBS)
-  endif
-endif
-
-# ifdef IPAC
-  # $(DBD_NAME)_DBD += tyGSOctal.dbd
-  # $(DBD_NAME)_DBD += drvIpac.dbd
-  # $(PROD_NAME)_LIBS := TyGSOctal Ipac $($(PROD_NAME)_LIBS)
-  # $(DBD_NAME)_DBD += IP520.dbd
-  # $(PROD_NAME)_LIBS := IP520 $($(PROD_NAME)_LIBS)
-# endif
-
 ifdef MOTOR
   $(DBD_NAME)_DBD += motorSupport.dbd
   $(DBD_NAME)_DBD += motorSimSupport.dbd
   $(PROD_NAME)_LIBS := motor $($(PROD_NAME)_LIBS)
   $(PROD_NAME)_LIBS := motorSimSupport $($(PROD_NAME)_LIBS)
+endif
+
+ifdef CALC
+  $(DBD_NAME)_DBD += calcSupport.dbd
+  $(PROD_NAME)_LIBS := calc $($(PROD_NAME)_LIBS)
 endif
 
 $(PROD_NAME)_LIBS += $(EPICS_BASE_IOC_LIBS)

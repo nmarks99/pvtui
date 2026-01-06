@@ -5,7 +5,7 @@
 
 #include <pv/caProvider.h>
 #include <pva/client.h>
-#include <pvtui/pvgroup.hpp>
+#include <pvtui/pvtui.hpp>
 
 // To catch CTRL+C to quit
 volatile std::sig_atomic_t g_signal_caught = 0;
@@ -33,7 +33,7 @@ int main(int argc, char *argv[]) {
     pvac::ClientProvider provider("ca");
 
     // Create the group and add our PVs
-    PVGroup pvgroup(provider, {
+    pvtui::PVGroup pvgroup(provider, {
 	prefix+"m1.DESC",
 	prefix+"m1.RBV",
     });

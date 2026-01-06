@@ -12,6 +12,8 @@
 #include <pv/caProvider.h>
 #include <pva/client.h>
 
+namespace pvtui {
+
 /**
  * @brief Represents the state of an EPICS enumeration (e.g., mbbo/mbbi).
  */
@@ -26,8 +28,6 @@ struct PVEnum {
  *
  * This allows a single mechanism to update variables of different types.
  */
-using MonitorPtr = std::variant<std::monostate, std::string *, int *, double *, std::vector<std::string> *,
-                                std::vector<int> *, std::vector<double> *, PVEnum *>;
 using MonitorVar = std::variant<std::monostate, std::string, int, double, std::vector<std::string>,
                                 std::vector<int>, std::vector<double>, PVEnum>;
 
@@ -50,7 +50,7 @@ class ConnectionMonitor : public pvac::ClientChannel::ConnectCallback {
      * @brief Callback invoked when the channel's connection status changes.
      * @param event The connection event details provided by the client channel.
      */
-    virtual void connectEvent(const pvac::ConnectEvent &event) override final;
+    virtual void connectEvent(const pvac::ConnectEvent& event) override final;
 
     /**
      * @brief Checks if connected.
@@ -77,7 +77,7 @@ struct PVHandler : public pvac::ClientChannel::MonitorCallback {
      * @param provider PVA client provider.
      * @param pv_name Name of the process variable.
      */
-    PVHandler(pvac::ClientProvider &provider, const std::string &pv_name);
+    PVHandler(pvac::ClientProvider& provider, const std::string& pv_name);
 
     /**
      * @brief Checks if the PV channel is connected.
@@ -96,14 +96,15 @@ struct PVHandler : public pvac::ClientChannel::MonitorCallback {
      * @tparam T The type of the variable to monitor.
      * @param var A reference to the variable that will be updated.
      */
-    template <typename T> void set_monitor(T &var) {
-	if (std::holds_alternative<std::monostate>(monitor_var_internal_)) {
-	    monitor_var_internal_ = T{};
-	}
+    template <typename T> void set_monitor(T& var) {
+        if (std::holds_alternative<std::monostate>(monitor_var_internal_)) {
+            monitor_var_internal_ = T{};
+        }
 
-	if (!std::holds_alternative<T>(monitor_var_internal_)) {
-	    throw std::runtime_error("Cannot set multiple monitors of different types for a single PV: " + name);
-	}
+        if (!std::holds_alternative<T>(monitor_var_internal_)) {
+            throw std::runtime_error("Cannot set multiple monitors of different types for a single PV: " +
+                                     name);
+        }
 
         sync_tasks_.push_back([&var](const MonitorVar& latest_data) {
             if (auto* val = std::get_if<T>(&latest_data)) {
@@ -116,7 +117,7 @@ struct PVHandler : public pvac::ClientChannel::MonitorCallback {
      * @brief Gets the underlying PVA monitor instance.
      * @return A reference to the pvac::Monitor object.
      */
-    pvac::Monitor &get_monitor() { return monitor_; }
+    pvac::Monitor& get_monitor() { return monitor_; }
 
     /**
      * @brief Gets a shared_ptr to the ConnectionMonitor
@@ -127,22 +128,24 @@ struct PVHandler : public pvac::ClientChannel::MonitorCallback {
   private:
     std::mutex mutex_;
     pvac::Monitor monitor_;                                 ///< PVA data monitor.
-    MonitorVar monitor_var_internal_;         		    ///< Internal variable updated by monitor
+    MonitorVar monitor_var_internal_;                       ///< Internal variable updated by monitor
     std::shared_ptr<ConnectionMonitor> connection_monitor_; ///< Monitors connection status.
-    std::vector<std::function<void(const MonitorVar&)>> sync_tasks_; ///< Functions to copy internal value to user value
-    bool new_data_ = false;
+    std::vector<std::function<void(const MonitorVar&)>>
+        sync_tasks_; ///< Functions to copy internal value to user value
+    // bool new_data_ = false;
+    std::atomic<bool> new_data_ = false;
 
     /**
      * @brief Callback invoked when a monitor event occurs (e.g., new data).
      * @param evt The monitor event containing the new data and status.
      */
-    void monitorEvent(const pvac::MonitorEvent &evt) override final;
+    void monitorEvent(const pvac::MonitorEvent& evt) override final;
 
     /**
      * @brief Extracts the PV value from the event and updates the monitored variable.
      * @param pfield A pointer to the PVStructure containing the new data.
      */
-    void get_monitored_variable(const epics::pvData::PVStructure *pfield);
+    void get_monitored_variable(const epics::pvData::PVStructure* pfield);
 };
 
 /**
@@ -158,20 +161,20 @@ struct PVGroup {
      * @param provider The PVA client provider.
      * @param pv_list A list of PV names to add to the group.
      */
-    PVGroup(pvac::ClientProvider &provider, const std::vector<std::string> &pv_list);
+    PVGroup(pvac::ClientProvider& provider, const std::vector<std::string>& pv_list);
 
     /**
      * @brief Constructs an empty PVGroup.
      * @param provider The PVA client provider.
      */
-    PVGroup(pvac::ClientProvider &provider);
+    PVGroup(pvac::ClientProvider& provider);
 
     /**
      * @brief Adds a new PV to the group.
      * @param pv_name The name of the PV to add.
      * @throws std::runtime_error if a PV with the same name already exists.
      */
-    void add(const std::string &pv_name);
+    void add(const std::string& pv_name);
 
     /**
      * @brief Registers a variable to be updated by a specific PV in the group.
@@ -180,8 +183,8 @@ struct PVGroup {
      * @param var A reference to the variable that will be updated.
      * @throws std::runtime_error if the PV is not found in the group.
      */
-    template <typename T> void set_monitor(const std::string &pv_name, T &var) {
-        PVHandler &pv = this->get_pv(pv_name);
+    template <typename T> void set_monitor(const std::string& pv_name, T& var) {
+        PVHandler& pv = this->get_pv(pv_name);
         pv.set_monitor(var);
     }
 
@@ -191,7 +194,7 @@ struct PVGroup {
      * @return A reference to the corresponding PVHandler object.
      * @throws std::runtime_error if the PV is not found.
      */
-    PVHandler &get_pv(const std::string &pv_name);
+    PVHandler& get_pv(const std::string& pv_name);
 
     /**
      * @brief Returns a shared_ptr<PVHandler> from the group by its name.
@@ -199,7 +202,7 @@ struct PVGroup {
      * @return A shared_ptr<PVHandler> to the corresponding PVHandler object.
      * @throws std::runtime_error if the PV is not found.
      */
-    std::shared_ptr<PVHandler> get_pv_shared(const std::string &pv_name);
+    std::shared_ptr<PVHandler> get_pv_shared(const std::string& pv_name);
 
     /**
      * @brief Provides array-like access to a PVHandler in the group.
@@ -207,7 +210,7 @@ struct PVGroup {
      * @return A reference to the corresponding PVHandler object.
      * @throws std::runtime_error if the PV is not found.
      */
-    PVHandler &operator[](const std::string &pv_name);
+    PVHandler& operator[](const std::string& pv_name);
 
     /**
      * @brief Checks if any PV in the group has received new data.
@@ -217,6 +220,7 @@ struct PVGroup {
 
   private:
     std::mutex mutex_;
-    pvac::ClientProvider &provider_;                                    ///< PVA client provider.
+    pvac::ClientProvider& provider_;                                    ///< PVA client provider.
     std::unordered_map<std::string, std::shared_ptr<PVHandler>> pv_map; ///< Map of PVs by name.
 };
+} // namespace pvtui

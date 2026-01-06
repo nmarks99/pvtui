@@ -37,13 +37,14 @@ For more details, visit: https://github.com/nmarks99/pvtui
 // except for the PV names
 class TransformRow : public DisplayBase {
   public:
-    TransformRow(PVGroup &pvgroup, const pvtui::ArgParser &args, const std::string &row_name)
-	: DisplayBase(pvgroup),
-	cmtx(pvgroup, args, std::string("$(P)$(T).CMT")+row_name, pvtui::PVPutType::String),
-	inpx(pvgroup, args, std::string("$(P)$(T).INP")+row_name, pvtui::PVPutType::String),
-	clcx(pvgroup, args, std::string("$(P)$(T).CLC")+row_name, pvtui::PVPutType::String),
-	valx(pvgroup, args, std::string("$(P)$(T).")+row_name, pvtui::PVPutType::Double),
-	outx(pvgroup, args, std::string("$(P)$(T).OUT")+row_name, pvtui::PVPutType::String)
+    TransformRow(App &app, const std::string &row_name)
+	: DisplayBase(app),
+	cmtx(app, std::string("$(P)$(T).CMT")+row_name, pvtui::PVPutType::String),
+	inpx(app, std::string("$(P)$(T).INP")+row_name, pvtui::PVPutType::String),
+	clcx(app, std::string("$(P)$(T).CLC")+row_name, pvtui::PVPutType::String),
+	valx(app, std::string("$(P)$(T).")+row_name, pvtui::PVPutType::Double),
+	outx(app, std::string("$(P)$(T).OUT")+row_name, pvtui::PVPutType::String),
+	row_name_(row_name)
     {}
 
     ~TransformRow() override = default;
@@ -60,6 +61,8 @@ class TransformRow : public DisplayBase {
 
     ftxui::Element get_renderer() override {
 	return hbox({
+	    text(" " + row_name_ + " ") | color(Color::Black),
+	    separator() | color(Color::Black),
 	    cmtx.component()->Render()
 		| size(WIDTH, EQUAL, 15)
 		| EPICSColor::edit(cmtx),
@@ -88,46 +91,31 @@ class TransformRow : public DisplayBase {
     InputWidget clcx;
     InputWidget valx;
     InputWidget outx;
+    std::string row_name_;
 };
 
 
 int main(int argc, char *argv[]) {
 
-    // Parse command line arguments and macros
-    pvtui::ArgParser args(argc, argv);
-
-    if (args.flag("help") or args.flag("h")) {
-	std::cout << CLI_HELP_MSG << std::endl;
-	return EXIT_SUCCESS;
-    }
-
-    if (not args.macros_present({"P", "T"})) {
+    App app(argc, argv);
+    if (app.args.help(CLI_HELP_MSG)) return EXIT_SUCCESS;
+    if (not app.args.macros_present({"P", "T"})) {
 	printf("Missing required macros\nRequired macros: P, T\n");
 	return EXIT_FAILURE;
     }
 
-    // Create the FTXUI screen. Interactive and uses the full terminal screen
-    auto screen = ScreenInteractive::Fullscreen();
-
-    // Instantiate EPICS client
-    epics::pvAccess::ca::CAClientFactory::start();
-    pvac::ClientProvider provider(args.provider);
-
-    // PVGroup to manage all PVs in the display
-    PVGroup pvgroup(provider);
-
-    ChoiceWidget scan(pvgroup, args, "$(P)$(T).SCAN", ChoiceStyle::Dropdown);
-    ButtonWidget proc(pvgroup, args, "$(P)$(T).PROC", " PROC ");
-    InputWidget desc(pvgroup, args, "$(P)$(T).DESC", PVPutType::String);
-    InputWidget prec(pvgroup, args, "$(P)$(T).PREC", PVPutType::Integer);
-    InputWidget flnk(pvgroup, args, "$(P)$(T).FLNK", PVPutType::String);
-    ChoiceWidget copt(pvgroup, args, "$(P)$(T).COPT", ChoiceStyle::Dropdown);
+    ChoiceWidget scan(app, "$(P)$(T).SCAN", ChoiceStyle::Dropdown);
+    ButtonWidget proc(app, "$(P)$(T).PROC", " PROC ");
+    InputWidget desc(app, "$(P)$(T).DESC", PVPutType::String);
+    InputWidget prec(app, "$(P)$(T).PREC", PVPutType::Integer);
+    InputWidget flnk(app, "$(P)$(T).FLNK", PVPutType::String);
+    ChoiceWidget copt(app, "$(P)$(T).COPT", ChoiceStyle::Dropdown);
 
     // add a row for transform record fields A through P (e.g. INPA, CLCA...INPA, CLCP)
     std::vector<std::unique_ptr<DisplayBase>> rows;
     for (char c = 'A'; c <= 'P'; c++) {
 	std::string s {c};
-	rows.emplace_back(std::make_unique<TransformRow>(pvgroup, args, s));
+	rows.emplace_back(std::make_unique<TransformRow>(app, s));
     }
 
     // Main container to define interactivity of components
@@ -167,6 +155,10 @@ int main(int argc, char *argv[]) {
 	    }),
 	    separatorEmpty(),
 	    hbox({
+		filler()
+		    | size(WIDTH, EQUAL, 3)
+		    | color(Color::Black),
+		separator() | color(Color::Black),
 		text("Comment")
 		    | color(Color::Black)
 		    | size(WIDTH, EQUAL, 15),
@@ -215,16 +207,7 @@ int main(int argc, char *argv[]) {
 	}) | center | bgcolor(Color::RGB(196,196,196));
     });
 
-    // Custom main loop
-    constexpr int POLL_PERIOD_MS = 100;
-    Loop loop(&screen, main_renderer);
-    while (!loop.HasQuitted()) {
-	if (pvgroup.sync()) {
-	    screen.PostEvent(Event::Custom);
-	}
-        loop.RunOnce();
-        std::this_thread::sleep_for(std::chrono::milliseconds(POLL_PERIOD_MS));
-    }
+    app.run(main_renderer);
 
     return EXIT_SUCCESS;
 }

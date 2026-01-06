@@ -10,6 +10,9 @@ target_link_libraries(pvtui_calcout PRIVATE pvtui)
 add_executable(pvtui_transform transform.cpp ../pvtui/pvtui.cpp ../pvtui/pvgroup.cpp)
 target_link_libraries(pvtui_transform PRIVATE pvtui)
 
+add_executable(pvtui_sequence sequence.cpp ../pvtui/pvtui.cpp ../pvtui/pvgroup.cpp)
+target_link_libraries(pvtui_sequence PRIVATE pvtui)
+
 add_executable(pvtui_sr sr.cpp ../pvtui/pvtui.cpp ../pvtui/pvgroup.cpp)
 target_link_libraries(pvtui_sr PRIVATE pvtui)
 

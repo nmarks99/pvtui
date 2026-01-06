@@ -1,0 +1,3 @@
+record(transform, "$(P)$(R)") {
+    field(PREC, 4)
+}

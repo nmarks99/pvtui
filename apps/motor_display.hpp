@@ -5,9 +5,9 @@
 #include <pvtui/display_base.hpp>
 #include <pvtui/pvtui.hpp>
 
-class SmallMotorDisplay : public DisplayBase {
+class SmallMotorDisplay : public pvtui::DisplayBase {
   public:
-    SmallMotorDisplay(PVGroup &pvgroup, const pvtui::ArgParser &args);
+    SmallMotorDisplay(pvtui::PVGroup &pvgroup, const pvtui::ArgParser &args);
     ~SmallMotorDisplay() override = default;
     ftxui::Element get_renderer() override;
     ftxui::Component get_container() override;
@@ -31,9 +31,9 @@ class SmallMotorDisplay : public DisplayBase {
 };
 
 
-class MediumMotorDisplay : public DisplayBase {
+class MediumMotorDisplay : public pvtui::DisplayBase {
   public:
-    MediumMotorDisplay(PVGroup &pvgroup, const pvtui::ArgParser &args);
+    MediumMotorDisplay(pvtui::PVGroup &pvgroup, const pvtui::ArgParser &args);
     ~MediumMotorDisplay() override = default;
     ftxui::Element get_renderer() override;
     ftxui::Component get_container() override;
@@ -62,9 +62,9 @@ class MediumMotorDisplay : public DisplayBase {
     pvtui::ChoiceWidget able;
 };
 
-class AllMotorDisplay : public DisplayBase {
+class AllMotorDisplay : public pvtui::DisplayBase {
   public:
-    AllMotorDisplay(PVGroup &pvgroup, const pvtui::ArgParser &args);
+    AllMotorDisplay(pvtui::PVGroup &pvgroup, const pvtui::ArgParser &args);
     ~AllMotorDisplay() override = default;
     ftxui::Element get_renderer() override;
     ftxui::Component get_container() override;

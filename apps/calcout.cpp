@@ -1,6 +1,3 @@
-#include <pv/caProvider.h>
-#include <pva/client.h>
-
 #include <ftxui/component/component.hpp>
 #include <ftxui/component/loop.hpp>
 #include <ftxui/component/event.hpp>
@@ -30,54 +27,41 @@ Examples:
 For more details, visit: https://github.com/nmarks99/pvtui
 )";
 
+
 int main(int argc, char *argv[]) {
 
-    // Parse command line arguments and macros
-    pvtui::ArgParser args(argc, argv);
+    App app(argc, argv);
 
-    if (args.flag("help") or args.flag("h")) {
-	std::cout << CLI_HELP_MSG << std::endl;
-	return EXIT_SUCCESS;
-    }
+    if (app.args.help(CLI_HELP_MSG)) return EXIT_SUCCESS;
 
-    if (not args.macros_present({"P", "C"})) {
+    if (not app.args.macros_present({"P", "C"})) {
 	printf("Missing required macros\nRequired macros: P, C\n");
 	return EXIT_FAILURE;
     }
 
-    // Create the FTXUI screen. Interactive and uses the full terminal screen
-    auto screen = ScreenInteractive::Fullscreen();
-
-    // Instantiate EPICS client
-    epics::pvAccess::ca::CAClientFactory::start();
-    pvac::ClientProvider provider(args.provider);
-
-    // PVGroup to manage all PVs in the display
-    PVGroup pvgroup(provider);
-
-    ChoiceWidget scan(pvgroup, args, "$(P)$(C).SCAN", ChoiceStyle::Dropdown);
-    InputWidget desc(pvgroup, args, "$(P)$(C).DESC", PVPutType::String);
-    InputWidget prec(pvgroup, args, "$(P)$(C).PREC", PVPutType::Integer);
-    InputWidget inpa(pvgroup, args, "$(P)$(C).INPA", PVPutType::String);
-    InputWidget a_val(pvgroup, args, "$(P)$(C).A", PVPutType::Double);
-    InputWidget inpb(pvgroup, args, "$(P)$(C).INPB", PVPutType::String);
-    InputWidget b_val(pvgroup, args, "$(P)$(C).B", PVPutType::Double);
-    InputWidget inpc(pvgroup, args, "$(P)$(C).INPC", PVPutType::String);
-    InputWidget c_val(pvgroup, args, "$(P)$(C).C", PVPutType::Double);
-    InputWidget inpd(pvgroup, args, "$(P)$(C).INPD", PVPutType::String);
-    InputWidget d_val(pvgroup, args, "$(P)$(C).D", PVPutType::Double);
-    InputWidget calc(pvgroup, args, "$(P)$(C).CALC", PVPutType::String);
-    InputWidget ocal(pvgroup, args, "$(P)$(C).OCAL", PVPutType::String);
-    InputWidget out(pvgroup, args, "$(P)$(C).OUT", PVPutType::String);
-    InputWidget flnk(pvgroup, args, "$(P)$(C).FLNK", PVPutType::String);
-    VarWidget<std::string> val(pvgroup, args, "$(P)$(C).VAL");
-    VarWidget<std::string> oval(pvgroup, args, "$(P)$(C).OVAL");
-    ChoiceWidget dopt(pvgroup, args, "$(P)$(C).DOPT", ChoiceStyle::Dropdown);
-    ChoiceWidget ivoa(pvgroup, args, "$(P)$(C).IVOA", ChoiceStyle::Dropdown);
-    ChoiceWidget oopt(pvgroup, args, "$(P)$(C).OOPT", ChoiceStyle::Dropdown);
-    InputWidget odly(pvgroup, args, "$(P)$(C).ODLY", PVPutType::Double);
-    InputWidget ivov(pvgroup, args, "$(P)$(C).IVOV", PVPutType::Double);
-    ButtonWidget proc(pvgroup, args, "$(P)$(C).PROC", " PROC ");
+    ChoiceWidget scan(app, "$(P)$(C).SCAN", ChoiceStyle::Dropdown);
+    InputWidget desc(app, "$(P)$(C).DESC", PVPutType::String);
+    InputWidget prec(app, "$(P)$(C).PREC", PVPutType::Integer);
+    InputWidget inpa(app, "$(P)$(C).INPA", PVPutType::String);
+    InputWidget a_val(app, "$(P)$(C).A", PVPutType::Double);
+    InputWidget inpb(app, "$(P)$(C).INPB", PVPutType::String);
+    InputWidget b_val(app, "$(P)$(C).B", PVPutType::Double);
+    InputWidget inpc(app, "$(P)$(C).INPC", PVPutType::String);
+    InputWidget c_val(app, "$(P)$(C).C", PVPutType::Double);
+    InputWidget inpd(app, "$(P)$(C).INPD", PVPutType::String);
+    InputWidget d_val(app, "$(P)$(C).D", PVPutType::Double);
+    InputWidget calc(app, "$(P)$(C).CALC", PVPutType::String);
+    InputWidget ocal(app, "$(P)$(C).OCAL", PVPutType::String);
+    InputWidget out(app, "$(P)$(C).OUT", PVPutType::String);
+    InputWidget flnk(app, "$(P)$(C).FLNK", PVPutType::String);
+    VarWidget<std::string> val(app, "$(P)$(C).VAL");
+    VarWidget<std::string> oval(app, "$(P)$(C).OVAL");
+    ChoiceWidget dopt(app, "$(P)$(C).DOPT", ChoiceStyle::Dropdown);
+    ChoiceWidget ivoa(app, "$(P)$(C).IVOA", ChoiceStyle::Dropdown);
+    ChoiceWidget oopt(app, "$(P)$(C).OOPT", ChoiceStyle::Dropdown);
+    InputWidget odly(app, "$(P)$(C).ODLY", PVPutType::Double);
+    InputWidget ivov(app, "$(P)$(C).IVOV", PVPutType::Double);
+    ButtonWidget proc(app, "$(P)$(C).PROC", " PROC ");
 
     // Main container to define interactivity of components
     auto main_container = Container::Vertical({
@@ -95,16 +79,13 @@ int main(int argc, char *argv[]) {
 	ivoa.component(), ivov.component(), out.component(), flnk.component(),
     });
 
-
-    const Decorator COLORDISCON = color(Color::White) | bgcolor(Color::White);
-
     // Main renderer to define visual layout of components and elements
     auto main_renderer = Renderer(main_container, [&] {
         return vbox({
 	    hbox({
 		desc.component()->Render() | color(Color::Black) |  bgcolor(Color::RGB(210,210,210)) | size(WIDTH, LESS_THAN, 32) | xflex,
 		separatorEmpty(),
-		text("(" + args.macros.at("P")+args.macros.at("C") + ")") | color(Color::Black)
+		text("(" + app.args.macros.at("P")+app.args.macros.at("C") + ")") | color(Color::Black)
 	    }),
 	    separatorEmpty(),
 	    hbox({
@@ -214,16 +195,7 @@ int main(int argc, char *argv[]) {
 	}) | center | bgcolor(Color::RGB(196,196,196));
     });
 
-    // Custom main loop
-    constexpr int POLL_PERIOD_MS = 100;
-    Loop loop(&screen, main_renderer);
-    while (!loop.HasQuitted()) {
-	if (pvgroup.sync()) {
-	    screen.PostEvent(Event::Custom);
-	}
-        loop.RunOnce();
-        std::this_thread::sleep_for(std::chrono::milliseconds(POLL_PERIOD_MS));
-    }
+    app.run(main_renderer);
 
     return EXIT_SUCCESS;
 }

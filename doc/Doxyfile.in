@@ -1,0 +1,72 @@
+# Doxyfile.in - Doxygen configuration file template for CMake
+
+# Project identification
+PROJECT_NAME           = pvtui
+PROJECT_BRIEF          = "Terminal User Interfaces for EPICS"
+PROJECT_LOGO           =
+OUTPUT_DIRECTORY       = @CMAKE_CURRENT_BINARY_DIR@/doc
+CREATE_SUBDIRS         = YES
+
+# Input settings
+INPUT                  = @CMAKE_CURRENT_SOURCE_DIR@/pvtui
+FILE_PATTERNS          = *.h *.hpp *.cpp
+RECURSIVE              = YES
+EXCLUDE       	       = @CMAKE_CURRENT_SOURCE_DIR@/pvtui/argh.h
+
+# Build settings
+GENERATE_HTML          = NO
+GENERATE_LATEX         = NO
+GENERATE_MAN           = NO
+GENERATE_RTF           = NO
+GENERATE_XML           = YES
+GENERATE_DOCBOOK       = NO
+GENERATE_CHI           = NO
+GENERATE_ECLIPSEHELP   = NO
+GENERATE_HTMLHELP      = NO
+GENERATE_QHP           = NO
+GENERATE_PERLMOD       = NO
+
+XML_OUTPUT = xml
+
+# Output control
+QUIET                  = YES
+WARNINGS               = YES
+WARN_IF_UNDOCUMENTED   = YES
+
+# Documentation style
+JAVADOC_AUTOBRIEF      = NO
+QT_AUTOBRIEF           = NO
+MULTILINE_CPP_IS_BRIEF = NO
+ALPHABETICAL_INDEX     = YES
+EXTRACT_ALL            = NO
+EXTRACT_PRIVATE        = NO
+EXTRACT_STATIC         = NO
+EXTRACT_LOCAL_CLASSES  = NO
+EXTRACT_LOCAL_METHODS  = NO
+HIDE_UNDOC_MEMBERS     = NO
+HIDE_UNDOC_CLASSES     = NO
+INTERNAL_DOCS          = NO
+CASE_SENSE_NAMES       = YES
+SHOW_INCLUDE_FILES     = YES
+INLINE_INFO            = YES
+SORT_MEMBER_DOCS       = YES
+SORT_BRIEF_DOCS        = NO
+SORT_GROUP_NAMES       = NO
+SORT_BY_SCOPE_NAME     = NO
+SEPARATE_MEMBER_PAGES  = NO
+TAB_SIZE               = 4
+OPTIMIZE_OUTPUT_FOR_C  = NO
+OPTIMIZE_OUTPUT_JAVA   = NO
+OPTIMIZE_FOR_FORTRAN   = NO
+EXTENSION_MAPPING      =
+GENERATE_LEGEND        = YES
+MATHJAX_CODEFILE       =
+MATHJAX_EXTENSIONS     =
+
+# Graphviz settings (optional, but good for class diagrams)
+HAVE_DOT               = YES
+DOT_IMAGE_FORMAT       = svg # or png
+HTML_DYNAMIC_SECTIONS  = YES
+COLLABORATION_GRAPH    = YES
+INCLUDE_GRAPH          = YES
+ENABLED_SECTIONS       =

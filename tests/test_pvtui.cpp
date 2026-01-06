@@ -1,75 +1,74 @@
-#include <pv/caProvider.h>
-#include <pva/client.h>
-
-#include <pvtui/display_base.hpp>
 #include <pvtui/pvtui.hpp>
-
 #include <ftxui/component/component.hpp>
-#include <ftxui/component/component_base.hpp>
-#include <ftxui/component/loop.hpp>
-#include <ftxui/component/screen_interactive.hpp>
-#include <ftxui/component/event.hpp>
-#include <ftxui/dom/node.hpp>
 
 using namespace ftxui;
 using namespace pvtui;
 
 int main(int argc, char *argv[]) {
 
-    // Parse command line arguments and macros
-    pvtui::ArgParser args(argc, argv);
+    // Instantiate an App to manage everything
+    App app(argc, argv);
 
-    if (not args.macros_present({"P", "M"})) {
-	printf("Missing required macro P, M\n");
+    // Check for required macros if desired
+    if (not app.args.macros_present({"P"})) {
+	printf("Missing required macro P\n");
 	return EXIT_FAILURE;
     }
 
-    // Create the FTXUI screen. Interactive and uses the full terminal screen
-    auto screen = ScreenInteractive::Fullscreen();
-
-    // Instantiate EPICS PVA client
-    // Start CAClientFactory so we can see CA only PVs
-    epics::pvAccess::ca::CAClientFactory::start();
-    pvac::ClientProvider provider(args.provider);
-
-    // shared_ptr to PVGroup to manage all PVs for displays
-    // std::shared_ptr<PVGroup> pvgroup = std::make_shared<PVGroup>(provider);
-    PVGroup pvgroup(provider);
-
     // Create all the widgets
-    InputWidget desc(pvgroup, args, "$(P)$(M).DESC", PVPutType::String);
-    InputWidget twv(pvgroup, args, "$(P)$(M).TWV", PVPutType::Double);
-    ButtonWidget twr(pvgroup, args, "$(P)$(M).TWR", " < ", 1);
-    ButtonWidget twf(pvgroup, args, "$(P)$(M).TWF", " > ", 1);
-    VarWidget<std::string> rbv(pvgroup, args, "$(P)$(M).RBV");
+    InputWidget desc(app, "$(P)Value.DESC", PVPutType::String);
+    InputWidget val(app, "$(P)Value.VAL", PVPutType::Double);
+    InputWidget twv(app, "$(P)TweakVal.VAL", PVPutType::Double);
+    ButtonWidget twf(app, "$(P)TweakFwd.PROC", " + ");
+    ButtonWidget twr(app, "$(P)TweakRev.PROC", " - ");
 
+    // ftxui container to define interactivity of components
     auto main_container = Container::Vertical({
-        desc.component(),
-        Container::Vertical({
-            twr.component(), twv.component(), twf.component()
-        })
+	desc.component(),
+	val.component(),
+	twf.component(),
+	twr.component(),
+	twv.component(),
     });
 
+    // ftxui renderer defines the visual layout
     auto main_renderer = ftxui::Renderer(main_container, [&] {
         return vbox({
-            desc.component()->Render() | EPICSColor::edit(desc) | size(WIDTH, EQUAL, 30),
-            text(rbv.value()) | center | EPICSColor::readback(rbv),
-            hbox({
-                twr.component()->Render() | color(Color::Black),
-                twv.component()->Render() | EPICSColor::edit(twv) | size(WIDTH, EQUAL, 10),
-                twf.component()->Render() | color(Color::Black),
-            })
-        }) | center | EPICSColor::background();
+
+	    hbox({
+		text("DESC: "),
+		desc.component()->Render()
+		    | size(WIDTH, EQUAL, 15)
+		    | EPICSColor::edit(desc),
+	    }),
+
+	    separator(),
+
+	    hbox({
+		text("VAL: "),
+		val.component()->Render()
+		    | size(WIDTH, EQUAL, 11)
+		    | EPICSColor::edit(val),
+	    }),
+
+	    separatorEmpty(),
+
+	    hbox({
+		twr.component()->Render(),
+		separatorEmpty(),
+		twv.component()->Render()
+		    | size(WIDTH, EQUAL, 5)
+		    | EPICSColor::edit(twv),
+		separatorEmpty(),
+		twf.component()->Render(),
+	    })
+
+        }) | size(WIDTH, EQUAL, 20);
     });
 
-    constexpr int POLL_PERIOD_MS = 100;
-    Loop loop(&screen, main_renderer);
-    while (!loop.HasQuitted()) {
-        if (pvgroup.sync()) {
-            screen.PostEvent(Event::Custom);
-        }
-        loop.RunOnce();
-        std::this_thread::sleep_for(std::chrono::milliseconds(POLL_PERIOD_MS));
-    }
+    // Run the main loop
+    app.run(main_renderer);
+
+    return EXIT_SUCCESS;
 }
 
