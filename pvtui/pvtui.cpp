@@ -271,75 +271,75 @@ ftxui::Component WidgetBase::component() const {
 
 InputWidget::InputWidget(PVGroup& pvgroup, const ArgParser& args, const std::string& pv_name,
                          PVPutType put_type, InputTransform tf)
-    : WidgetBase(pvgroup, args, pv_name) {
-    pvgroup.set_monitor(pv_name_, value_);
-    component_ = make_input_widget(pvgroup.get_pv(pv_name_), value_, put_type, tf);
+    : WidgetBase(pvgroup, args, pv_name), value_ptr_(std::make_shared<std::string>()) {
+    pvgroup.set_monitor(pv_name_, *value_ptr_);
+    component_ = make_input_widget(pvgroup.get_pv(pv_name_), *value_ptr_, put_type, tf);
 }
 
 InputWidget::InputWidget(App& app, const std::string& pv_name, PVPutType put_type)
-    : WidgetBase(app.pvgroup, app.args, pv_name) {
-    app.pvgroup.set_monitor(pv_name_, value_);
-    component_ = make_input_widget(app.pvgroup.get_pv(pv_name_), value_, put_type);
+    : WidgetBase(app.pvgroup, app.args, pv_name), value_ptr_(std::make_shared<std::string>()) {
+    app.pvgroup.set_monitor(pv_name_, *value_ptr_);
+    component_ = make_input_widget(app.pvgroup.get_pv(pv_name_), *value_ptr_, put_type);
 }
 
 InputWidget::InputWidget(PVGroup& pvgroup, const std::string& pv_name, PVPutType put_type)
-    : WidgetBase(pvgroup, pv_name) {
-    pvgroup.set_monitor(pv_name_, value_);
-    component_ = make_input_widget(pvgroup.get_pv(pv_name_), value_, put_type);
+    : WidgetBase(pvgroup, pv_name), value_ptr_(std::make_shared<std::string>()) {
+    pvgroup.set_monitor(pv_name_, *value_ptr_);
+    component_ = make_input_widget(pvgroup.get_pv(pv_name_), *value_ptr_, put_type);
 }
 
-std::string InputWidget::value() const { return value_; }
+const std::string& InputWidget::value() const { return *value_ptr_; }
 
 ChoiceWidget::ChoiceWidget(PVGroup& pvgroup, const ArgParser& args, const std::string& pv_name,
                            ChoiceStyle style)
-    : WidgetBase(pvgroup, args, pv_name) {
-    pvgroup.set_monitor(pv_name_, value_);
+    : WidgetBase(pvgroup, args, pv_name), value_ptr_(std::make_shared<PVEnum>()) {
+    pvgroup.set_monitor(pv_name_, *value_ptr_);
     switch (style) {
     case pvtui::ChoiceStyle::Vertical:
-        component_ = make_choice_v_widget(pvgroup.get_pv(pv_name_), value_.choices, value_.index);
+        component_ = make_choice_v_widget(pvgroup.get_pv(pv_name_), value_ptr_->choices, value_ptr_->index);
         break;
     case pvtui::ChoiceStyle::Horizontal:
-        component_ = make_choice_h_widget(pvgroup.get_pv(pv_name_), value_.choices, value_.index);
+        component_ = make_choice_h_widget(pvgroup.get_pv(pv_name_), value_ptr_->choices, value_ptr_->index);
         break;
     case pvtui::ChoiceStyle::Dropdown:
-        component_ = make_dropdown_widget(pvgroup.get_pv(pv_name_), value_.choices, value_.index);
+        component_ = make_dropdown_widget(pvgroup.get_pv(pv_name_), value_ptr_->choices, value_ptr_->index);
         break;
     }
 }
 
 ChoiceWidget::ChoiceWidget(App& app, const std::string& pv_name, ChoiceStyle style)
-    : WidgetBase(app.pvgroup, app.args, pv_name) {
-    app.pvgroup.set_monitor(pv_name_, value_);
+    : WidgetBase(app.pvgroup, app.args, pv_name), value_ptr_(std::make_shared<PVEnum>()) {
+    app.pvgroup.set_monitor(pv_name_, *value_ptr_);
     switch (style) {
     case pvtui::ChoiceStyle::Vertical:
-        component_ = make_choice_v_widget(app.pvgroup.get_pv(pv_name_), value_.choices, value_.index);
+        component_ = make_choice_v_widget(app.pvgroup.get_pv(pv_name_), value_ptr_->choices, value_ptr_->index);
         break;
     case pvtui::ChoiceStyle::Horizontal:
-        component_ = make_choice_h_widget(app.pvgroup.get_pv(pv_name_), value_.choices, value_.index);
+        component_ = make_choice_h_widget(app.pvgroup.get_pv(pv_name_), value_ptr_->choices, value_ptr_->index);
         break;
     case pvtui::ChoiceStyle::Dropdown:
-        component_ = make_dropdown_widget(app.pvgroup.get_pv(pv_name_), value_.choices, value_.index);
+        component_ = make_dropdown_widget(app.pvgroup.get_pv(pv_name_), value_ptr_->choices, value_ptr_->index);
         break;
     }
 }
 
 ChoiceWidget::ChoiceWidget(PVGroup& pvgroup, const std::string& pv_name, ChoiceStyle style)
-    : WidgetBase(pvgroup, pv_name) {
-    pvgroup.set_monitor(pv_name_, value_);
+    : WidgetBase(pvgroup, pv_name), value_ptr_(std::make_shared<PVEnum>()) {
+    pvgroup.set_monitor(pv_name_, *value_ptr_);
     switch (style) {
     case pvtui::ChoiceStyle::Vertical:
-        component_ = make_choice_v_widget(pvgroup.get_pv(pv_name_), value_.choices, value_.index);
+        component_ = make_choice_v_widget(pvgroup.get_pv(pv_name_), value_ptr_->choices, value_ptr_->index);
         break;
     case pvtui::ChoiceStyle::Horizontal:
-        component_ = make_choice_h_widget(pvgroup.get_pv(pv_name_), value_.choices, value_.index);
+        component_ = make_choice_h_widget(pvgroup.get_pv(pv_name_), value_ptr_->choices, value_ptr_->index);
         break;
     case pvtui::ChoiceStyle::Dropdown:
-        component_ = make_dropdown_widget(pvgroup.get_pv(pv_name_), value_.choices, value_.index);
+        component_ = make_dropdown_widget(pvgroup.get_pv(pv_name_), value_ptr_->choices, value_ptr_->index);
         break;
     }
 }
 
-PVEnum ChoiceWidget::value() const { return value_; }
+const PVEnum& ChoiceWidget::value() const { return *value_ptr_; }
 
 ButtonWidget::ButtonWidget(PVGroup& pvgroup, const ArgParser& args, const std::string& pv_name,
                            const std::string& label, int press_val)

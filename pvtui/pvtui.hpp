@@ -256,10 +256,10 @@ class InputWidget : public WidgetBase {
      * @brief Gets the current value of the string displayed in the UI.
      * @return The current string value from the UI.
      */
-    std::string value() const;
+    const std::string& value() const;
 
   private:
-    std::string value_; ///< Value displayed on the UI
+    std::shared_ptr<std::string> value_ptr_; ///< Value displayed on the UI
 };
 
 /**
@@ -313,8 +313,8 @@ template <typename T> class VarWidget : public WidgetBase {
      * @param pv_name The PV name with macros, e.g. "$(P)$(M).VAL".
      */
     VarWidget(PVGroup& pvgroup, const ArgParser& args, const std::string& pv_name)
-        : WidgetBase(pvgroup, args, pv_name) {
-        pvgroup.set_monitor(pv_name_, value_);
+        : WidgetBase(pvgroup, args, pv_name), value_ptr_(std::make_shared<T>()) {
+        pvgroup.set_monitor(pv_name_, *value_ptr_);
     }
 
     /**
@@ -322,8 +322,8 @@ template <typename T> class VarWidget : public WidgetBase {
      * @param pvgroup The PVGroup managing the PVs used in this widget.
      * @param pv_name The PV name.
      */
-    VarWidget(PVGroup& pvgroup, const std::string& pv_name) : WidgetBase(pvgroup, pv_name) {
-        pvgroup.set_monitor(pv_name_, value_);
+    VarWidget(PVGroup& pvgroup, const std::string& pv_name) : WidgetBase(pvgroup, pv_name), value_ptr_(std::make_shared<T>()) {
+        pvgroup.set_monitor(pv_name_, *value_ptr_);
     }
 
     /**
@@ -331,15 +331,15 @@ template <typename T> class VarWidget : public WidgetBase {
      * @param app A reference to the App.
      * @param pv_name The PV name.
      */
-    VarWidget(App& app, const std::string& pv_name) : WidgetBase(app.pvgroup, app.args, pv_name) {
-        app.pvgroup.set_monitor(pv_name_, value_);
+    VarWidget(App& app, const std::string& pv_name) : WidgetBase(app.pvgroup, app.args, pv_name), value_ptr_(std::make_shared<T>()) {
+        app.pvgroup.set_monitor(pv_name_, *value_ptr_);
     }
 
     /**
      * @brief Gets the current value of the variable for use with the UI.
      * @return The current value stored in the widget.
      */
-    T value() const { return value_; };
+    const T& value() const { return *value_ptr_; };
 
     /**
      * @brief This widget does not have a UI element, so the component method is deleted.
@@ -347,7 +347,7 @@ template <typename T> class VarWidget : public WidgetBase {
     ftxui::Component component() const = delete;
 
   private:
-    T value_;
+    std::shared_ptr<T> value_ptr_;
 };
 
 /**
@@ -386,10 +386,10 @@ class ChoiceWidget : public WidgetBase {
      * @brief Gets the current enum value displayed in the UI.
      * @return The current PVEnum value from the UI.
      */
-    PVEnum value() const;
+    const PVEnum& value() const;
 
   private:
-    PVEnum value_;
+    std::shared_ptr<PVEnum> value_ptr_;
 };
 
 /**
