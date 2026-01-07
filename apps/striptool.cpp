@@ -1,14 +1,4 @@
-#include <cmath>
-#include <ftxui/component/event.hpp>
-#include <ftxui/dom/node.hpp>
-#include <string>
-#include <sstream>
-
 #include <ftxui/component/component.hpp>
-#include <ftxui/component/component_base.hpp>
-#include <ftxui/component/loop.hpp>
-#include <ftxui/component/screen_interactive.hpp>
-
 #include <ftxui-plot/plot.hpp>
 #include <pvtui/pvtui.hpp>
 
@@ -44,27 +34,40 @@ struct Channel {
     VarWidget<double> var;
 };
 
+// Only up to 5 PVs are supported at once
+constexpr int MAX_CHANNELS = 5;
+std::array<Color, MAX_CHANNELS> colors = {
+    Color::Red, Color::Blue, Color::Green,
+    Color::Yellow, Color::Purple
+};
+
 int main(int argc, char *argv[]) {
 
     App app(argc, argv);
     if (app.args.help(CLI_HELP_MSG)) return EXIT_SUCCESS;
 
+    // PV names to monitor are pass as positional arguments
+    auto all_pos_args = app.args.positional_args();
+    std::vector<std::string> pv_names(all_pos_args.begin()+1, all_pos_args.end());
+    assert(pv_names.size() <= MAX_CHANNELS);
+
+    // Create VarWidget for each requested PV
+    // For now, just throw if any fail to connect
     std::vector<Channel> channels;
-    std::vector<Color> colors = {Color::Red, Color::Green, Color::Blue};
-    for (int i = 0; i < 3; i++) {
-	std::stringstream pvname;
-	pvname << "nmarks:m" << i+1 << ".RBV";
-	VarWidget<double> rbv(app.pvgroup, pvname.str());
-	std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+    auto color_it = colors.begin();
+    for (const auto& pv_name : pv_names) {
+	VarWidget<double> var(app.pvgroup, pv_name);
+	std::this_thread::sleep_for(std::chrono::milliseconds(500));
 	app.pvgroup.sync();
-	if (rbv.connected()) {
-	    Channel chan(std::move(rbv), colors.at(i), rbv.value());
-	    channels.push_back(chan);
-	} else {
-	    throw std::runtime_error("not connected");
+	if (!var.connected()) {
+	    throw std::runtime_error("Failed to connect to " + pv_name);
 	}
+	Channel chan(var, *color_it, var.value());
+	channels.push_back(std::move(chan));
+	color_it = std::next(color_it);
     }
 
+    // Add the data for plotting
     PlotData data;
     for (auto& chan : channels) {
 	data.push_back({&chan.x, &chan.y, &chan.color});
