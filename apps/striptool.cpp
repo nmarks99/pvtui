@@ -2,7 +2,7 @@
 #include <ftxui/component/event.hpp>
 #include <ftxui/dom/node.hpp>
 #include <string>
-#include <limits>
+#include <sstream>
 
 #include <ftxui/component/component.hpp>
 #include <ftxui/component/component_base.hpp>
@@ -31,18 +31,18 @@ For more details, visit: https://github.com/nmarks99/pvtui
 using namespace ftxui;
 using namespace pvtui;
 
-std::deque<double> linspace(double start, double stop, size_t num_points) {
-    std::deque<double> out(num_points);
-    const double step = (stop - start) / (num_points - 1);
-    double val = start;
-    for (size_t i = 0; i < num_points; i++) {
-	out.at(i) = val;
-	val += step;
-    }
-    return out;
-}
-
 using PlotData = std::vector<PlotSeries<std::deque<double>>>;
+
+struct Channel {
+    Channel(VarWidget<double> var, Color color, double y0)
+	: x(arange<std::deque<double>>(0, 5.0, 0.05)),
+	y(std::deque<double>(x.size(), y0)), color(color), var(var)
+    {}
+    std::deque<double> x;
+    std::deque<double> y;
+    Color color;
+    VarWidget<double> var;
+};
 
 int main(int argc, char *argv[]) {
 
@@ -65,23 +65,42 @@ int main(int argc, char *argv[]) {
     // PVGroup to manage all PVs for displays
     PVGroup pvgroup(provider);
 
-    VarWidget<double> m1rbv(pvgroup, "nmarks:m1.RBV");
-    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-    pvgroup.sync();
-    // std::cout << "RBV = " << m1rbv.value() << std::endl;
-    // return 1;
+    // std::vector<VarWidget<double>> channels;
+    std::vector<Channel> channels;
+    std::vector<Color> colors = {Color::Red, Color::Green, Color::Blue};
 
-    // Create vectors to store the data
-    // this will need to be done dynamically to be able
-    // to add more series to the plot at runtime
-    // const int N = int(20.0/0.1);
-    std::deque<double> x1 = arange<std::deque<double>>(0, 5, 0.05);
-    std::deque<double> y1(x1.size(), m1rbv.value());
-    Color color1 = Color::Red;
+    for (int i = 0; i < 3; i++) {
+	std::stringstream pvname;
+	pvname << "nmarks:m" << i+1 << ".RBV";
+	VarWidget<double> rbv(pvgroup, pvname.str());
+	std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+	pvgroup.sync();
+	if (rbv.connected()) {
+	    Channel chan(std::move(rbv), colors.at(i), rbv.value());
+	    channels.push_back(chan);
+	} else {
+	    throw std::runtime_error("not connected");
+	}
+    }
 
-    PlotData data = {
-	{&x1, &y1, &color1},
-    };
+    // // Create vectors to store the data
+    // // this will need to be done dynamically to be able
+    // // to add more series to the plot at runtime
+    // // const int N = int(20.0/0.1);
+    // std::deque<double> x1 = arange<std::deque<double>>(0, 5, 0.05);
+    // std::deque<double> y1(x1.size(), channels[0].value());
+    // Color color1 = Color::Red;
+
+    // PlotData data = {
+	// {&x1, &y1, &color1},
+    // };
+
+    PlotData data;
+
+    for (auto& chan : channels) {
+	data.push_back({&chan.x, &chan.y, &chan.color});
+    }
+
 
     // Axis limits
     std::string ymin = "-5.0";
@@ -128,35 +147,52 @@ int main(int argc, char *argv[]) {
 
     // Main renderer to define visual layout of components and elements
     auto main_renderer = Renderer(main_container, [&] {
+
+	// Elements legend_elems;
+	// for (const auto& chan : channels) {
+	    // legend_elems.push_back(hbox({
+		// text(unicode::rectangle(1)) | color(chan.color),
+		// text(chan.var.pv_name() + " = " + std::to_string(chan.var.value()))
+	    // }));
+	    // legend_elems.push_back(separatorEmpty());
+	// }
+
 	return hbox({
 	    plot->Render() | (border | (plot->Active() ? color(Color::LightSkyBlue1) : color(Color::White))),
+
+	    // sidebar
 	    vbox({
-		vbox({
-		    text("Axis limits") | underlined,
-		    hbox({
-			text("X Range: "),
-			xmin_inp->Render() | size(WIDTH, EQUAL, 10) | bgcolor(Color::RGB(50,50,50)),
-			separatorEmpty(),
-			xmax_inp->Render() | size(WIDTH, EQUAL, 10) | bgcolor(Color::RGB(50,50,50)),
-		    }),
-		    hbox({
-			text("Y Range: "),
-			ymin_inp->Render() | size(WIDTH, EQUAL, 10) | bgcolor(Color::RGB(50,50,50)),
-			separatorEmpty(),
-			ymax_inp->Render() | size(WIDTH, EQUAL, 10) | bgcolor(Color::RGB(50,50,50)),
-		    }),
-		    // separatorEmpty(),
-		    // autoscale_button->Render() | italic | size(WIDTH, EQUAL, 12),
-		}),
-
-		separator(),
-
-		// Channels
+		text("Axis limits") | underlined | bold,
 		hbox({
-		    text(unicode::rectangle(1)) | color(Color::Red),
-		    text("m1.RBV = " + std::to_string(m1rbv.value()))
+		    text("X Range: "),
+		    xmin_inp->Render() | size(WIDTH, EQUAL, 10) | bgcolor(Color::RGB(50,50,50)),
+		    separatorEmpty(),
+		    xmax_inp->Render() | size(WIDTH, EQUAL, 10) | bgcolor(Color::RGB(50,50,50)),
 		}),
-	    }) | border | size(WIDTH, EQUAL, 30),
+		hbox({
+		    text("Y Range: "),
+		    ymin_inp->Render() | size(WIDTH, EQUAL, 10) | bgcolor(Color::RGB(50,50,50)),
+		    separatorEmpty(),
+		    ymax_inp->Render() | size(WIDTH, EQUAL, 10) | bgcolor(Color::RGB(50,50,50)),
+		}),
+
+		separatorEmpty(),
+
+		// plot legend showing connected PVs and their values
+		text("Channels") | underlined | bold,
+		[&]{
+		    Elements legend_elems;
+		    for (const auto& chan : channels) {
+			legend_elems.push_back(hbox({
+			    text(unicode::rectangle(1)) | color(chan.color),
+			    text(chan.var.pv_name() + " = " + std::to_string(chan.var.value()))
+			}));
+			legend_elems.push_back(separatorEmpty());
+		    }
+		    return vbox(legend_elems);
+		}()
+
+	    }) | border | size(WIDTH, EQUAL, 30)
 	});
     });
 
@@ -166,8 +202,10 @@ int main(int argc, char *argv[]) {
     while (!loop.HasQuitted()) {
 	pvgroup.sync();
 
-	y1.push_back(m1rbv.value());
-	y1.pop_front();
+	for (auto& chan : channels) {
+	    chan.y.push_back(chan.var.value());
+	    chan.y.pop_front();
+	}
 
 	screen.PostEvent(Event::Custom);
 
