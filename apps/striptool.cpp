@@ -1,6 +1,7 @@
 #include <ftxui/component/component.hpp>
 #include <ftxui-plot/plot.hpp>
 #include <pvtui/pvtui.hpp>
+#include <chrono>
 
 static constexpr std::string_view CLI_HELP_MSG = R"(
 pvtui_striptool - TUI StripTool plotting tool.
@@ -20,14 +21,55 @@ For more details, visit: https://github.com/nmarks99/pvtui
 
 using namespace ftxui;
 using namespace pvtui;
+using namespace std::chrono_literals;
 
 using PlotData = std::vector<PlotSeries<std::deque<double>>>;
 
+// Main loop polling time
+constexpr double SAMPLE_RATE_SEC = 0.1;
+constexpr double TIME_SPAN_SEC = 5.0;
+constexpr std::chrono::seconds PV_CONNECT_TIMEOUT = 3s;
+
+
+bool wait_connect(const VarWidget<double> &var) {
+    auto start = std::chrono::steady_clock::now();
+    while (true) {
+	const auto now = std::chrono::steady_clock::now();
+	const auto elapsed = std::chrono::duration_cast<std::chrono::seconds>(now-start);
+	if (elapsed >= PV_CONNECT_TIMEOUT) {
+	    return false;
+	}
+	if (var.connected()) {
+	    return true;
+	}
+	std::this_thread::sleep_for(50ms);
+    }
+    return true;
+}
+
 struct Channel {
     Channel(VarWidget<double> var, Color color, double y0)
-	: x(arange<std::deque<double>>(0, 5.0, 0.05)),
+	: x(arange<std::deque<double>>(0, TIME_SPAN_SEC, SAMPLE_RATE_SEC)),
 	y(std::deque<double>(x.size(), y0)), color(color), var(var)
     {}
+
+    void resize(double new_span, double sample_rate, double fill_value) {
+        size_t new_size = static_cast<size_t>(new_span / sample_rate);
+
+        // Update X data
+        x = arange<std::deque<double>>(0, new_span, sample_rate);
+
+        // Update Y data
+        if (y.size() > new_size) {
+            // If shrinking, keep the most recent data (the back of the deque)
+            while (y.size() > new_size) y.pop_front();
+        } else if (y.size() < new_size) {
+            // If growing, pad the front with the fill_value (or 0.0)
+	    // TODO: should pad with NaN value. What is a good NaN value?
+            while (y.size() < new_size) y.push_front(fill_value);
+        }
+    }
+
     std::deque<double> x;
     std::deque<double> y;
     Color color;
@@ -56,15 +98,18 @@ int main(int argc, char *argv[]) {
     std::vector<Channel> channels;
     auto color_it = colors.begin();
     for (const auto& pv_name : pv_names) {
+	std::cout << "Connecting to " << pv_name << "..." << std::flush;
+
 	VarWidget<double> var(app.pvgroup, pv_name);
-	std::this_thread::sleep_for(std::chrono::milliseconds(500));
-	app.pvgroup.sync();
-	if (!var.connected()) {
-	    throw std::runtime_error("Failed to connect to " + pv_name);
+	if (!wait_connect(var)) {
+	    throw std::runtime_error("Timed out trying to connect to " + pv_name);
 	}
+
+	app.pvgroup.sync();
 	Channel chan(var, *color_it, var.value());
 	channels.push_back(std::move(chan));
 	color_it = std::next(color_it);
+	std::cout << "Connected!" << std::endl;
     }
 
     // Add the data for plotting
@@ -87,7 +132,22 @@ int main(int argc, char *argv[]) {
     auto ymin_inp = make_input(ymin);
     auto ymax_inp = make_input(ymax);
     auto xmin_inp = make_input(xmin);
-    auto xmax_inp = make_input(xmax);
+
+    // xmax is also used as the time span
+    // TODO: what should fill value be?
+    auto xmax_op = InputOption{};
+    xmax_op.multiline = false;
+    xmax_op.content = &xmax;
+    xmax_op.on_enter = [&]{
+	try {
+	    double new_span = std::stod(xmax);
+	    for (auto& chan : channels) {
+		chan.resize(new_span, SAMPLE_RATE_SEC, chan.var.value());
+	    }
+	} catch (...) {};
+    };
+    auto xmax_inp = Input(xmax_op);
+
 
     // Create the plot component
     PlotOption<std::deque<double>> op;
@@ -165,7 +225,7 @@ int main(int argc, char *argv[]) {
 	}
     };
 
-    app.run(main_renderer);
+    app.run(main_renderer, SAMPLE_RATE_SEC*1000);
 
     return 0;
 }
