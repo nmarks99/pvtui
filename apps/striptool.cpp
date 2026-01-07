@@ -46,35 +46,17 @@ struct Channel {
 
 int main(int argc, char *argv[]) {
 
-    auto screen = ScreenInteractive::Fullscreen();
+    App app(argc, argv);
+    if (app.args.help(CLI_HELP_MSG)) return EXIT_SUCCESS;
 
-
-    // Parse command line arguments and macros
-    pvtui::ArgParser args(argc, argv);
-
-    if (args.flag("help") or args.flag("h")) {
-	std::cout << CLI_HELP_MSG << std::endl;
-	return EXIT_SUCCESS;
-    }
-
-    // Instantiate EPICS PVA client
-    // Start CAClientFactory so we can see CA only PVs
-    epics::pvAccess::ca::CAClientFactory::start();
-    pvac::ClientProvider provider(args.provider);
-
-    // PVGroup to manage all PVs for displays
-    PVGroup pvgroup(provider);
-
-    // std::vector<VarWidget<double>> channels;
     std::vector<Channel> channels;
     std::vector<Color> colors = {Color::Red, Color::Green, Color::Blue};
-
     for (int i = 0; i < 3; i++) {
 	std::stringstream pvname;
 	pvname << "nmarks:m" << i+1 << ".RBV";
-	VarWidget<double> rbv(pvgroup, pvname.str());
+	VarWidget<double> rbv(app.pvgroup, pvname.str());
 	std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-	pvgroup.sync();
+	app.pvgroup.sync();
 	if (rbv.connected()) {
 	    Channel chan(std::move(rbv), colors.at(i), rbv.value());
 	    channels.push_back(chan);
@@ -83,24 +65,10 @@ int main(int argc, char *argv[]) {
 	}
     }
 
-    // // Create vectors to store the data
-    // // this will need to be done dynamically to be able
-    // // to add more series to the plot at runtime
-    // // const int N = int(20.0/0.1);
-    // std::deque<double> x1 = arange<std::deque<double>>(0, 5, 0.05);
-    // std::deque<double> y1(x1.size(), channels[0].value());
-    // Color color1 = Color::Red;
-
-    // PlotData data = {
-	// {&x1, &y1, &color1},
-    // };
-
     PlotData data;
-
     for (auto& chan : channels) {
 	data.push_back({&chan.x, &chan.y, &chan.color});
     }
-
 
     // Axis limits
     std::string ymin = "-5.0";
@@ -127,14 +95,6 @@ int main(int argc, char *argv[]) {
     op.ymax = &ymax;
     auto plot = Plot(op);
 
-    // autoscale button
-    auto button_op = ButtonOption::Simple();
-    button_op.label = "Auto-Scale";
-    button_op.on_click = [&](){
-	plot->OnEvent(PlotEvent::AutoScale);
-    };
-    auto autoscale_button = Button(button_op);
-
     // Main container to define interactivity of components
     auto main_container = Container::Vertical({
 	plot,
@@ -142,21 +102,10 @@ int main(int argc, char *argv[]) {
 	ymax_inp,
 	xmin_inp,
 	xmax_inp,
-	autoscale_button
     });
 
     // Main renderer to define visual layout of components and elements
     auto main_renderer = Renderer(main_container, [&] {
-
-	// Elements legend_elems;
-	// for (const auto& chan : channels) {
-	    // legend_elems.push_back(hbox({
-		// text(unicode::rectangle(1)) | color(chan.color),
-		// text(chan.var.pv_name() + " = " + std::to_string(chan.var.value()))
-	    // }));
-	    // legend_elems.push_back(separatorEmpty());
-	// }
-
 	return hbox({
 	    plot->Render() | (border | (plot->Active() ? color(Color::LightSkyBlue1) : color(Color::White))),
 
@@ -187,7 +136,6 @@ int main(int argc, char *argv[]) {
 			    text(unicode::rectangle(1)) | color(chan.color),
 			    text(chan.var.pv_name() + " = " + std::to_string(chan.var.value()))
 			}));
-			legend_elems.push_back(separatorEmpty());
 		    }
 		    return vbox(legend_elems);
 		}()
@@ -196,22 +144,25 @@ int main(int argc, char *argv[]) {
 	});
     });
 
-    // main program loop
-    constexpr int POLL_PERIOD_MS = 100;
-    Loop loop(&screen, main_renderer);
-    while (!loop.HasQuitted()) {
-	pvgroup.sync();
 
-	for (auto& chan : channels) {
-	    chan.y.push_back(chan.var.value());
-	    chan.y.pop_front();
+    app.main_loop = [&channels](App& app, const Component& renderer, int poll_ms) {
+	Loop loop(&app.screen, renderer);
+	while (!loop.HasQuitted()) {
+	    app.pvgroup.sync();
+
+	    for (auto& chan : channels) {
+		chan.y.push_back(chan.var.value());
+		chan.y.pop_front();
+	    }
+
+	    app.screen.PostEvent(Event::Custom);
+
+	    loop.RunOnce();
+	    std::this_thread::sleep_for(std::chrono::milliseconds(poll_ms));
 	}
+    };
 
-	screen.PostEvent(Event::Custom);
-
-	loop.RunOnce();
-	std::this_thread::sleep_for(std::chrono::milliseconds(POLL_PERIOD_MS));
-    }
+    app.run(main_renderer);
 
     return 0;
 }
